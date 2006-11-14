@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="guss-schema-of-3gpp-gaa"
+    xmlns:tns="guss-schema-of-3gpp-gaa"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+  <!-- This import brings in the XML language attribute xml:lang-->
+  <xs:import namespace="http://www.w3.org/XML/1998/namespace"
+      schemaLocation="http://www.w3.org/2001/xml.xsd"/>
+
+
+  <!-- User Public Identities for authentication -->
+  <xs:complexType name="Tuids">
+    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="uid"  type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- GAA Application type specific Authorization flag codes -->
+  <xs:complexType name="Tflags">
+	<xs:sequence minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="flag"  type="xs:int"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  
+  <!-- User Security Setting data -->
+  <xs:complexType name="Tuss">
+    <xs:sequence>
+      <xs:element name="uids" type="Tuids"/>
+      <xs:element name="flags" type="Tflags"/>
+    </xs:sequence>
+    <xs:attribute name="id"   use="required" type="xs:string"/>
+    <xs:attribute name="type" use="required" type="xs:int"/>
+    <xs:attribute name="nafGroup" use="optional" type="xs:string"/>
+  </xs:complexType>
+  
+  <!--List of all users individual User Security Settings -->
+  <xs:complexType name="TussList">
+    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+       <xs:element name="uss" type="Tuss"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <!-- BSF specific information element -->
+  <xs:complexType name="TbsfInfo">
+    <xs:sequence>
+      <xs:element name="uiccType"  type="xs:string"  minOccurs="0" />
+      <xs:element name="lifeTime"  type="xs:integer" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="Tguss">
+    <xs:sequence>
+       <xs:element name="bsfInfo" type="TbsfInfo" minOccurs="0"/>
+       <xs:element name="ussList" type="TussList"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string"/>
+  </xs:complexType>
+  <xs:element name="guss" type="Tguss"/>
+</xs:schema>
+  

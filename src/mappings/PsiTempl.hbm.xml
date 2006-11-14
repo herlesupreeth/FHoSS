@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<!-- 
+    Created by the Middlegen Hibernate plugin 2.1
+
+    http://boss.bekk.no/boss/middlegen/
+    http://www.hibernate.org/
+-->
+
+<class 
+    name="de.fhg.fokus.hss.model.PsiTempl" 
+    table="psi_templ"
+>
+
+    <id
+        name="templId"
+        type="java.lang.Integer"
+        column="templ_id"
+    >
+        <generator class="native" />
+    </id>
+
+    <property
+        name="templName"
+        type="java.lang.String"
+        column="templ_name"
+        not-null="true"
+        length="45"
+    />
+    <property
+        name="username"
+        type="java.lang.String"
+        column="username"
+        not-null="true"
+        length="255"
+    />
+    <property
+        name="hostname"
+        type="java.lang.String"
+        column="hostname"
+        not-null="true"
+        length="255"
+    />
+
+    <!-- Associations -->
+  
+    <!-- uni-directional many-to-one association to Apsvr -->
+    <many-to-one
+        name="apsvr"
+        class="de.fhg.fokus.hss.model.Apsvr"
+    >
+        <column name="apsvr_id" />
+    </many-to-one>
+    <!-- bi-directional one-to-many association to Psi -->
+    <set
+        name="psis"
+        lazy="true"
+        inverse="true"
+		cascade="none"
+    >
+        <key>
+            <column name="templ_id" />
+        </key>
+        <one-to-many 
+            class="de.fhg.fokus.hss.model.Psi"
+        />
+    </set>
+
+</class>
+</hibernate-mapping>

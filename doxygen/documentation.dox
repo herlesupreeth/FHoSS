@@ -1,0 +1,631 @@
+/**
+ * \file
+ * This file is just a place-holder for the documentation of the Open IMS Core.
+ * 
+ * The main-page of the documentation can be found here: \ref main
+ * 
+ */
+  
+/**
+ * \mainpage The Open IMS Core HSS
+ * 
+ * Documentation for Open IMS HSS implementation.\n
+ * 
+ * The \b Home-Page of the Open Source IMS Core project is at http://www.open-ims.org/
+ * 
+ * The \b Development is taking place at http://developer.berlios.de/projects/openimscore/
+ *
+ * \image html osims.jpg
+ * \image latex osims.jpg "Open Source IMS Core" width=15cm
+ * \par
+ * \par Informations
+ * \ref using 
+ * \par
+ * \ref overview
+ * \par
+ * \ref specs
+ * \par
+ * \ref libs
+ *
+ *
+ * \attention It has to be noted that this 
+ * \htmlonly <font color=red><b> \endhtmlonly
+ * Open Source IMS Core System is not intended to become or act as a product in a
+ * commercial context!
+ * \htmlonly </b></font> \endhtmlonly
+ * Its sole purpose is to provide an IMS core reference implementation for 
+ * IMS technology testing and IMS application prototyping for research 
+ * purposes, typically performed in IMS test-beds.
+ * 
+ * \attention Users of the Open Source IMS Core System have to be aware that IMS
+ * technology may be subject of patents and licence terms, as being 
+ * specified within the various IMS-related IETF, ITU-T, ETSI, and 3GPP
+ * standards. Thus all Open IMS Core users have to take notice of this 
+ * fact and have to agree to check out carefully before installing, 
+ * using and extending the Open Source IMS Core System, if related 
+ * patents and licences may become applicable to the intended usage 
+ * context.  
+ * 
+ * \note Copyright (C) 2004-2006 FhG Fokus
+ *
+ * \note The Open IMS Core is an open source IMS CSCFs & HSS implementation.
+ *
+ * \note Open IMS Core is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * \note For a license to use the Open IMS Core software under conditions
+ * other than those described here, or to purchase support for this
+ * software, please contact Fraunhofer FOKUS by e-mail at the following
+ * addresses:
+ *     info@open-ims.org
+ *
+ * \note Open IMS Core is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * \note You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ * 
+ */
+ 
+ 
+ /**
+  * \page using Getting started
+  * You can use Ant to build and install the FHoSS.
+  * \par Build
+  * To build the FHoSS you must first execute the \c gen target, to generate
+  * the data classes.
+  * \par 
+  * <tt>ant gen</tt>
+  * \par 
+  * after that use compile to build the binaries
+  * \par
+  * <tt>ant compile</tt>
+  * 
+  * \par Installation
+  * Installation is also done using ant
+  *
+  * \par
+  * With the deploy target you can install the FHoSS
+  * \par
+  * <tt>ant deploy</tt>
+  * \par
+  * To modify the destination, change the <tt>install.dest</tt> property in the
+  * build.properties file.
+  *
+  * \par 
+  * Configuration after deploy
+  * Default configuration is made for all the needed files to run FHoSS on the localhost.  However, you should see these files and modify some parameters as
+  * appropriate for your installation. 
+  * Configure the required configuration files located in the root of the deployment directory.
+  * \li "DiameterPeerHSS.xml": You should modify the peer configuration here: like
+  *	the FQDN, Realm, Acceptor Port or Authorized identifiers. (See the JavaDiameterPeer documentation 
+  *	for details on how to set up the Diameter peer.)
+  *	
+  *	\li "hibernate.properties": You should configure the main properties for
+  *	hibernate; implicitly is configured to connect to the mysql on the localhost (127.0.0.1:3306).
+  *	The most relevant properties are:
+  *	hibernate.connection.url=jdbc:mysql://127.0.0.1:3306/hssdb
+  *	hibernate.connection.username=hss
+  *	hibernate.connection.password=hss
+  * Please refer to the hibernate documentation to get further information
+  * about the hibernate configuration.
+  *
+  *	\li "hss.properties": Specify configuration like: on which address the tomcat is
+  *	listening (e.g. host=localhost) and the relative path of the web
+  *	interface of the FHoSS. (e.g. appPath=/hss.web.console). Other parameters like:
+  *	operatorId, amfId or defaultPsiImpi can be specified here.
+  *
+  *	\li "log4j.properties": Contains configuration for the logger. The most relevant
+  *	things here, are the output file path of the logger and the level of logging.
+  *		
+  * If you want to change some tomcat configuration files, you will find them in conf/ folder
+  * of the deployment directory (tomcat-users.xml contains the "hss" and "hssAdmin" users defined). 
+  *
+  * \par Creating the Database
+  * You will need a database in order to use the FHoSS. You will find
+  * to sql scripts for the MySQL database in the root directory of your installation.
+  * Use thes scripts to create a new MySQL database and to populate it with default values.
+  * \li to create the database and the tables: mysql -u admin -p <hssdb.sql
+  * \li to create two demo users and initial values for service profiles: mysql -u admin -p <userdata.sql
+  *
+  * \par 
+  * If you want to use annother DBMS you have to solve two steps:
+  * \li Make sure your database is supported by Hibernate. Visit the Hibernate
+  * web site to get information about compatibility informations for your DBMS. 
+  * \li You have to modify the script for your database system.
+  *
+  *
+  * \par Startup
+  * You will find two shell scripts in the root directory of your installation.
+  * Use <tt>startup.cmd</tt> to start the FHoSS on a Windows system and 
+  * <tt>startup.sh</tt> on Linux/UNIX system.
+  * 
+  * \par
+  * Make sure you have your <tt>\b JAVA_HOME</tt> variable is set correctly.
+  *
+  * \par Management 
+  * You can access the management console using a web browser.
+  *
+  * \par
+  * <tt>http://localhost:8080/hss.web.console</tt>
+  * 
+  * \par
+  * There are two initial users:
+  * \li hssAdmin - password: hss
+  * \li hss - password: hss
+  *
+  * \par
+  * Additional users can be configured using the <tt>/conf/tomcat-user.xml</tt>.
+  * You may also look at \ref server_roles before you start further configuration.
+  */
+  
+/**
+ * \page libs Used libraries from open source projects
+ * \par Appache Commons - Several API's for Java programming
+ * 
+ * \par
+ * \b Projekt: Jakarta Commons
+ * 
+ * \par
+ * \b Files:
+ * 	\li commons-beanutils.jar
+ * 	\li commons-collections-2.1.1.jar
+ * 	\li commons-collections-3.1.jar
+ * 	\li commons-digester.jar
+ * 	\li commons-fileupload.jar
+ * 	\li commons-lang.jar
+ * 	\li commons-logging-1.0.4.jar
+ * 	\li commons-logging.jar
+ * 	\li commons-validator.jar
+ *
+ * \par 
+ * \b Homepage 
+ * http://jakarta.apache.org/commons/index.html
+ * 
+ * \par 
+ * License: Apache License
+ * 
+ * <HR>
+ * 
+ * \par Castor Project
+ *
+ * \par  
+ * \b Files:
+ * 	\li castor-0.9.6.jar
+ * 	\li castor.jar
+ * 
+ * \par  
+ * \b Homepage: http://www.castor.org/
+ * 
+ * \par  
+ * \b License: Exolab License (Apache 2.0 License, http://www.castor.org/license.html)
+ * 
+ * <HR>
+ * 
+ * \par Antlr Project (ANother Tool for Language Recognition)
+ * 
+ * \par  
+ * \b Files:
+ * \li antlr-2.7.5H3.jar
+ * 
+ * \par  
+ * \b Homepage: http://www.antlr.org/
+ * 
+ * \par  
+ * \b License: BSD (http://www.antlr.org/license.html)
+ * 
+ * <HR>
+ * 
+ * \par ASM (ObjectWeb)
+ * 
+ * \par  
+ * \b Files:
+ * 	\li asm-attrs.jar
+ * 	\li asm.jar
+ * 
+ * \par  
+ * \b Homepage: http://asm.objectweb.org/index.html
+ * 
+ * \par  
+ * \b License: BSD (http://forge.objectweb.org/softwaremap/trove_list.php?form_cat=187)
+ * 
+ * <HR>
+ * 
+ * \par c3p
+ * 
+ * \par  
+ * \b Files:
+ * 	\li c3p0-0.9.0.2.jar
+ * 	\li c3p0-oracle-thin-extras-0.9.0.2.jar
+ * 
+ * \par  
+ * \b Homepage: ?
+ * 
+ * \par  
+ * \b License: ?
+ * 
+ * <HR>
+ * 
+ * \par Catalina (Part of Tomcat Servlet Container)
+ * 
+ * \par  
+ * \b Files:
+ * 	\li catalina-optional.jar
+ * 	\li catalina.jar
+ * 	
+ * \par  
+ * \b Homepage: http://tomcat.apache.org/
+ * 
+ * \par  
+ * \b License: Apache Software License (http://www.apache.org/licenses/)
+ * 
+ * <HR>
+ * 
+ * \par Dom4J - Java Xml Framework
+ * 
+ * \par  
+ * \b Files: 
+ * \li dom4j-1.6.jar
+ * 
+ * \par  
+ * \b Homepage: http://www.dom4j.org/
+ * 
+ * \par  
+ * \b License: BSD
+ * 
+ * <HR>
+ * 
+ * \par EHCache - Java Caching Framework
+ * 
+ * \par  
+ * \b Files: ehcache-1.1.jar
+ * 
+ * \par  
+ * \b Homepage: http://ehcache.sourceforge.net/
+ * 
+ * \par  
+ * \b License: Apache Software License (http://ehcache.sourceforge.net/license.html)
+ * 
+ * <HR>
+ * 
+ * \par Hibernate - Java Object Persistence Framework
+ * 
+ * \par  
+ * \b Files:
+ * 	\li hibernate3.jar
+ * 	
+ * \par  
+ * \b Homepage: http://www.nhibernate.org
+ * 
+ * \par  
+ * \b Licences: LGPL (http://www.gnu.org/copyleft/lesser.html)
+ * 
+ * <HR>
+ * 
+ * \par CGLib - Code Generator Lib
+ * 
+ * \par  
+ * \b Files:
+ * \li cglib-2.1.jar
+ * 
+ * \par  
+ * \b Homepage: http://cglib.sourceforge.net/
+ * 
+ * \par  
+ * \b License: Apache Software License
+ * 
+ * <HR>
+ * 
+ * \par Log4J - Java Logging Framework
+ * 
+ * \par  
+ * \b Files:
+ * \li log4j.jar
+ * 
+ * \par  
+ * \b Hompage: http://logging.apache.org/log4j/docs/
+ * 
+ * \par  
+ * \b License: Apache Software License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+ * 
+ * <HR>
+ * 
+ * \par JUnit - Framework for Unit Testing
+ * 
+ * \par  
+ * \b Files:
+ * 
+ * \par  
+ * \b Homepage: http://www.junit.org/index.htm
+ * 
+ * \par  
+ * \b License: Common Public License v1.0 (http://www.opensource.org/licenses/cpl.php)
+ * 
+ * <HR>
+ * 
+ * \par JTA - Java Transaction API
+ * 
+ * \par  
+ * \b Files: 
+ * \li jta.jar
+ * 
+ * \par  
+ * \b Hompage: http://java.sun.com/products/jta/
+ * 
+ * \par  
+ * \b License: ? Sun Java License ???
+ * 
+ * <HR>
+ *  
+ * \par MX4J - Open Source JMX Implementation
+ * 
+ * \b Files: 
+ * \li mx4j-3.0.1.jar
+ * 
+ * \par  
+ * \b Hompage: http://mx4j.sourceforge.net/
+ * 
+ * \par  
+ * \b License: Apache Software License (http://mx4j.sourceforge.net/docs/ch01s06.html)
+ * 
+ * <HR>
+ * 
+ * \par MySQL Jdbc Connector
+ * 
+ * \par  
+ * \b Files:  
+ * 	\li mysql-connector-java-3.0.14-production-bin.jar
+ * 	\li mysql-connector-java-3.1.12-bin.jar
+ * 
+ * \par  
+ * \b Homepage: http://dev.mysql.com/downloads/connector/j/3.1.html
+ * 
+ * \par  
+ * \b License: GPL
+ * 
+ * <HR>
+ * 
+ * \par Servlet API - Part of J2EE SDK
+ * 
+ * \par  
+ * \b Files:
+ * 	\li servlet-api.jar
+ * 	\li jsp-api.jar
+ * 
+ * <HR>
+ * 
+ * \par Struts (JSP Framework)
+ * 
+ * \par  
+ * \b Files:
+ * 	\li struts.jar
+ * 
+ * \par  
+ * \b Homepage: http://struts.apache.org/
+ * 
+ * \par  
+ * \b License: Apache Software License (http://apache.org/licenses/)
+ * 
+ * <HR>
+ * 
+ * \par Xalan (Xslt Processor)
+ * 
+ * \par  
+ * \b Files:
+ * \li xalan-2.4.0.jar
+ * 
+ * \par  
+ * \b Homepage: http://xalan.apache.org/index.html
+ * 
+ * \par  
+ * \b License: Apache Software License 2.0  (http://www.apache.org/licenses/LICENSE-2.0.html)
+ * 
+ * <HR>
+ * 
+ * \par Xerces (Xml Parser)
+ * 
+ * \par 
+ * \b Files:
+ * 	\li xerces-2.4.0.jar
+ * 	\li xercesImpl.jar
+ * 	
+ * \par  
+ * \b Homepage: http://xerces.apache.org/
+ * 
+ * \par  
+ * \b License: Apache Software License 2.0  (http://www.apache.org/licenses/LICENSE-2.0.html)
+ * 
+ */
+
+/**
+ * \page overview Overview
+ *
+ * This section should provide you an overview of the archicture of the FHoSS
+ * 
+ * \image html Overview-Fhoss.png
+ * 
+ * The FHoSS implementation defines the Java version of three interfaces:
+ * \li The Sh interface, which can be used by application servers to access the HSS
+ * \li The Zh interface 
+ * \li The Cx interface, wich is used to communicate with I-CSCF and S-CSCF
+ *
+ * There is also an implementation of this interfaces which does a mapping 
+ * of the interface functions to diameter based requests.
+ * The data objects used by the implementation where generated at build time.
+ * Code generation is based on the xml schema, found in the 3GPP specification 
+ * for the related interface. 
+ *
+ * Core of the FHoSS is the HssDiameterStack. It uses the DiameterPeer to send requests
+ * to other entities and retrieves the requests and responses via CommandListener.
+ * 
+ * The operational data of the Hss is stored in a database. The Hibernate persistence
+ * framework was used to build a data access layer. That enables you to change the 
+ * database system.
+ *
+ * To manage and maintain the FHoSS, a web based management interface is provided.
+ * This as implemented using the servlet technology in combination with the Apache 
+ * Struts Web framework. This provides a clear structure and seperation of 
+ * logic and gui related tasks.
+ *
+ * \par GUI
+ * The GUI layer is used to manage and monitor FHoSS. The GUI is, as allready said, based
+ * on Struts. The implementation of the gui logic can be found at de.fhg.fokus.hss.form
+ * and package de.fhg.fokus.hss.action. The rendering is done by several Java Server Pages
+ * which can be found in src-web folder.
+ *
+ * \par DAL - Data Access Layer
+ * The Hibernate persistenc framework was used to build that layer. The related data classes
+ * can be found in the de.fhg.fokus.hss.model package. There you can also find 
+ * the BO classes which provide additional service functionality to for the data classes.
+ * 
+ * \par Interface Layer
+ * The interface layer describes the external behavior of the Hss. 
+ * There are three interface specifications in there. They can be found in the de.fhg.fokus.cx,
+ * de.fhg.fokus.sh and the de.fhg.fokus.zh package. 
+ * 
+ * \par
+ * For each interface there is a direct implementation. This implementation can be found
+ * in the de.fhg.fokus.hss.server and subsequent packages. For every method of the interface
+ * there is a related operation class  in the \b op packages. 
+ *
+ * \par
+ * These operations will be called by the interface implementations and will
+ * call in turn the diameter commands. As you can read in the 3gpp specification,
+ * every interface method is mapped to a number of Diameter requests.
+ * These requests are realized by implementing the CommandAction and CommandListener
+ * classes. You will find a action for every command which send through the diameter peer,
+ * in the de.fhg.fokus.hss.diam.cx, de.fhg.fokus.hss.diam.sh and de.fhg.fokus.hss.diam.zh packages.
+ * For every command which will be received by the Hss one listener exists.
+ *
+ * \par
+ * The command listener will dispatch the requests to the interface methods.
+ */
+
+/**
+ * \dir config
+ * The configuration files for the Hss, Hibernate, Log4j and the Diameter Peer 
+ */
+ 
+/**
+ * \dir /lib
+ * All required libraries (JAR files) to build an run the project.
+ */
+
+/**
+ * \dir src
+ * The sources of the Hss.
+ */
+ 
+
+ 
+/** 
+ * \dir /scripts
+ * Start up and database scripts 
+ * \dir src-web
+ */
+
+/**
+ * \dir /tomcat
+ * The base files for a simple embedded Apache Tomcat installation.
+ */
+ 
+/**
+ * \dir trunk/xsd
+ * The Xml Schemas for the interface data classes. These are modified versions from the 3gpp
+ * specs.
+ */
+
+/**
+ * \page specs Related Specifications
+ *
+ * This work is based on the following 3gpp specifications.
+ *
+ * \par TS29.228 
+ * IP Multimedia (IM) Subsystem Cx and Dx interfaces
+ * \par
+ * http://www.3gpp.org/ftp/Specs/html-info/29228.htm
+ *
+ * \par TS29.328 
+ * IP Multimedia (IM) Subsystem Sh interface
+ * \par
+ * http://www.3gpp.org/ftp/Specs/html-info/29328.htm
+ * 
+ * \par TS29.109 
+ * Zh and Zn Interfaces based on the Diameter protocol
+ * \par
+ * http://www.3gpp.org/ftp/Specs/html-info/29109.htm
+ * 
+ * \par TS35.205
+ * Specification of the MILENAGE algorithm set
+ * \par
+ * http://www.3gpp.org/ftp/Specs/html-info/35205.htm
+ *
+ * Further informations you will also find in:
+ *
+ * \par RFC 3588 
+ *	Diameter Base Protocol
+ */
+
+/**
+ * \page server_roles server roles
+ * You can restrict the access to the different functionalities
+ * of the web console, by assigning different roles to 
+ * the users.
+ *
+ * \par \b hss
+ * With this role the complete web application is protected. 
+ * Every user how want access the web console must be in this role. 
+ * Internal the role has no regard. A user in this role have readable 
+ * access to every page.
+ * \note If you want create specific role, add the "hss"
+ * role and the every role you want. 
+ * 
+ * \par \b hssNetworkAdmin
+ * This role permits the right to 
+ * manage the network configuration. This includes the roaming network and 
+ * the charging functions. 
+ * This not includes the assignment of roaming network to a Private User Identity.
+ * Therefore it exist the role hssIMPIAdmin.
+ *
+ * \par \b hssIMPUAdmin
+ * The Public User Admin role allows the user how is assigned to this 
+ * role to administrate the Public User Identity. 
+ * This includes creating, updating and deleting them. 
+ * If you delete a Public User Identity it also deletes the assignment to the 
+ * Private Identities. 
+ * Assignment from Public User Identity to Private User Identity is only possible 
+ * for the role hssIMPIAdmin
+ *
+ * \par \b hssIMPIAdmin
+ * The Private User Admin is the manager of all private user identities. 
+ * This right includes creating, updating and deleting of 
+ * Private User Identity. Also a user in this role can assign and detach 
+ * Roaming Networks, manage GUSS entries, assign and detach Public Identities.
+ *
+ * \par \b hssIMSUAdmin
+ * The IMS Subscription Admin role allows a user to manage IMS Subscriptions. 
+ * This includes creating, updating, deleting of IMS Subscriptions 
+ * and attaching and detaching of private user identities to any Subscription.
+ *
+ * \par \b hssAPSVRAdmin
+ * This role is used to manage Application Servers within an IMS Network. Therefore the user in this role can create, editing and deleting Application Servers and assigned permission lists.
+ *
+ * \par \b hssIFCAdmin
+ * Users how want to mange the IFC configuration in the Home Subscriber Server must act in the role as an hssIFCAdmin. This includes the management of Trigger Points and assigned Service Point Trigger. Creating service profiles is the right of the next role SVPAdmin
+ * 
+ * \par \b hssSVPAdmin
+ * The management of Service Profiles within a Home Subscriber Server 
+ * is part of this role. This right includes the attaching, 
+ * detaching and prioritisation of initial filter criteria.
+ *
+ * \par \b hssPSIAdmin
+ * Public Service Identifier Templates and Instances 
+ * management are the reason for creating this role.
+ */ 
+ 

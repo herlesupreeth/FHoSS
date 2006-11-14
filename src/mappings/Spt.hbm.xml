@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<!-- 
+    Created by the Middlegen Hibernate plugin 2.1
+
+    http://boss.bekk.no/boss/middlegen/
+    http://www.hibernate.org/
+-->
+
+<class 
+    name="de.fhg.fokus.hss.model.Spt" 
+    table="spt"
+>
+
+    <id
+        name="sptId"
+        type="java.lang.Integer"
+        column="spt_id"
+    >
+        <generator class="native" />
+    </id>
+
+    <property
+        name="sipMethod"
+        type="java.lang.String"
+        column="sip_method"
+        length="45"
+    />
+    <property
+        name="sipHeader"
+        type="java.lang.String"
+        column="sip_header"
+        length="45"
+    />
+    <property
+        name="sipHeaderContent"
+        type="java.lang.String"
+        column="sip_header_content"
+        length="45"
+    />    
+    <property
+        name="reqUri"
+        type="java.lang.String"
+        column="req_uri"
+        length="45"
+    />
+    <property
+        name="sessionCase"
+        type="int"
+        column="session_case"
+        length="10"
+    />
+    <property
+        name="sessionDescContent"
+        type="java.lang.String"
+        column="session_desc_content"
+        length="45"
+    />
+    <property
+        name="sessionDescLine"
+        type="java.lang.String"
+        column="session_desc_line"
+        length="45"
+    />
+    
+     <property
+        name="neg"
+        type="boolean"
+        column="neg"
+        not-null="true" 
+        length="1"
+     />
+    
+    <property
+        name="groupId"
+        type="int"
+        column="groupId"
+        not-null="true"
+        length="10"
+    />
+    
+    <property
+        name="type"
+        type="int"
+        column="type"
+        not-null="true"
+        length="10"
+    />
+    <!-- Associations -->
+  
+    <!-- bi-directional many-to-one association to Trigpt -->
+    <many-to-one
+        name="trigpt"
+        class="de.fhg.fokus.hss.model.Trigpt"
+        not-null="true"
+    >
+        <column name="trigpt_id" />
+    </many-to-one>
+
+</class>
+</hibernate-mapping>

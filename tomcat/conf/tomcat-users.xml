@@ -1,0 +1,14 @@
+<tomcat-users>
+	<role rolename="hss"/>
+	<role rolename="hssIFCAdmin"/>
+	<role rolename="hssSVPAdmin"/>
+	<role rolename="hssAPSVRAdmin"/>
+	<role rolename="hssIMPUAdmin"/>
+	<role rolename="hssIMPIAdmin"/>
+	<role rolename="hssIMSUAdmin"/>
+	<role rolename="hssPSIAdmin"/>
+	<role rolename="hssNETWORKAdmin"/>
+	
+  	<user name="hss" password="hss" roles="hss"/>
+  	<user name="hssAdmin" password="hss" roles="hss,hssIFCAdmin,hssSVPAdmin,hssAPSVRAdmin,hssIMPUAdmin,hssIMPIAdmin,hssIMSUAdmin,hssPSIAdmin,hssNETWORKAdmin"/>
+</tomcat-users>

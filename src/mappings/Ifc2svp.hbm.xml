@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<!-- 
+    Created by the Middlegen Hibernate plugin 2.1
+
+    http://boss.bekk.no/boss/middlegen/
+    http://www.hibernate.org/
+-->
+
+<class 
+    name="de.fhg.fokus.hss.model.Ifc2svp" 
+    table="ifc2svp"
+>
+
+    <composite-id name="comp_id" class="de.fhg.fokus.hss.model.Ifc2svpPK">
+        <key-property 
+            name="ifcId" 
+            column="ifc_id" 
+            type="java.lang.Integer"
+            length="10"
+        />
+        <key-property 
+            name="svpId" 
+            column="svp_id" 
+            type="java.lang.Integer"
+            length="10"
+        />
+    </composite-id>    
+
+    <property
+        name="priority"
+        type="int"
+        column="priority"
+        not-null="true"
+        length="10"
+    />
+
+    <!-- Associations -->
+    <!-- derived association(s) for compound key -->
+    <!-- bi-directional many-to-one association to Imsu -->
+    <many-to-one
+        name="ifc"
+        class="de.fhg.fokus.hss.model.Ifc"
+        not-null="true"
+        insert="false"
+        update="false">
+        <column name="ifc_id" />
+    </many-to-one>
+    <!-- end of derived association(s) -->
+  
+
+</class>
+</hibernate-mapping>

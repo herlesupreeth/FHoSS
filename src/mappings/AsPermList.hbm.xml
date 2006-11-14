@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<!-- 
+    Created by the Middlegen Hibernate plugin 2.1
+
+    http://boss.bekk.no/boss/middlegen/
+    http://www.hibernate.org/
+-->
+
+<class 
+    name="de.fhg.fokus.hss.model.AsPermList" 
+    table="as_perm_list"
+>
+
+    <id
+        name="apsvrId"
+        type="java.lang.Integer"
+        column="apsvr_id"
+    >
+        <generator class="assigned" />
+    </id>
+
+    <property
+        name="pull"
+        type="boolean"
+        column="PULL"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="pullRepData"
+        type="boolean"
+        column="PULL_REP_DATA"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="pullImpu"
+        type="boolean"
+        column="PULL_IMPU"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="pullImpuUserState"
+        type="boolean"
+        column="PULL_IMPU_USER_STATE"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="pullScscfName"
+        type="boolean"
+        column="PULL_SCSCF_NAME"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="pullIfc"
+        type="boolean"
+        column="PULL_IFC"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="pullLocInfo"
+        type="boolean"
+        column="PULL_LOC_INFO"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="pullUserState"
+        type="boolean"
+        column="PULL_USER_STATE"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="pullCharging"
+        type="boolean"
+        column="PULL_CHARGING"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="pullPsi"
+        type="boolean"
+        column="PULL_PSI"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="pullMsisdn"
+        type="boolean"
+        column="PULL_MSISDN"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="updRepData"
+        type="boolean"
+        column="UPD_REP_DATA"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="updPsi"
+        type="boolean"
+        column="UPD_PSI"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="subRepData"
+        type="boolean"
+        column="SUB_REP_DATA"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="subImpuUserState"
+        type="boolean"
+        column="SUB_IMPU_USER_STATE"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="subScscfname"
+        type="boolean"
+        column="SUB_SCSCFNAME"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="subIfc"
+        type="boolean"
+        column="SUB_IFC"
+        not-null="true"
+        length="1"
+    />
+    <property
+        name="subPsi"
+        type="boolean"
+        column="SUB_PSI"
+        not-null="true"
+        length="1"
+    />
+
+    <!-- Associations -->
+  
+
+</class>
+</hibernate-mapping>

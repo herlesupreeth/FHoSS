@@ -1,0 +1,34 @@
+<!DOCTYPE hibernate-configuration PUBLIC
+	"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+	"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+	<session-factory name="foo">
+	<!--
+		The Chache provider -->
+		<property name="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</property>
+	
+		<property name="show_sql">false</property>
+		<mapping resource="mappings/Network.hbm.xml"/>		
+		<mapping resource="mappings/Imsu.hbm.xml"/>
+		<mapping resource="mappings/Impi.hbm.xml"/>
+		<mapping resource="mappings/Impu.hbm.xml"/>		
+		<mapping resource="mappings/Ifc.hbm.xml"/>			
+		<mapping resource="mappings/Ifc2svp.hbm.xml"/>
+		<mapping resource="mappings/Spt.hbm.xml"/>		
+		<mapping resource="mappings/Trigpt.hbm.xml"/>
+		<mapping resource="mappings/Apsvr.hbm.xml"/>
+		<mapping resource="mappings/Psi.hbm.xml"/>
+		<mapping resource="mappings/PsiTempl.hbm.xml"/>				
+		<mapping resource="mappings/Chrginfo.hbm.xml"/>
+		<mapping resource="mappings/AsPermList.hbm.xml"/>
+		<mapping resource="mappings/RepData.hbm.xml"/>
+		<mapping resource="mappings/NotifyRepData.hbm.xml"/>
+		<mapping resource="mappings/NotifyImsUserState.hbm.xml"/>		
+		<mapping resource="mappings/NotifyScscfname.hbm.xml"/>
+		<mapping resource="mappings/NotifyIfc.hbm.xml"/>
+		<mapping resource="mappings/DiamServer.hbm.xml"/>	
+		<mapping resource="mappings/Uss.hbm.xml"/>
+		<mapping resource="mappings/Svp.hbm.xml"/>	
+	</session-factory>
+</hibernate-configuration>

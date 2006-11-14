@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 1.1//EN"
+       "http://jakarta.apache.org/struts/dtds/tiles-config_1_1.dtd">
+
+<tiles-definitions>
+	<definition name=".coev.definition" path="/jsp/coevLayout.jsp">
+		<put name="coevHeader" value="/jsp/coevHeader.jsp" />
+	</definition>
+
+	<definition name=".coev.showCoev" extends=".coev.definition">
+		<put name="coevTitle" value="Massnahmenverfolgung" />
+		<put name="coevTree" value="/jsp/coevTree.jsp" />
+		<put name="coevEdit" value="/jsp/coevEdit.jsp" />
+	</definition>
+</tiles-definitions>

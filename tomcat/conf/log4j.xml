@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<!-- ===================================================================== -->
+<!-- -->
+<!-- Log4j Configuration -->
+<!-- -->
+<!-- ===================================================================== -->
+<!-- $Id$ -->
+<!--
+| For more configuration infromation and examples see the Jakarta Log4j
+| owebsite: http://jakarta.apache.org/log4j
+-->
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+<!-- =================Appenders for CSF=================-->
+<appender name="CATALINA" class="org.apache.log4j.RollingFileAppender">
+<param name="File" value="${catalina.base}/logs/catalina.log"/>
+<param name="Append" value="true"/>
+<param name="MaxFileSize" value="5000KB"/>
+<param name="MaxBackupIndex" value="2"/>
+<layout class="org.apache.log4j.PatternLayout">
+<param name="ConversionPattern" value="%d %-5p [%c] %m%n"/>
+</layout>
+</appender> 
+
+<!-- ============================== -->
+<!-- Append messages to the console -->
+<!-- ==============================-->
+
+<appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+<param name="Target" value="System.out"/>
+<layout class="org.apache.log4j.PatternLayout">
+<!--The default pattern: Date Priority [Category] Message\n-->
+<param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%c{1}] %m%n"/>
+</layout>
+</appender>
+
+<!-- ================ -->
+<!-- Limit categories -->
+<!-- ================ -->
+<!--
+RULES for logging DEBUG < INFO < WARN < ERROR < FATAL.
+-->
+<!-- catalina -->
+<!--
+<category 
+     name="org.apache.catalina" 
+     additivity="true">
+	 <priority value="info" />
+     <appender-ref ref="CATALINA"/>
+</category>
+
+<category 
+     name="org.apache.tomcat" 
+     additivity="true">
+	 <priority value="info" />
+     <appender-ref ref="CATALINA"/>
+</category>
+-->
+<!-- Setup the Root c  -->
+<root>
+	 <priority value="info" />
+     <appender-ref ref="CONSOLE"/>
+</root>
+</log4j:configuration> 
+

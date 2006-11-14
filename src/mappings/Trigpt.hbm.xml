@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<!-- 
+    Created by the Middlegen Hibernate plugin 2.1
+
+    http://boss.bekk.no/boss/middlegen/
+    http://www.hibernate.org/
+-->
+
+<class 
+    name="de.fhg.fokus.hss.model.Trigpt" 
+    table="trigpt"
+>
+
+    <id
+        name="trigptId"
+        type="java.lang.Integer"
+        column="trigpt_id"
+    >
+        <generator class="native" />
+    </id>
+
+    <property
+        name="name"
+        type="java.lang.String"
+        column="name"
+        not-null="true"
+        length="255"
+    />
+    
+    <property
+        name="cnf"
+        type="int"
+        column="cnf"
+        not-null="true"
+        length="1"
+    />
+
+    <!-- Associations -->
+  
+    <!-- bi-directional one-to-many association to Spt -->
+    <set
+        name="spts"
+        lazy="true"
+        inverse="true"
+		cascade="all-delete-orphan"
+		order-by="groupId"
+    >
+        <key>
+            <column name="trigpt_id" />
+        </key>
+        <one-to-many 
+            class="de.fhg.fokus.hss.model.Spt"
+        />
+    </set>
+
+</class>
+</hibernate-mapping>

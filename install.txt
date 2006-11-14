@@ -1,0 +1,121 @@
+############################################################################################
+OpenIMS - FHoSS Project - FOKUS Fraunhofer Institute
+--------------------------------------------------------------------------------------------
+
+-----------------------------------------------------
+Simple Steps for compiling and installing FHoSS:
+------------------------------------------------------
+
+1. Checkout the sources from SVN
+--------------------------------
+svn checkout
+
+2. Generate additional java sources from xsd files (xsd/CxDataType, xsd/ShDataType, ZhDataType)
+--------------------------------------------------
+ant gen
+
+3. Compile all the sources
+--------------------------
+ant [compile]
+
+4. Deploy the HSS
+-----------------
+4.1. Set the desired path for the deployment in "build.properties" (implicitly this is the "deploy" 
+folder from the base directory). 
+
+4.2. Deploy the application to the specified path.
+ant deploy
+
+5. Configuration after deploy
+------------------------------
+Default configuration is made for all the needed files to run FHoSS on the 
+localhost.  However, you should see these files and modify some parameters as
+appropriate for your installation. 
+
+5.1. Configure the required configuration files located in the root of the deployment
+directory:
+
+ 	- "DiameterPeerHSS.xml": You should modify the peer configuration here: like
+	the FQDN, Realm, Acceptor Port or Authorized identifiers. (See the JavaDiameterPeer documentation 
+	for details on how to set up the Diameter peer.)
+		
+ 	- "hibernate.properties": You should configure the main properties for
+	hibernate; implicitly is configured to connect to the mysql on the localhost (127.0.0.1:3306).
+	The most relevant properties are:
+	hibernate.connection.url=jdbc:mysql://127.0.0.1:3306/hssdb
+	hibernate.connection.username=hss
+	hibernate.connection.password=hss
+
+ 	- "hss.properties": Specify configuration like: on which address the tomcat is
+	listening (e.g. host=localhost) and the relative path of the web
+	interface of the FHoSS. (e.g. appPath=/hss.web.console). Other parameters like:
+	operatorId, amfId or defaultPsiImpi can be specified here.
+
+	- "log4j.properties": Contains configuration for the logger. The most relevant
+	things here, are the output file path of the logger and the level of logging.
+		
+5.2 If you want to change some tomcat configuration files, you will find them in conf/ folder
+of the deployment directory (tomcat-users.xml contains the "hss" and "hssAdmin" users defined). 
+
+6. Setup the database
+---------------------
+
+6.1 Install mysql on your machine (if you haven't already done so)
+
+6.2 Run the script that creates the database and the tables.
+mysql -u admin -p <hssdb.sql
+ 
+6.3 Run the script that creates two demo users
+mysql -u admin -p <userdata.sql
+
+6.4 The users and passwords that are implicitly set for the FHoSS
+ 
+ 	6.4.1 for interacting with mysql 
+ 	user: hss 
+ 	password: hss
+ 	
+ 	6.4.2 for the web interface
+ 	read-only user:
+ 		user: hss
+ 		password: hss
+
+ 	administrator:
+ 		user: hssAdmin
+ 		password: hss	
+ 		
+7. Running the FHoSS
+--------------------
+7.1 go in the deployment directory
+cd deploy
+
+7.2 execute the start script
+on Linux machines launch
+sh startup.sh (maybe do chmod +x startup.sh to set executable rights)
+
+on Windows machines launch
+startup.cmd
+
+7.3 Access the web interface management console 
+if the HSS was deployed only on "localhost" you will find it under: http://localhost:8080/hss.web.console
+
+8. Adding new IMS users
+------------------------
+At this point you have 2 demo users with one standard service profile already in the database. These are:
+
+Alice:
+-----------
+ public identity: sip:alice@open-ims.test
+ private identity: alice@open-ims.test
+ secret key: alice
+ 
+Bob:
+-----------
+ public identity: sip:bob@open-ims.test
+ private identity: bob@open-ims.test
+ secret key: bob
+
+You can use the web interface to see the existing users and settings, to add, to modify or to create 
+new users, service profiles, triggering points, and more settings. 
+ 
+9. Now you are ready to test a registration on the IMS using FHoSS!
+------------------------------------------------------------------------------------------------------------------------------ 

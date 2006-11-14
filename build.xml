@@ -1,0 +1,193 @@
+<project name="FHoSS Project" default="compile" basedir=".">
+	<property file="build.properties"/>	
+	
+	<description>
+		FHoSS Project - Build file for Compilation and Deployment of the FHoSS
+	</description>	
+	
+	<!--  directories -->
+	<property name="src" location="src" />
+	<property name="src-gen" location="src-gen" />
+	<property name="build" location="bin" />
+	<property name="docs" location="docs" />
+	<property name="web-dest" location="${install.dest}/webapps/hss.web.console" />	
+	
+	<!-- compilation control functions -->
+	<property name="compile.debug" value="true" />
+	<property name="compile.deprecation" value="true" />
+	<property name="compile.optimize" value="true" />
+	
+	<!-- classpath and libraries used by project -->
+	<path id="compile.classpath">
+		<pathelement location="." />
+		<pathelement location="bin" />
+		<pathelement location="lib" />
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>	
+	
+	<target name="init">
+		<tstamp/>
+		<mkdir dir="${build}" />
+		<mkdir dir="${src-gen}" />
+	</target>
+
+	<target name="gen" depends="init,clean-gen">
+		<java 
+			classname="org.exolab.castor.builder.SourceGenerator"
+			fork="true">
+			<classpath refid="compile.classpath" />
+			<arg value="-i" /> 
+			<arg value="xsd/ShDataType.xsd" />
+			<arg value="-package" />			
+			<arg value="de.fhg.fokus.sh.data" />			
+			<arg value="-dest" />			
+			<arg value="${src-gen}" />			
+		</java>
+		<java 
+			classname="org.exolab.castor.builder.SourceGenerator"
+			fork="true">
+			<classpath refid="compile.classpath" />
+			<arg value="-i" /> 
+			<arg value="xsd/CxDataType.xsd" />
+			<arg value="-package" />			
+			<arg value="de.fhg.fokus.cx.datatypes" />			
+			<arg value="-dest" />			
+			<arg value="${src-gen}" />			
+		</java>
+		<java 
+			classname="org.exolab.castor.builder.SourceGenerator"
+			fork="true">
+			<classpath refid="compile.classpath" />
+			<arg value="-i" /> 
+			<arg value="xsd/ZhDataType.xsd" />
+			<arg value="-package" />			
+			<arg value="de.fhg.fokus.zh.data" />			
+			<arg value="-dest" />			
+			<arg value="${src-gen}" />			
+		</java>
+	</target>
+	
+	
+	<target name="compile" depends="init">
+		<javac 
+			srcdir="${src-gen}" 
+			destdir="${build}"
+			debug="${compile.debug}"
+			deprecation="${compile.deprecation}"
+			optimize="${compile.optimize}">
+			
+			<classpath refid="compile.classpath" />			
+		</javac>	
+			
+		<javac 
+			srcdir="${src}" 
+			destdir="${build}"
+			debug="${compile.debug}"
+			deprecation="${compile.deprecation}"
+			optimize="${compile.optimize}">
+			
+			<classpath refid="compile.classpath" />			
+		</javac>	
+		
+	</target>	
+
+		
+	<target name="jars" depends="compile">
+		<mkdir dir="${build}/lib" />
+		<jar destfile="${build}/lib/FHoSS.jar">		
+			<fileset dir="${build}">
+				<include name="**"/>				
+				<exclude name="lib/**"/>				
+			</fileset>
+
+			<fileset dir="src">
+				<include name="mappings/**"/>				
+				<include name="hibernate.cfg.xml"/>				
+				<include name="mapping.xml"/>				
+				<include name="MessageResources.properties"/>								
+			</fileset>
+		</jar>	
+	</target>
+	
+	
+	<target name="deploy" depends="jars">
+		<copy todir="${install.dest}">
+			<fileset dir="tomcat">
+				<include name="**/conf/*.*"/>
+				<include name="**/lib/*.jar"/>
+				<include name="**/webapps/**"/>				
+			</fileset>
+		</copy>
+		
+		<echo message="Install the hss.web.console \n"/>		
+		<mkdir dir="${web-dest}"/>
+		<copy todir="${web-dest}">
+			<fileset dir="src-web">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+		
+		<mkdir dir="${web-dest}/classes"/>
+		<copy todir="${web-dest}/WEB-INF/classes">
+			<fileset dir="${build}">
+				<include name="**/hss/**/*"/>
+				<exclude name="lib/**"/>
+			</fileset>
+		</copy>
+				
+		<copy todir="${install.dest}/lib" file="${build}/lib/FHoSS.jar" />
+		<copy todir="${install.dest}/lib">
+			<fileset dir="lib">
+				<include name="*.jar"/>
+			</fileset>
+		</copy>
+
+		<copy todir="${install.dest}">
+			<fileset dir="scripts">
+				<include name="*"/>
+			</fileset>
+			<fileset dir="config">
+				<include name="*"/>
+			</fileset>
+			
+		</copy>
+	</target>
+
+	<target name="jdoc" depends="compile">
+		<mkdir dir="${docs}" />
+		<mkdir dir="${docs}/api" />
+	  	<javadoc 
+	  		sourcepath="${src}"
+	  		destdir="${docs}/api">
+	  		
+	  		<!-- packagenames="*" -->
+	  		
+	  	    <packageset dir="src" defaultexcludes="yes">
+	  	      <include name="de/**"/>
+	  	      
+	  	    </packageset>	  		
+	  	
+	  		<classpath refid="compile.classpath" />
+	  	</javadoc>	
+	</target>
+	
+	
+	<target name="clean">
+		<delete dir="${build}" />
+	  	<delete dir="${docs}" />
+	</target>
+	
+	<target name="clean-gen">
+		<delete dir="${src-gen}" />
+	</target>
+
+	<target name="cleanall" depends="clean-gen">
+		<delete dir="${build}" />
+	  	<delete dir="${docs}" />
+	</target>
+	
+	
+</project>
+

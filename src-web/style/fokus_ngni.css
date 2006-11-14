@@ -1,0 +1,299 @@
+/* + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + */
+/* Basic Styles Fokus NGNI */
+/* + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + */
+
+/* basics: */
+html, body, div, p, h1, h2, h3, span, a, table, td, form, img {
+	margin:					0;
+	padding:				0;
+	font-family:			Verdana, Arial, Helvetica, sans-serif;
+	color:					#333333;
+	text-align:				left;
+	line-height:			140%; }
+
+pre {
+	margin:					0;
+	padding:				5px 0px 15px 0px;
+	width:					488px; }
+	
+.inputbox {
+	border:					thin solid #EB9015;
+	background-color:		white; }
+
+.inputtext {
+	padding-left:			3px;
+	font-family:			Verdana, Arial, Helvetica, sans-serif;
+	border:					thin solid #EB9015;
+	background-color:		#FDDE96; }
+.inputtext_readonly {
+	padding-left:			3px;
+	font-family:			Verdana, Arial, Helvetica, sans-serif;
+	color:					#BBBBBB;
+	border:					thin solid #EB9015;
+	background-color:		#FDDE96; }
+img {
+	border:					none; }
+
+a {
+	color:					#333333;
+	font-weight:			bold;
+	text-decoration:		none; }
+	
+a:hover {
+	color:					#EB9015; }
+
+html, body {
+	background:				#FDDE96 url('images/bg_main.gif') repeat-x; }
+
+/* text: */
+
+h1 {
+	font-size:				15px;
+	font-weight:			bold;
+	padding-top:			30px; }
+	
+h2 {
+	font-size:				12px;
+	font-weight:			bold; }
+
+p {
+	font-size:				12px;
+	padding:				5px 0px 15px 0px; }
+	
+p.untertitel{
+	font-size:				12px;
+	font-weight:			bold;
+	padding-bottom:			15px; }
+	
+p.bildsub{
+	font-size:				10px;
+	font-weight:			bold;
+	padding-bottom:			15px; }
+
+/* + + + + + + + + + + + + + + + + + + + + + + + + */
+/* Navigation Level 1 und 2: */
+
+/* --------------- General Layout ------------------------------------ */
+
+div#centerarea {
+	width:					93%;
+	margin:					auto;
+	border-left:			1px solid #666666;
+	border-right:			1px solid #666666;
+	border-bottom:			1px solid #666666; }
+
+td#bound_left {
+	width:					20px;
+	margin:					auto;
+	border-right:			1px solid #666666;}
+
+td#space_left {
+	width:					140px;
+	margin:					auto;
+	text-align:				left;
+	vertical-align:			top;
+	background-color:		#FFFFFF;
+	border-right:			1px solid #666666;}
+	
+td#bound_right {
+	width:					20px;
+	margin:					auto;
+	border-left:			1px solid #666666;}
+
+tr#bound_bottom {
+	margin:					auto;
+	border-bottom:			1px solid #FFFFFF;}
+	
+tr#bound_bottom_black {
+	margin:					auto;
+	border-bottom:			1px solid #666666;}	
+	
+	
+tr#inner_nav {
+	margin:					auto;
+	border-right:			1px solid #666666;
+	}	
+	
+tr#bound_top_black {
+	margin:					auto;
+	border-top:				1px solid #666666;}	
+	
+div#header {
+	width:					930px;
+	height:					140px; }
+
+img#logo {
+	position:				relative;
+	top:					13px;
+	left:					70px; }
+                         
+table#navigation {
+	width:					100%;
+	border-collapse:		collapse;
+	border-spacing:			0;
+	font-size:        		11px;
+	font-weight:			bold;
+	vertical-align:			middle;
+	}
+
+table#navigation td#header {
+	height:					30px;
+	padding-left:			60px; 
+	font-size: 24px;}
+
+table#navigation td#level01 {
+	height:					16px;
+	padding-left:			180px; }
+		
+table#navigation td#level01 a {
+	text-transform:			uppercase;
+	margin-right:			10px; }
+
+table#navigation td#level01 a:hover {
+	text-transform:			uppercase;
+	margin-right:			10px; 
+	text-decoration: 		underline;
+	}
+	
+table#navigation td#language {
+	height:					16px;
+	text-align:				right;
+	padding-right:			3px; }
+
+table#navigation td#language a {
+	color:					#EB9015; }
+
+table#navigation td#language a:hover {
+	color:					#333333;
+}
+
+table#navigation td#level02 {
+	height:					16px;
+	padding-left:			180px; }
+
+table#navigation td#level02 a {
+	color:					white;
+	margin-right:			10px; }
+
+table#navigation td#level02 a:hover {
+	color:					#333333; }
+
+/* + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + */
+/* Der untere 3-spaltige Bereich als Tabelle: */
+
+table#main {
+	table-layout:			fixed;
+	width:					100%;
+	position:				relative;
+	border-spacing:			0;
+	border-collapse:		collapse;}
+
+/* + + + + + + + + + + + + + + */
+/* linke Spalte */
+
+table#main td#spaltelogo {
+	max-width:				170px;
+	min-width:				170px;
+	text-align:				center;
+	vertical-align:			top;
+	padding-top:			30px; }
+
+table#main td#level01 a {
+	text-transform:			uppercase;
+	margin-left:			10px; 
+	font-size: 				11px;}
+	
+table#main td#level01 a:hover {
+	text-transform:			uppercase;
+	margin-left:			10px; 
+	font-size: 				11px;
+	text-decoration: 		underline;}
+
+table#main td#level02 a {
+	text-transform:			uppercase;
+	margin-left:			0px; 
+	font-size: 				11px;}
+	
+table#main td#level02 a:hover {
+	text-transform:			uppercase;
+	margin-left:			0px; 
+	font-size: 				11px;
+	text-decoration: 		underline;}
+	
+/* + + + + + + + + + + + + + + + */
+/* mittlere Spalte */
+
+table#main td#spaltecontent {
+	border-left:			1px solid #666;
+	border-right:			1px solid #666;
+	border-top:				0px none #666;
+	border-bottom:			0px none #666;
+	max-width:				590px;
+	min-width:				590px;
+	font-size:				12px;
+	vertical-align:			top;
+	padding:				10px 55px 10px 55px; }
+
+table#main td#spaltecontent p {
+	text-align:				justify; }
+
+/* + + + + + + + + + + + + + + + + */
+/* spalteservicenav (rechte Seite) */
+
+table#main td#spalteservicenav {
+	max-width:				170px;
+	min-width:				170px;
+	vertical-align:			top;
+	padding:				20px 0 20px 0; }
+
+table#main td#spalteservicenav ul {
+	font-size:				11px;
+	list-style-type:		none;
+	margin:					16px 0px 16px 10px; }
+
+table#main td#spalteservicenav ul a {
+	color:					#333333;
+	font-weight:			normal;
+	line-height:			14px; }
+
+table#main td#spalteservicenav ul a:hover {
+	color:					#EB9015; }
+
+table#main td#spalteservicenav ul li {
+	margin-bottom:			6px;
+	line-height:			14px; }
+
+/* Die Zuordnung der Icons: */
+table#main td#spalteservicenav ul li.icontext {
+	list-style-image:		url('images/icon_text.gif'); }
+
+table#main td#spalteservicenav ul li.iconbild {
+	list-style-image:		url('images/icon_bild.gif'); }
+
+table#main td#spalteservicenav ul li.iconfilm {
+	list-style-image:		url('images/icon_film.gif'); }
+
+table#main td#spalteservicenav ul li.icon_link_www {
+	list-style-image:		url('images/icon_link_www.gif'); }
+
+table#main td#spalteservicenav ul li.icon_link_fokus {
+	list-style-image:		url('images/icon_link_fokus.gif'); }
+	
+table#main td#spalteservicenav ul li.icon_link_fue {
+	list-style-image:		url('images/icon_link_fue.gif'); }
+
+table#main td#spalteservicenav ul li.icon_link_pup {
+	list-style-image:		url('images/icon_link_pup.gif'); }
+
+/* Result table */
+table.as td { text-align:left; font-size: 12px; padding-left: 10px; padding-right: 10px;}
+table.as tr.header { background-color:#ff9a00; font-weight: 600; }
+table.as td.header { padding-top: 5px; padding-bottom: 5px; }
+table.as tr.even { background-color:#fdcb56; }
+table.as tr.odd { background-color:#fdde96; }
+table.as tr.iEven { background-color:#23cbdb; }
+table.as tr.iOdd { background-color:#23deee; }
+table.as tr.formular { background-color:#DDDDDD; font-weight: 600; margin-top: 5px; margin-bottom: 20px; }
+table.as td.formular { padding-top: 5px; padding-bottom: 20px; }
+table.as td.tgpFormular { padding-top: 2px; padding-bottom: 2px; background-color:#dddddd;}
+/* + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + */

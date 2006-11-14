@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+<hibernate-mapping>
+<!-- 
+    Created by the Middlegen Hibernate plugin 2.1
+
+    http://boss.bekk.no/boss/middlegen/
+    http://www.hibernate.org/
+-->
+
+<class 
+    name="de.fhg.fokus.hss.model.Chrginfo" 
+    table="chrginfo"
+>
+
+    <id
+        name="chrgId"
+        type="java.lang.Integer"
+        column="chrg_id"
+    >
+        <generator class="native" />
+    </id>
+
+    <property
+        name="priChrgCollFnName"
+        type="java.lang.String"
+        column="PRI_CHRG_COLL_FN_NAME"
+        not-null="true"
+        length="255"
+    />
+    <property
+        name="name"
+        type="java.lang.String"
+        column="NAME"
+        not-null="true"
+        length="45"
+        unique="true"
+    />
+    <property
+        name="secChrgCollFnName"
+        type="java.lang.String"
+        column="SEC_CHRG_COLL_FN_NAME"
+        length="255"
+    />
+    <property
+        name="priEventChrgFnName"
+        type="java.lang.String"
+        column="PRI_EVENT_CHRG_FN_NAME"
+        not-null="true"
+        length="255"
+    />
+    <property
+        name="secEventChrgFnName"
+        type="java.lang.String"
+        column="SEC_EVENT_CHRG_FN_NAME"
+        length="255"
+    />
+
+    <!-- Associations -->
+  
+
+</class>
+</hibernate-mapping>

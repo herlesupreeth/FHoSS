@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<!-- 
+    Created by the Middlegen Hibernate plugin 2.1
+
+    http://boss.bekk.no/boss/middlegen/
+    http://www.hibernate.org/
+-->
+
+<class 
+    name="de.fhg.fokus.hss.model.Ifc" 
+    table="ifc"
+>
+
+    <id
+        name="ifcId"
+        type="java.lang.Integer"
+        column="ifc_id"
+    >
+        <generator class="native" />
+    </id>
+    
+    <property
+        name="name"
+        type="java.lang.String"
+        column="ifc_name"
+        not-null="true"
+        length="255"
+    />
+
+    <!-- Associations -->
+  
+    <!-- uni-directional many-to-one association to Apsvr -->
+    <many-to-one
+        name="apsvr"
+        class="de.fhg.fokus.hss.model.Apsvr"
+    >
+        <column name="apsvr_id" />
+    </many-to-one>
+    <!-- uni-directional many-to-one association to Trigpt -->
+    <many-to-one
+        name="trigpt"
+        class="de.fhg.fokus.hss.model.Trigpt"
+    >
+        <column name="trigpt_id" />
+    </many-to-one>
+
+    <!-- Associations -->
+    <!-- bi-directional one-to-many association to Ifc -->
+     <set
+        name="svp"
+        lazy="true"
+        inverse="true"
+		cascade="none"
+		table="ifc2svp"
+    >
+        <key>
+            <column name="ifc_id" />
+        </key>
+        <many-to-many column="svp_id"
+            class="de.fhg.fokus.hss.model.Svp"
+        />
+    </set>
+
+</class>
+</hibernate-mapping>
