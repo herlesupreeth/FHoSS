@@ -90,7 +90,7 @@ cd deploy
 
 7.2 execute the start script
 on Linux machines launch
-sh startup.sh (maybe do chmod +x startup.sh to set executable rights)
+sh startup.sh 
 
 on Windows machines launch
 startup.cmd

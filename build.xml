@@ -150,9 +150,10 @@
 			</fileset>
 			<fileset dir="config">
 				<include name="*"/>
-			</fileset>
-			
+			</fileset>			
 		</copy>
+		
+		<chmod file="${install.dest}/startup.sh" perm="+x"/>
 	</target>
 
 	<target name="jdoc" depends="compile">
