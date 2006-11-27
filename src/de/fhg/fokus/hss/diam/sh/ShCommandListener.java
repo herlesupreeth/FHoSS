@@ -262,7 +262,7 @@ public abstract class ShCommandListener extends CommandListener
     {
         AVP originHostAVP =
             avpLookUp(
-                requestMessage, AVPCodes._ORIGIN_HOST, true, Vendor.V3GPP);
+                requestMessage, AVPCodes._ORIGIN_HOST, false, Vendor.DIAM);
         String originHost = new String(originHostAVP.data);
 
         return originHost;
