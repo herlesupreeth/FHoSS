@@ -136,20 +136,20 @@ public abstract class ShCommandListener extends CommandListener
     }
 
     /**
-     * Find a AVP in a request. If null return a DiameterException with DIAMETER_MISSING_AVP-Code.
-     * @param msg
-     * @param avpCode
-     * @param isVendorSpecific
+     * Find a AVP in a request message. If null, return a DiameterException with DIAMETER_MISSING_AVP-Code.
+     * @param msg 
+     * @param avpCode 
+     * @param mandatory
      * @param vendorId
-     * @return AVP given by avpCode and Vendor.
+     * @return AVP given by avpCode and VendorId
      * @throws DiameterException
      */
     protected AVP avpLookUp(
-        DiameterMessage msg, int avpCode, boolean isVendorSpecific, int vendorId)
+        DiameterMessage msg, int avpCode, boolean mandatory, int vendorId)
         throws DiameterException
     {
-        AVP avp = msg.findAVP(avpCode, isVendorSpecific, vendorId);
-
+    	AVP avp = msg.findAVP(avpCode, mandatory, vendorId);
+    	
         if (avp == null)
         {
         	LOGGER.debug("Missing AVP: "+avpCode);
@@ -262,7 +262,7 @@ public abstract class ShCommandListener extends CommandListener
     {
         AVP originHostAVP =
             avpLookUp(
-                requestMessage, AVPCodes._ORIGIN_HOST, false, Vendor.DIAM);
+                requestMessage, AVPCodes._ORIGIN_HOST, true, Vendor.DIAM);
         String originHost = new String(originHostAVP.data);
 
         return originHost;
