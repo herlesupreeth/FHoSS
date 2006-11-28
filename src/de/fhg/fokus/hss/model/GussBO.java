@@ -53,8 +53,8 @@ public class GussBO {
 	public static final int GUS = 0;
 	public static final int GUS_U = 1;
 	
-	public static final int FLAG_Authentication_allowed = 0;
-	public static final int FLAG_Non_repudiation_allowed = 1;
+	public static final int FLAG_Authentication_allowed = 1;
+	public static final int FLAG_Non_repudiation_allowed = 2;
 	
 	public static final int SVC_TYPE_Unspecific_service = 0;
 	public static final int SVC_TYPE_PKI_Portal = 1;

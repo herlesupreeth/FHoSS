@@ -18,5 +18,6 @@
 	
 	<Auth id="16777216" vendor="10415"/>
 	<Auth id="16777217" vendor="10415"/>
+	<Auth id="16777221" vendor="10415"/>
 
 </DiameterPeer>
