@@ -139,6 +139,7 @@ public class RepDataBO extends HssBO
                     repData.setComp_id(repDataPK);
                     repData.setSqn(new Integer(0));
                     repData.setSvcData(bufRepData);
+                    
                     getSession().save(repData);
                     endTx();
                 }

@@ -68,12 +68,14 @@ import de.fhg.fokus.sh.RequestedData;
 import de.fhg.fokus.sh.RequestedDomain;
 import de.fhg.fokus.sh.UnableToComply;
 import de.fhg.fokus.sh.UserDataCannotBeRead;
+
 import de.fhg.fokus.sh.data.ChargingInformation;
 import de.fhg.fokus.sh.data.PublicIdentifiers;
 import de.fhg.fokus.sh.data.RepositoryData;
 import de.fhg.fokus.sh.data.ServiceData;
 import de.fhg.fokus.sh.data.ShData;
 import de.fhg.fokus.sh.data.ShIMSData;
+import de.fhg.fokus.sh.data.types.TIMSUserState;
 
 
 /**
@@ -91,7 +93,7 @@ public class PullShOperation extends ShOperation
     private RequestedDomain requestedDomain;
     /** current location */
     private CurrentLocation currentLocation;
-    /** service indivation */
+    /** service indication */
     byte[] serviceIndication;
     /** uri of application server */
     private URI applicationServerName;
@@ -271,8 +273,7 @@ public class PullShOperation extends ShOperation
 
         try
         {
-            if ((serviceIndication == null) || (serviceIndication.length < 1))
-            {
+            if ((serviceIndication == null) || (serviceIndication.length < 1)){
                 throw new MissingAVP();
             }
 
@@ -284,12 +285,16 @@ public class PullShOperation extends ShOperation
             String svcIndString = new String(serviceIndication);
             repDataPK.setSvcInd(svcIndString);
 
+            //System.out.println("Service indication:" + svcIndString);
+            //System.out.println("Impu id:" + userProfil.getImpu().getImpuId());
+            
             RepData repData = null;
             repData = (RepData) session.get(RepData.class, repDataPK);
 
             if (repData == null)
             {
-                LOGGER.warn(this, new NullPointerException());
+            	LOGGER.info("Repository data is null!");
+            	LOGGER.warn(this, new NullPointerException());
                 throw new UnableToComply();
             }
 
@@ -333,8 +338,25 @@ public class PullShOperation extends ShOperation
         LOGGER.debug("entering");
 
         ShIMSData shIMSData = new ShIMSData();
-        shIMSData.setIMSUserState(
-            (byte) Integer.parseInt(userProfil.getImpu().getUserStatus()));
+        
+        
+        switch (Integer.parseInt(userProfil.getImpu().getUserStatus())){
+        
+        case TIMSUserState.VALUE_0_TYPE:
+        	shIMSData.setIMSUserState(TIMSUserState.VALUE_0);
+        	break;
+        case TIMSUserState.VALUE_1_TYPE:
+        	shIMSData.setIMSUserState(TIMSUserState.VALUE_1);
+        	break;
+        case TIMSUserState.VALUE_2_TYPE:
+        	shIMSData.setIMSUserState(TIMSUserState.VALUE_2);
+        	break;
+        case TIMSUserState.VALUE_3_TYPE:
+        	shIMSData.setIMSUserState(TIMSUserState.VALUE_3);
+        	break;
+        
+        }
+        
         shData.setShIMSData(shIMSData);
         LOGGER.debug("exiting");
     }

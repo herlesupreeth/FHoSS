@@ -68,6 +68,7 @@ import de.fhg.fokus.cx.datatypes.SessionDescription;
 import de.fhg.fokus.cx.datatypes.TSePoTriChoice;
 import de.fhg.fokus.cx.datatypes.TriggerPoint;
 import de.fhg.fokus.cx.datatypes.types.TDirectionOfRequest;
+import de.fhg.fokus.cx.datatypes.types.TDefaultHandling;
 import de.fhg.fokus.cx.exceptions.DiameterException;
 import de.fhg.fokus.cx.exceptions.base.MissingUserId;
 import de.fhg.fokus.cx.exceptions.base.UnableToComply;
@@ -590,8 +591,19 @@ public class CxUserProfil extends HssBO
                                     new ApplicationServer();
                                 applicationServer.setServerName(
                                     ifc.getApsvr().getAddress());
-                                applicationServer.setDefaultHandling(
-                                    (byte) ifc.getApsvr().getDefaultHandling());
+                                
+                                
+                                switch (ifc.getApsvr().getDefaultHandling()){
+                                	case TDefaultHandling.VALUE_0_TYPE:
+                                		applicationServer.setDefaultHandling(TDefaultHandling.VALUE_0);
+                                		break;
+                                	case TDefaultHandling.VALUE_1_TYPE:
+                                		applicationServer.setDefaultHandling(TDefaultHandling.VALUE_1);
+                                		break;
+                                }
+                                
+/*                                applicationServer.setDefaultHandling(
+                                    (byte) ifc.getApsvr().getDefaultHandling());*/
                                 initialFilterCriteria.setApplicationServer(
                                     applicationServer);
 

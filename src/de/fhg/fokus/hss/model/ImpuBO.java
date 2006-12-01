@@ -63,7 +63,7 @@ import de.fhg.fokus.hss.server.sh.ASshOperationsImpl;
 import de.fhg.fokus.hss.util.HibernateUtil;
 import de.fhg.fokus.sh.data.ShData;
 import de.fhg.fokus.sh.data.ShIMSData;
-
+import de.fhg.fokus.sh.data.types.TIMSUserState;
 
 /**
  * This class creates loads saves and updates the public identity.
@@ -151,7 +151,27 @@ public class ImpuBO extends HssBO
 
 	            ShData shData = new ShData();
 	            ShIMSData shIMSData = new ShIMSData();
-	            shIMSData.setIMSUserState((byte)Integer.parseInt(impu.getUserStatus()));
+	            
+	            switch (Integer.parseInt(impu.getUserStatus())){
+	            
+	            case TIMSUserState.VALUE_0_TYPE:
+	            	shIMSData.setIMSUserState(TIMSUserState.VALUE_0);
+	            	break;
+
+	            case TIMSUserState.VALUE_1_TYPE:
+	            	shIMSData.setIMSUserState(TIMSUserState.VALUE_1);
+	            	break;
+	            		
+	            case TIMSUserState.VALUE_2_TYPE:
+	            	shIMSData.setIMSUserState(TIMSUserState.VALUE_2);
+	            	break;
+	            		
+	            case TIMSUserState.VALUE_3_TYPE:	
+	            	shIMSData.setIMSUserState(TIMSUserState.VALUE_3);
+	            	break;
+	            }
+	            
+	            //shIMSData.setIMSUserState((byte)Integer.parseInt(impu.getUserStatus()));
 	            shData.setShIMSData(shIMSData);
 	            
 				// XLB

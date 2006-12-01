@@ -60,6 +60,7 @@ import de.fhg.fokus.cx.datatypes.SPT;
 import de.fhg.fokus.cx.datatypes.ServiceProfile;
 import de.fhg.fokus.cx.datatypes.TSePoTriChoice;
 import de.fhg.fokus.cx.datatypes.TriggerPoint;
+import de.fhg.fokus.cx.datatypes.types.TDefaultHandling;
 import de.fhg.fokus.cx.exceptions.DiameterException;
 import de.fhg.fokus.cx.exceptions.base.UnableToComply;
 import de.fhg.fokus.cx.exceptions.ims.IdentitiesDontMatch;
@@ -351,7 +352,20 @@ public class PullCxOperation extends CxOperation
 
         ApplicationServer applicationServer = new ApplicationServer();
         applicationServer.setServerName(apsvr.getAddress());
-        applicationServer.setDefaultHandling((byte) apsvr.getDefaultHandling());
+        
+        
+        switch (apsvr.getDefaultHandling()){
+        
+        case TDefaultHandling.VALUE_0_TYPE:
+        	applicationServer.setDefaultHandling(TDefaultHandling.VALUE_0);
+        	break;
+
+        case TDefaultHandling.VALUE_1_TYPE:
+        	applicationServer.setDefaultHandling(TDefaultHandling.VALUE_1);
+        	break;
+        }
+        
+        //applicationServer.setDefaultHandling((byte) apsvr.getDefaultHandling());
         ifc.setApplicationServer(applicationServer);
 
         TriggerPoint triggerPoint = new TriggerPoint();

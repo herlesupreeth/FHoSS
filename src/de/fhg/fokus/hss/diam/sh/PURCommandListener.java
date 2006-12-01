@@ -112,7 +112,9 @@ public class PURCommandListener extends ShCommandListener
                RequestedData requestedData = loadDataReference(requestMessage);
                
                AVP shDataAVP = avpLookUp(requestMessage, AVPCodes._SH_USER_DATA, true, Vendor.V3GPP);
-               String shDataString = new String(shDataAVP.data);
+               String shDataString = new String(shDataAVP.data);               
+               //System.out.println("DATA: \n" + shDataString + "\n");
+
                ShData shData = (ShData) ShData.unmarshal(new StringReader(shDataString));
  
                operations.shUpdate(publicIdentity, shData, applicationServerIdentity, requestedData);

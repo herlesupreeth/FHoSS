@@ -35,7 +35,7 @@
 
 	<target name="gen" depends="init,clean-gen">
 		<java 
-			classname="org.exolab.castor.builder.SourceGenerator"
+			classname="org.exolab.castor.builder.SourceGeneratorMain"
 			fork="true">
 			<classpath refid="compile.classpath" />
 			<arg value="-i" /> 
@@ -46,7 +46,7 @@
 			<arg value="${src-gen}" />			
 		</java>
 		<java 
-			classname="org.exolab.castor.builder.SourceGenerator"
+			classname="org.exolab.castor.builder.SourceGeneratorMain"
 			fork="true">
 			<classpath refid="compile.classpath" />
 			<arg value="-i" /> 
@@ -57,7 +57,7 @@
 			<arg value="${src-gen}" />			
 		</java>
 		<java 
-			classname="org.exolab.castor.builder.SourceGenerator"
+			classname="org.exolab.castor.builder.SourceGeneratorMain"
 			fork="true">
 			<classpath refid="compile.classpath" />
 			<arg value="-i" /> 
@@ -107,6 +107,7 @@
 				<include name="hibernate.cfg.xml"/>				
 				<include name="mapping.xml"/>				
 				<include name="MessageResources.properties"/>								
+				<include name="castor.properties"/>								
 			</fileset>
 		</jar>	
 	</target>

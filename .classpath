@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="src-gen"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/antlr-2.7.5H3.jar"/>
 	<classpathentry kind="lib" path="lib/asm.jar"/>
@@ -37,7 +38,6 @@
 	<classpathentry kind="lib" path="lib/mysql-connector-java-3.0.14-production-bin.jar"/>
 	<classpathentry kind="lib" path="lib/struts.jar"/>
 	<classpathentry kind="lib" path="lib/jdp.jar"/>
-	<classpathentry kind="lib" path="lib/castor.jar"/>
-	<classpathentry kind="lib" path="lib/castor-0.9.6.jar"/>
+	<classpathentry kind="lib" path="lib/castor-1.0.5.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
