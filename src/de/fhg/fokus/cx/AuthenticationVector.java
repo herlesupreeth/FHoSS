@@ -72,7 +72,7 @@ public class AuthenticationVector {
      *  or Proxy-Authenticate SIP headers that are to be present in a SIP response.
 	 * 
 	 */
-	public byte [] sipAuthenticate = new byte [32];
+	public byte [] sipAuthenticate; // 32 bytes
 	// RAND(16) || AUTN(16)= (sqn xor ak)(6)||amf(2)||mac(8)
 	
    /**
@@ -80,17 +80,17 @@ public class AuthenticationVector {
     * SIP headers suitable for inclusion in a SIP request
     */ 
 	
-	public byte [] sipAuthorization= new byte[8];
+	public byte [] sipAuthorization; // at least 8 bytes
 	
 	/**
 	 * the confidentiality key
 	 */
-	public byte [] confidentialityityKey = new byte [16];
+	public byte [] confidentialityityKey = new byte[16]; // 16 bytes
 	
 	/**
 	 * the integrity key
 	 */
-	public byte [] integrityKey = new byte [16];
+	public byte [] integrityKey = new byte[16]; // 16 bytes
 	
 	/**
 	 * minimal constructor
@@ -122,6 +122,14 @@ public class AuthenticationVector {
 		this.sipAuthorization = sipAuthorization;
 		this.integrityKey = integrityKey;
 	}
+
+	public AuthenticationVector(String authenticationScheme, byte [] sipAuthenticate, byte [] sipAuthorization) {
+		this.authenticationScheme = authenticationScheme;
+		this.sipAuthenticate = sipAuthenticate;
+		this.sipAuthorization = sipAuthorization;
+	}
+	
+	
 	
 	/**
 	 * constructor 

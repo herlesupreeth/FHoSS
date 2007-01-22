@@ -58,24 +58,8 @@ import de.fhg.fokus.cx.datatypes.PublicIdentity;
 import de.fhg.fokus.cx.exceptions.DiameterException;
 import de.fhg.fokus.cx.exceptions.base.UnableToComply;
 import de.fhg.fokus.hss.diam.ResultCode;
+import de.fhg.fokus.hss.main.HSSProperties;
 import de.fhg.fokus.hss.model.Impi;
-import de.fhg.fokus.hss.server.cx.util.AKAUtil;
-import de.fhg.fokus.milenage.Ak;
-import de.fhg.fokus.milenage.Amf;
-import de.fhg.fokus.milenage.AuthKey;
-import de.fhg.fokus.milenage.Auts;
-import de.fhg.fokus.milenage.Mac;
-import de.fhg.fokus.milenage.Nonce;
-import de.fhg.fokus.milenage.Op;
-import de.fhg.fokus.milenage.Opc;
-import de.fhg.fokus.milenage.Rand;
-import de.fhg.fokus.milenage.SIPAuthorization;
-import de.fhg.fokus.milenage.SimpleSqn;
-import de.fhg.fokus.milenage.Sqn;
-import de.fhg.fokus.milenage.codec.CoDecException;
-import de.fhg.fokus.milenage.kernel.KernelNotFoundException;
-import de.fhg.fokus.milenage.server.ServerDigestAKA;
-
 
 import java.net.Inet4Address;
 import java.net.URI;
@@ -85,12 +69,16 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 import java.util.ArrayList;
-
+import de.fhg.fokus.hss.util.*;
+import de.fhg.fokus.security.auth.DigestAKA;
+import de.fhg.fokus.security.auth.HexCoDec;
+import de.fhg.fokus.security.auth.Milenage;
 
 /**
  * This class represents cx specific authentication operations. It implements the 
  * processing of MAR.
  * @author Andre Charton  (dev -at- open-ims dot org)
+ * 
  */
 public class AuthCxOperation extends CxOperation
 {
@@ -112,19 +100,16 @@ public class AuthCxOperation extends CxOperation
      * @param _authenticationVector authentication vector 
      * @param _scscfName serving call session control functions name
      */     
-    public AuthCxOperation(
-        PublicIdentity _publicIdentity, URI _privateUserIdentity,
+    public AuthCxOperation( PublicIdentity _publicIdentity, URI _privateUserIdentity,
         Long _numberOfAuthVectors, AuthenticationVector _authenticationVector,
-        String _scscfName)
-    {
-        LOGGER.debug("entering");
+        String _scscfName){
+    	
         this.privateUserIdentity = _privateUserIdentity;
         this.publicIdentity = _publicIdentity;
         this.authenticationVector = _authenticationVector;
         this.numberOfAuthVectors = _numberOfAuthVectors;
         this.scscfName = _scscfName;
         this.addPropertyChangeListener(this);
-        LOGGER.debug("exiting");
     }
 
     /**
@@ -134,52 +119,40 @@ public class AuthCxOperation extends CxOperation
      * @return an authentication data response object containing authentication data
      * @see de.fhg.fokus.hss.server.cx.CxOperation#execute()
      */
-    public Object execute() throws DiameterException
-    {
-        if (LOGGER.isDebugEnabled())
-        {
-            LOGGER.debug("entering");
+    
+    public Object execute() throws DiameterException{
+        if (LOGGER.isDebugEnabled()){
+            LOGGER.debug("AuthCXOperation, execute method!");
             LOGGER.debug(this);
         }
 
         CxAuthDataResponse authDataResponse = null;
 
-        try
-        {
+        try{
             loadUserProfile();
-
-           
-            // Check the Server name
-            if (userProfil.getImpi().getScscfName().equals(scscfName) == false)
-            {
+            if (userProfil.getImpi().getScscfName().equals(scscfName) == false){
                 userProfil.getImpi().setScscfName(scscfName);
                 markUpdateUserProfile();
             }
 
-            ArrayList authVector = null;
+            ArrayList authenticationVectors = null;
 
-            // Generate the Authentiaction Vectors ...
-            if (authenticationVector != null)
-            {
-                // ... for synchronistation
-                authVector = handleSynchFailure();
+            // Generate the Authentiaction Vectors
+            if (authenticationVector != null){
+                // perform synchronization for the SQN (SQN-hn = SQN-ms)
+                authenticationVectors = performSynchronization();
             }
-            else
-            {
-                // ... for authentication
-                authVector = generateVector();
+            else{
+                // generate the authentication vectors
+                authenticationVectors = generateAuthenticationVectors();
             }
-
-            authDataResponse =
-                new CxAuthDataResponse(ResultCode._DIAMETER_SUCCESS, true);
-            authDataResponse.setAuthenticationVectors(authVector);
+            authDataResponse = new CxAuthDataResponse(ResultCode._DIAMETER_SUCCESS, true);
+            authDataResponse.setAuthenticationVectors(authenticationVectors);
             updateUserProfile();
-            LOGGER.debug("exiting");
         }
-        finally
-        {
+        finally{
         	if(getUserProfil() != null){
-            getUserProfil().closeSession();
+        		getUserProfil().closeSession();
         	}
         }
 
@@ -187,77 +160,80 @@ public class AuthCxOperation extends CxOperation
     }
 
     /**
-     * This method generates a list of authentication vectors
+     * This method generates the list of the authentication vectors
      * @return list of authentication vectors
      */
-    public ArrayList generateVector()
-    {
-        LOGGER.debug("entering");
-
-        ArrayList vector = null;
+    public ArrayList generateAuthenticationVectors(){
+        LOGGER.debug("Generation of Authentication Vectors");
+        ArrayList vectorList = null;
         Impi impi = null;
 
-        try
-        {
+        try{
             impi = userProfil.getImpi();
+            vectorList = new ArrayList(numberOfAuthVectors.intValue());
 
-            // create per init answer vector
-            vector = new ArrayList(numberOfAuthVectors.intValue());
+            HexCoDec codec;
+            codec = new HexCoDec();
+            byte [] secretKey = codec.decode(impi.getSkey());
+            byte [] amf = codec.decode(impi.getAmf());
 
-            ServerDigestAKA digestAKA = new ServerDigestAKA();
-
-            // Collection values
-            SecureRandom randomAccess = SecureRandom.getInstance("SHA1PRNG");
-            AuthKey secretKey = new AuthKey(impi.getSkey());
-            Amf amf = new Amf(impi.getAmf());
-            Op operator = new Op(impi.getOperatorId());
-            Opc opc = digestAKA.generateOp_c(secretKey, operator);
+            // op and generate opC	
+            byte [] op = codec.decode(impi.getOperatorId());
+            byte [] opC = Milenage.generateOpC(secretKey, op);
+            
             String authScheme = impi.getAuthScheme();
-            //For the sake of Early IMS
             Inet4Address ip = impi.getIP();
+            byte [] sqn = codec.decode(impi.getSqn());
 
-            String sqnString = new String(impi.getSqn());
-            Sqn sqn;
+            LOGGER.debug("Auth-Scheme Used: " + authScheme);
+            // MD5 Authentication Scheme
+            if (authScheme.equalsIgnoreCase("Digest-MD5")){
+            	// Authentication Scheme is Digest-MD5
+            	LOGGER.debug("Auth-Scheme is Digest-MD5");
+                SecureRandom randomAccess = SecureRandom.getInstance("SHA1PRNG");
 
-            if (sqnString == null)
-            {
-                sqn = SimpleSqn.getNewInstance();
+                for (long ix = 0; ix < numberOfAuthVectors.intValue(); ix++){
+                    byte[] randBytes = new byte[16];
+                	randomAccess.setSeed(System.currentTimeMillis());
+                    randomAccess.nextBytes(randBytes);
+                    
+                	secretKey = codec.decodePassword(impi.getSkey()).getBytes();
+                	
+                	AuthenticationVector aVector = new AuthenticationVector(authScheme, randBytes, secretKey);
+                	vectorList.add(aVector);
+                }
+            	markUpdateUserProfile();
+            	return vectorList;
             }
-            else
-            {
-                sqn = new SimpleSqn(sqnString);
-            }
+            else{
+            	// We have AKAv1 or AKAv2
+            	LOGGER.debug("Auth-Scheme is Digest-AKA");
+            	
+                for (long ix = 0; ix < numberOfAuthVectors.intValue(); ix++)
+                {
+                	sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
+        	        byte[] copySqnHe = new byte[6];
+        	        int k = 0;
+        	        for (int i = 0; i < 6; i++, k++){
+                		copySqnHe[k] = sqn[i]; 
+        	        }
 
-            for (long ix = 0; ix < numberOfAuthVectors.intValue(); ix++)
-            {
-                sqn = sqn.calculateNextSqn();
-                vector.add(
-                    AKAUtil.generateAuthenticationVector(
-                        randomAccess, secretKey, amf, opc, sqn, (long) ix,
-                        digestAKA, authScheme,ip));
+                	AuthenticationVector authenticationVector = DigestAKA.getAuthenticationVector(authScheme, ip,
+                			secretKey, opC, amf, copySqnHe);
+                    vectorList.add(authenticationVector);
+                }
+                impi.setSqn(codec.encode(sqn));
+                markUpdateUserProfile();
             }
-
-            impi.setSqn(sqn.getAsString());
-            markUpdateUserProfile();
         }
-        catch (NoSuchAlgorithmException e)
-        {
+        catch (NoSuchAlgorithmException e){
             LOGGER.error(this, e);
         }
-        catch (CoDecException e)
-        {
+        catch (InvalidKeyException e){
             LOGGER.error(this, e);
         }
-        catch (KernelNotFoundException e)
-        {
-            LOGGER.error(this, e);
-        }
-        catch (InvalidKeyException e)
-        {
-            LOGGER.error(this, e);
-        }
-        catch (Exception e)
-        {
+        catch (Exception e){
+        	e.printStackTrace();
             // Check impi
             if (impi.getAmf() == null)
             {
@@ -280,111 +256,143 @@ public class AuthCxOperation extends CxOperation
                 throw new NullPointerException("Missing Operator ID.");
             }
         }
+        return vectorList;
 
-        LOGGER.debug("exiting");
-
-        return vector;
     }
 
     /**
-     * It handles synchronization failures
+     * It handles the synchronization of the SQN-MS with the SQN-HE
      * @throws DiameterException
-     * @return a list of authentication vector
+     * @return a list of authentication vectorList
      */
-    public ArrayList handleSynchFailure() throws DiameterException
+    public ArrayList performSynchronization() throws DiameterException
     {
-        LOGGER.debug("entering");
+    	LOGGER.info("Handling Synchronization between Mobile Station and Home Environment!");
+        byte[] sipAuthorization = authenticationVector.sipAuthorization;
 
-        try
-        {
-            ServerDigestAKA digestAKA = new ServerDigestAKA();
-            SIPAuthorization sipAuthorization =
-                new SIPAuthorization(authenticationVector.sipAuthorization);
+        HexCoDec codec;
+        codec = new HexCoDec();
+        Impi impi = userProfil.getImpi();
 
-            Nonce nonce = sipAuthorization.getNonce();
-            Auts auts = sipAuthorization.getAuts();
-            Ak ak = null;
-            Rand rand = nonce.getRand();
-            AuthKey key = new AuthKey(userProfil.getImpi().getSkey());
-            Opc opc =
-                digestAKA.generateOp_c(
-                    key, new Op(userProfil.getImpi().getOperatorId()));
-            String sqnHeString = userProfil.getImpi().getSqn();
-            String amf = userProfil.getImpi().getAmf();
-            String authScheme = userProfil.getImpi().getAuthScheme();
-            //For the sake of Early IMS
-            Inet4Address ip = userProfil.getImpi().getIP();
-            Sqn sqnHe = null;
+        byte [] secretKey = codec.decode(impi.getSkey());
+        byte [] amf = codec.decode(impi.getAmf());
 
-            if (sqnHeString == null)
-            {
-                sqnHe = SimpleSqn.getNewInstance();
+        try {
+            // get op and generate opC	
+            byte [] op = codec.decode(impi.getOperatorId());
+			byte [] opC = Milenage.generateOpC(secretKey, op);
+			//System.out.println("opC is: " + codec.encode(opC));
+	        String authScheme = impi.getAuthScheme();
+	        Inet4Address ip = impi.getIP();
+
+	        // sqnHE - represent the SQN from the HSS
+	        // sqnMS - represent the SQN from the client side
+	        byte[] sqnHe = codec.decode(impi.getSqn());
+	        //System.out.println("SQN_He is before increment: " + codec.encode(sqnHe));
+	        sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
+	        //System.out.println("SQN_He is after increment: " + codec.encode(sqnHe));
+
+	        byte [] nonce = new byte[32];
+	        byte [] auts = new byte[14];
+	        int k = 0;
+	        for (int i = 0; i < 32; i++, k++){
+        		nonce[k] = sipAuthorization[i]; 
+	        }
+	        k = 0;
+	        for (int i = 32; i < 46; i++, k++){
+        		auts[k] = sipAuthorization[i]; 
+	        }
+	        //System.out.println("AUTS is: " + codec.encode(auts));
+	        
+	        byte [] rand = new byte[16];
+	        k = 0;
+	        for (int i = 0; i < 16; i++, k++){
+        		rand[k] = nonce[i]; 
+	        }
+	        //System.out.println("Rand is: " + codec.encode(rand));
+
+	        byte[] ak = null;
+	        if (HSSProperties.USE_AK){
+                ak = Milenage.f5star(secretKey, rand, opC);
             }
-            else
-            {
-                sqnHe = new SimpleSqn(sqnHeString);
-            }
+	        //System.out.println("AK is: " + codec.encode(ak));
+	        byte [] sqnMs = new byte[6];
+	        k = 0;
+	        
+	        if (HSSProperties.USE_AK){
+		        for (int i = 0; i < 6; i++, k++){
+	        		sqnMs[k] = (byte) (auts[i] ^ ak[i]); 
+		        }
+		        LOGGER.warn("USE_AK is enabled and will be used in Milenage algorithm!");
+	        }
+	        else{
+		        for (int i = 0; i < 6; i++, k++){
+	        		sqnMs[k] = auts[i]; 
+		        }
+		        LOGGER.warn("USE_AK is NOT enabled and will NOT be used in Milenage algorithm!");
+	        }
+	        //System.out.println("SQN_MS is: " + codec.encode(sqnMs));
+	        //System.out.println("SQN_HE is: " + codec.encode(sqnHe));
+	        
+	        if (DigestAKA.SQNinRange(sqnMs, sqnHe, HSSProperties.IND_LEN, HSSProperties.delta, HSSProperties.L)){
+	        	LOGGER.info("The new generated SQN value shall be accepted on the client, abort synchronization!");
+	        	k = 0;
+	        	byte[] copySqnHe = new byte[6];
+		        for (int i = 0; i < 6; i++, k++){
+	        		copySqnHe[k] = sqnHe[i]; 
+		        }
+	        	
+	            AuthenticationVector aVector = DigestAKA.getAuthenticationVector(authScheme, ip, secretKey, opC, amf, copySqnHe);
+	            ArrayList vectorsList = new ArrayList();
+	            vectorsList.add(aVector);
 
-            sqnHe = sqnHe.calculateNextSqn();
+	            // update Cxdata
+	            userProfil.getImpi().setSqn(codec.encode(sqnHe));
+	            markUpdateUserProfile();
+	            return vectorsList;	        	
+	        }
+	        	
+        	byte xmac_s[] = Milenage.f1star(secretKey, rand, opC, sqnMs, amf);
+        	byte mac_s[] = new byte[8];
+        	k = 0;
+        	for (int i = 6; i < 14; i++, k++){
+        		mac_s[k] = auts[i];
+        	}
+        	//System.out.println("xmac_s is: " + codec.encode(xmac_s));
+        	//System.out.println("mac_s is: " + codec.encode(mac_s));
+	        	
+        	for (int i = 0; i < 8; i ++)
+        		if (xmac_s[i] != mac_s[i]){
+        			LOGGER.error("XMAC and MAC are different! User not authorized in performing synchronization!");
+        			throw new UnableToComply();
+               }
 
-            if (Ak.USE_AK)
-            {
-                ak = digestAKA.generateSynchronizationAnonoymityKey(
-                        key, rand, opc);
-            }
-
-            Sqn sqnMs = auts.extractSqn(ak);
-
-            if (!sqnMs.isInRange(sqnHe))
-            {
-                Mac xMacS = digestAKA.generateXMACS(key, rand, opc, sqnMs);
-                Mac macS = auts.getMac();
-                LOGGER.debug("X-MACS: " + xMacS);
-                LOGGER.debug("MACS:   " + macS);
-
-                if (!xMacS.equals(macS))
-                {
-                    throw new UnableToComply();
-                }
-
-                sqnHe = sqnMs;
-                sqnHe = sqnHe.calculateNextSqn();
-            }
-
-            AuthenticationVector newAv =
-                AKAUtil.generateAuthenticationVector(
-                    rand, key, new Amf(amf), opc, sqnHe, 0, digestAKA,
-                    authScheme, ip);
-
-            ArrayList avs = new ArrayList();
-            avs.add(newAv);
+            sqnHe = sqnMs;
+            sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
+     		LOGGER.info("Synchronization of SQN_HE with SQN_MS was completed successfully!");
+	        
+	        byte[] copySqnHe = new byte[6];
+	        k = 0;
+	        for (int i = 0; i < 6; i++, k++){
+        		copySqnHe[k] = sqnHe[i]; 
+	        }
+            AuthenticationVector aVector = DigestAKA.getAuthenticationVector(authScheme, ip, secretKey, opC, amf, copySqnHe);
+            ArrayList vectorsList = new ArrayList();
+            vectorsList.add(aVector);
 
             // update Cxdata
-            userProfil.getImpi().setSqn(sqnHe.getAsString());
+            userProfil.getImpi().setSqn(codec.encode(sqnHe));
             markUpdateUserProfile();
-            LOGGER.debug("exiting");
-
-            return avs;
-        }
-        catch (CoDecException e)
-        {
-            LOGGER.error(this, e);
-            throw new UnableToComply();
-        }
-        catch (InvalidKeyException e)
-        {
-            LOGGER.error(this, e);
-            throw new UnableToComply();
-        }
-        catch (KernelNotFoundException e)
-        {
-            LOGGER.error(this, e);
-            throw new UnableToComply();
-        }
-        catch (Exception e)
-        {
-            LOGGER.error(this, e);
-            throw new UnableToComply();
-        }
+            return vectorsList;
+            
+		} 
+        catch (InvalidKeyException e) {
+			e.printStackTrace();
+		}
+        catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+        
+        return new ArrayList();
     }
 }

@@ -52,8 +52,8 @@ import org.apache.log4j.Logger;
 import de.fhg.fokus.diameter.DiameterPeer.DiameterPeer;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
+import de.fhg.fokus.hss.diam.ResultCode;
 import de.fhg.fokus.hss.diam.Constants.Vendor;
 import de.fhg.fokus.sh.CurrentLocation;
 import de.fhg.fokus.sh.DiameterException;
@@ -70,9 +70,9 @@ import de.fhg.fokus.sh.data.ShData;
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class UDRCommandListener extends ShCommandListener
-{
-    /** logger */
+public class UDRCommandListener extends ShCommandListener{
+    
+	/** logger */
     private static final Logger LOGGER =
         Logger.getLogger(UDRCommandListener.class);
     /**
@@ -80,7 +80,7 @@ public class UDRCommandListener extends ShCommandListener
      */
     public static long counter = 0;
     /** the command id for UDR */
-    private static final int COMMAND_ID = Constants.COMMAND.UDR;
+    private static final int COMMAND_ID = Constants.Command.UDR;
     /** an object representing hss operations */
     private HSSOperations operations;
 
@@ -89,9 +89,7 @@ public class UDRCommandListener extends ShCommandListener
      * @param _operations HssOpeations
      * @param _diameterPeer diameterPeer
      */ 
-    public UDRCommandListener(
-        HSSOperations _operations, DiameterPeer _diameterPeer)
-    {
+    public UDRCommandListener(HSSOperations _operations, DiameterPeer _diameterPeer){
         super(_diameterPeer);
         this.operations = _operations;
     }
@@ -101,31 +99,30 @@ public class UDRCommandListener extends ShCommandListener
      * @param FQDN fully qualified domain name
      * @param requestMessage the diameter message   
      */ 
-    public void recvMessage(String FQDN, DiameterMessage requestMessage)
-    {
-        if (requestMessage.commandCode == COMMAND_ID)
-        {
+    public void recvMessage(String FQDN, DiameterMessage requestMessage){
+        if (requestMessage.commandCode == COMMAND_ID){
+        	
             counter++;
             LOGGER.debug("entering");
             LOGGER.debug(FQDN);
 
-            try
-            {
-            		// request extract
+            try{
+            	
+            	// request extract
                 URI publicIdentity = loadPublicIdentity(requestMessage);
                 RequestedData requestedData = loadDataReference(requestMessage);
                 RequestedDomain requestedDomain = null;
                 CurrentLocation currentLocation = null;
                 byte[] serviceIndication = null;
                 
-                AVP svcIndAVP = requestMessage.findAVP(AVPCodes._SH_SERVICE_INDICATION, true, Vendor.V3GPP);
+                AVP svcIndAVP = requestMessage.findAVP(Constants.AVPCode.SH_SERVICE_INDICATION, true, Vendor.V3GPP);
                 if(svcIndAVP != null){
                 	serviceIndication = svcIndAVP.data;
                 }
                 
                 String applicationServerIdentity = loadOriginHost(requestMessage);
                 URI applicationServerName = null;
-                AVP asNameAVP = requestMessage.findAVP(AVPCodes._SH_SERVER_NAME, true, Vendor.V3GPP);
+                AVP asNameAVP = requestMessage.findAVP(Constants.AVPCode.SH_SERVER_NAME, true, Vendor.V3GPP);
                 if(asNameAVP != null){
                 	applicationServerName = new URI(new String(asNameAVP.data));
                 }
@@ -140,27 +137,27 @@ public class UDRCommandListener extends ShCommandListener
                 DiameterMessage responseMessage =
                     diameterPeer.newResponse(requestMessage);
 
-                AVP userDataAVP = AVPCodes.getAVP(AVPCodes._SH_USER_DATA);
+                AVP userDataAVP = new AVP(Constants.AVPCode.SH_USER_DATA, true, Constants.Vendor.V3GPP);
                 StringWriter sw = new StringWriter();
                 shData.marshal(sw);
                 userDataAVP.setData(sw.getBuffer().toString());
 
                 responseMessage.addAVP(userDataAVP);
 
-                addDiameterSuccess(responseMessage);
+                AVP responseCode = new AVP(Constants.AVPCode.RESULT_CODE, true, Constants.Vendor.DIAM);
+                responseCode.setData(ResultCode._DIAMETER_SUCCESS);
+                responseMessage.addAVP(responseCode);
+                
                 diameterPeer.sendMessage(FQDN, responseMessage);
             }
-            catch (DiameterException e)
-            {
+            catch (DiameterException e){
                 LOGGER.warn(this, e);
                 sendDiameterException(FQDN, requestMessage, e);
             }
-            catch (Exception e)
-            {
+            catch (Exception e){
                 LOGGER.error(this, e);
                 sendUnableToComply(FQDN, requestMessage);
             }
         }
     }
-
 }

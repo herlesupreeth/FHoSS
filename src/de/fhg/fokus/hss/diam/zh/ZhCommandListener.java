@@ -55,7 +55,6 @@ import de.fhg.fokus.cx.exceptions.base.MissingAVP;
 import de.fhg.fokus.diameter.DiameterPeer.DiameterPeer;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.CommandListener;
 import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.diam.OriginHostResolver;
@@ -68,8 +67,7 @@ import de.fhg.fokus.zh.exceptions.DiameterException;
  * 
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public abstract class ZhCommandListener extends CommandListener
-{
+public abstract class ZhCommandListener extends CommandListener{
     /** logger */
     private static final Logger LOGGER =
         Logger.getLogger(CommandListener.class);
@@ -77,8 +75,7 @@ public abstract class ZhCommandListener extends CommandListener
      * constructor
      * @param _diameterPeer diameter peer
      */
-    public ZhCommandListener(DiameterPeer _diameterPeer)
-    {
+    public ZhCommandListener(DiameterPeer _diameterPeer){
         super(_diameterPeer);
     }
 
@@ -96,11 +93,9 @@ public abstract class ZhCommandListener extends CommandListener
      * @throws DiameterException DIAMETER_MISSING_AVP
      */
     protected PublicIdentity loadPublicIdentity(DiameterMessage msg)
-        throws DiameterException
-    {
-        AVP sipUriAVP =
-            avpLookUp(
-                msg, AVPCodes._CX_PUBLIC_IDENTITY, true, Constants.Vendor.V3GPP);
+        throws DiameterException {
+    	
+        AVP sipUriAVP = avpLookUp(msg, Constants.AVPCode.CX_PUBLIC_IDENTITY, true, Constants.Vendor.V3GPP);
         PublicIdentity publicIdentity = new PublicIdentity();
         publicIdentity.setIdentity(new String(sipUriAVP.data));
 
@@ -116,14 +111,11 @@ public abstract class ZhCommandListener extends CommandListener
      * @return the avp if found else diameter exception
      * @throws DiameterException
      */
-    protected AVP avpLookUp(
-        DiameterMessage msg, int avpCode, boolean isVendorSpecific, int vendorId)
-        throws DiameterException
-    {
+    protected AVP avpLookUp(DiameterMessage msg, int avpCode, boolean isVendorSpecific, int vendorId)
+        throws DiameterException{
+    	
         AVP avp = msg.findAVP(avpCode, isVendorSpecific, vendorId);
-
-        if (avp == null)
-        {
+        if (avp == null){
             throw new DiameterBaseException(MissingAVP.ERRORCODE);
         }
 
@@ -138,21 +130,14 @@ public abstract class ZhCommandListener extends CommandListener
      * @throws DiameterException
      */
     protected URI loadPrivateUserIdentity(DiameterMessage msg)
-        throws URISyntaxException, DiameterException
-    {
-        try
-        {
-            URI privateUserIdentity =
-                new URI(
-                    new String(
-                        avpLookUp(
-                            msg, AVPCodes._PRIVATE_USER_IDENTITY, true,
-                            Constants.Vendor.DIAM).data));
-
+        throws URISyntaxException, DiameterException{
+        
+    	try{
+            URI privateUserIdentity = new URI( new String(
+                        avpLookUp(msg, Constants.AVPCode.PRIVATE_USER_IDENTITY, true, Constants.Vendor.DIAM).data));
             return privateUserIdentity;
         }
-        catch (URISyntaxException e)
-        {
+        catch (URISyntaxException e){
             throw new DiameterBaseException(InvalidAvpValue.ERRORCODE);
         }
     }
@@ -164,21 +149,11 @@ public abstract class ZhCommandListener extends CommandListener
      * @throws DiameterException
      */
     protected String loadServerName(DiameterMessage requestMessage)
-        throws DiameterException
-    {
-        String scscfName =
-            new String(
-                avpLookUp(
-                    requestMessage, AVPCodes._CX_SERVER_NAME, true,
-                    Constants.Vendor.V3GPP).data);
-        String originHost =
-            new String(
-                avpLookUp(
-                    requestMessage, AVPCodes._ORIGIN_HOST, true,
-                    Constants.Vendor.DIAM).data);
-
+        throws DiameterException {
+    	
+        String scscfName = new String(avpLookUp(requestMessage, Constants.AVPCode.CX_SERVER_NAME, true, Constants.Vendor.V3GPP).data);
+        String originHost = new String(avpLookUp(requestMessage, Constants.AVPCode.ORIGIN_HOST, true, Constants.Vendor.DIAM).data);
         OriginHostResolver.setOriginHost(scscfName, originHost);
-
         return scscfName;
     }
 
@@ -188,33 +163,19 @@ public abstract class ZhCommandListener extends CommandListener
      * @param requestMessage diameter request message
      * @param diameterException diameter exception
      */
-    protected void sendDiameterException(
-        String FQDN, DiameterMessage requestMessage,
-        DiameterException diameterException)
-    {
-        try
-        {
-            if (
-                (diameterPeer != null) && (FQDN != null)
-                    && (requestMessage != null))
-            {
+    protected void sendDiameterException(String FQDN, DiameterMessage requestMessage, DiameterException diameterException){
+        try{
+            if ((diameterPeer != null) && (FQDN != null) && (requestMessage != null)){
                 DiameterMessage msg = diameterPeer.newResponse(requestMessage);
-                AVP resultAVP =
-                    saveResultCode(
-                        diameterException.getCode(),
-                        (diameterException instanceof DiameterBaseException));
+                AVP resultAVP = saveResultCode(diameterException.getCode(), (diameterException instanceof DiameterBaseException));
                 msg.addAVP(resultAVP);
                 diameterPeer.sendMessage(FQDN, msg);
             }
-            else
-            {
-                LOGGER.error(
-                    "Unable To Send Unable_To_Comply_Message, cause missing mandatory param.",
-                    new NullPointerException());
+            else{
+                LOGGER.error("Unable To Send Unable_To_Comply_Message, cause missing mandatory param.", new NullPointerException());
             }
         }
-        catch (RuntimeException e)
-        {
+        catch (RuntimeException e){
             LOGGER.error(this, e);
         }
     }

@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: HexCoDec.java 2 2006-11-14 22:37:20 +0000 (Tue, 14 Nov 2006) vingarzan $
  *
  * Copyright (C) 2004-2006 FhG Fokus
  *
@@ -42,32 +42,77 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
  * 
  */
-package de.fhg.fokus.milenage;
-
-import de.fhg.fokus.milenage.codec.CoDecException;
-import de.fhg.fokus.milenage.codec.HexCoDec;
+package de.fhg.fokus.security.auth;
 
 /**
-  * @author Sebastian Linkiewicz, dev -at- open - ims dot org
+ * Codec implementation for Hex coding
+ * 
+ * @author Sebastian Linkiewicz, dev -at- open - ims dot org
  */
-public class Rand extends Auth3gppObject
+public class HexCoDec
 {
-    public static final int STRING_LENGTH=32;
-    public static final int BYTES_LENGTH=16;
+    /**
+     * Array of useable chars
+     */
+    static final char[] hexChar =
+    { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
+            'e', 'f' };
     
-    public Rand(byte[] bytes)
-	{
-		super(bytes, BYTES_LENGTH, 0, HexCoDec.CODEC_NAME);
-	}
-	
-    public Rand(String hex) throws CoDecException
-	{
-		super(hex, STRING_LENGTH, HexCoDec.CODEC_NAME);
-	}
-    
-    Rand(byte[] bytes, int length, int startIndex)
+    /**
+     * Name of codec
+     */
+    public static final String CODEC_NAME= "hex";
+
+    /**
+     * (non-Javadoc)
+     * 
+     * @see de.fhg.fokus.milenage.codec.CoDec#decode(java.lang.String, int)
+     */
+    public byte[] decode(String string)
     {
-        super(bytes, length, startIndex, HexCoDec.CODEC_NAME);
+        byte[] bts = new byte[string.length() / 2];
+        for (int i = 0; i < bts.length; i++)
+        {
+            bts[i] = (byte) Integer.parseInt(
+                    string.substring(2 * i, 2 * i + 2), 16);
+        }
+        return bts;
     }
 
+    /**
+     * (non-Javadoc)
+     * 
+     * @see de.fhg.fokus.milenage.codec.CoDec#encode(byte[], int, int)
+     */
+    public String encode(byte[] bytes)
+    {
+    	StringBuffer sb = new StringBuffer(bytes.length * 2);
+        for (int i = 0; i < bytes.length; i++){
+        	// look up high nibble
+            sb.append(hexChar[(bytes[i] & 0xf0) >>> 4]);
+
+            // look up low nibble
+            sb.append(hexChar[bytes[i] & 0x0f]);
+        }
+        return sb.toString();
+    }
+    
+    public static String decodePassword(String string)
+    {
+        StringBuffer stringBuff = new StringBuffer();
+        String next = null;
+
+        for (int ix = 0; ix < string.length();)
+        {
+            next = 
+                String.valueOf(string.charAt(ix++))
+                + String.valueOf(string.charAt(ix++));
+
+            if (next.equals("00") == false)
+            {
+                stringBuff.append((char) (Integer.parseInt(next, 16)));
+            }
+        }
+        return stringBuff.toString();
+    }
 }

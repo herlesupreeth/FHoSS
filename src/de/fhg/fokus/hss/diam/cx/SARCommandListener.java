@@ -62,7 +62,6 @@ import de.fhg.fokus.cx.exceptions.base.UnableToComply;
 import de.fhg.fokus.diameter.DiameterPeer.DiameterPeer;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
 
 
@@ -82,7 +81,7 @@ public class SARCommandListener extends CxCommandListener
     private static final Logger LOGGER =
         Logger.getLogger(SARCommandListener.class);
     /** the command id for SAR */     
-    private static final int COMMAND_ID = Constants.COMMAND.SAR;
+    private static final int COMMAND_ID = Constants.Command.SAR;
     /** an object representing the Cx operations for HSS*/
     private HSScxOperations operations;
 
@@ -115,7 +114,7 @@ public class SARCommandListener extends CxCommandListener
             LOGGER.debug(FQDN);
 
             try
-            {
+            {                
                 PublicIdentity publicIdentity =
                     loadPublicIdentity(requestMessage);
                 LOGGER.info("SAR of User: "+ publicIdentity.getIdentity() + " is being processed");                    
@@ -133,35 +132,26 @@ public class SARCommandListener extends CxCommandListener
 
                 String scscfName = loadServerName(requestMessage);
 
-                int serverAssignmentType =
-                    avpLookUp(
-                        requestMessage, AVPCodes._SERVER_ASSIGNMENT_TYPE, true,
+                int serverAssignmentType = avpLookUp(requestMessage, Constants.AVPCode.SERVER_ASSIGNMENT_TYPE, true,
                         Constants.Vendor.V3GPP).int_data;
 
                 // not supported set to 0
                 int userDataRequestType = 0;
-
-                int userDataAlreadyAvailable =
-                    avpLookUp(
-                        requestMessage, AVPCodes._USER_DATA_ALREADY_AVAILABLE,
+                int userDataAlreadyAvailable = avpLookUp(requestMessage, Constants.AVPCode.USER_DATA_ALREADY_AVAILABLE,
                         true, Constants.Vendor.V3GPP).int_data;
-
                 CxSCSCFNotificationResponse response = null;
                 AVP resultCode = null;
 
-                response =
-                    operations.cxPull(
+                response = operations.cxPull(
                         publicIdentity, scscfName, privateUserIdentity,
                         serverAssignmentType, userDataRequestType,
                         userDataAlreadyAvailable);
 
-                if (response == null)
-                {
+                if (response == null){
                     throw new UnableToComply();
                 }
 
-                DiameterMessage responseMessage =
-                    diameterPeer.newResponse(requestMessage);
+                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
 
                 if (resultCode == null)
                 {
@@ -209,7 +199,7 @@ public class SARCommandListener extends CxCommandListener
         IMSSubscription subscription, DiameterMessage responseMessage)
         throws MarshalException, ValidationException
     {
-        AVP userProfileAVP = AVPCodes.getAVP(AVPCodes._CX_USER_DATA);
+        AVP userProfileAVP = new AVP(Constants.AVPCode.CX_USER_DATA, true, Constants.Vendor.V3GPP);
         StringWriter sw = new StringWriter();
         subscription.marshal(sw);
         userProfileAVP.setData(sw.getBuffer().toString());
@@ -224,38 +214,30 @@ public class SARCommandListener extends CxCommandListener
     public static void saveChargingInfoSet(
         ChargingInfoSet chargingInfoSet, DiameterMessage responseMessage)
     {
-        AVP chargingInfoAVP = AVPCodes.getAVP(AVPCodes._CHARGING_INFO);
+        AVP chargingInfoAVP = new AVP(Constants.AVPCode.CHARGING_INFO, true, Constants.Vendor.V3GPP);
         AVP fnNameAVP = null;
 
-        if (chargingInfoSet.getPri_chrg_coll_fn_name() != null)
-        {
-            fnNameAVP = AVPCodes.getAVP(AVPCodes._PRI_CHRG_COLL_FN_NAME);
-            fnNameAVP.setData(
-                chargingInfoSet.getPri_chrg_coll_fn_name().getPath());
+        if (chargingInfoSet.getPri_chrg_coll_fn_name() != null){
+            fnNameAVP = new AVP(Constants.AVPCode.PRI_CHRG_COLL_FN_NAME, true, Constants.Vendor.V3GPP);
+            fnNameAVP.setData(chargingInfoSet.getPri_chrg_coll_fn_name().getPath());
             chargingInfoAVP.addChildAVP(fnNameAVP);
         }
 
-        if (chargingInfoSet.getSec_chrg_coll_fn_name() != null)
-        {
-            fnNameAVP = AVPCodes.getAVP(AVPCodes._SEC_CHRG_COLL_FN_NAME);
-            fnNameAVP.setData(
-                chargingInfoSet.getSec_chrg_coll_fn_name().getPath());
+        if (chargingInfoSet.getSec_chrg_coll_fn_name() != null){
+            fnNameAVP = new AVP(Constants.AVPCode.SEC_CHRG_COLL_FN_NAME, true, Constants.Vendor.V3GPP);
+            fnNameAVP.setData(chargingInfoSet.getSec_chrg_coll_fn_name().getPath());
             chargingInfoAVP.addChildAVP(fnNameAVP);
         }
 
-        if (chargingInfoSet.getPri_event_chrg_fn_name() != null)
-        {
-            fnNameAVP = AVPCodes.getAVP(AVPCodes._PRI_EVENT_CHARGING_FN_NAME);
-            fnNameAVP.setData(
-                chargingInfoSet.getPri_event_chrg_fn_name().getPath());
+        if (chargingInfoSet.getPri_event_chrg_fn_name() != null){
+            fnNameAVP = new AVP(Constants.AVPCode.PRI_EVENT_CHARGING_FN_NAME, true, Constants.Vendor.V3GPP);
+            fnNameAVP.setData(chargingInfoSet.getPri_event_chrg_fn_name().getPath());
             chargingInfoAVP.addChildAVP(fnNameAVP);
         }
 
-        if (chargingInfoSet.getSec_event_chrg_fn_name() != null)
-        {
-            fnNameAVP = AVPCodes.getAVP(AVPCodes._SEC_EVENT_CHARGING_FN_NAME);
-            fnNameAVP.setData(
-                chargingInfoSet.getSec_event_chrg_fn_name().getPath());
+        if (chargingInfoSet.getSec_event_chrg_fn_name() != null){
+            fnNameAVP = new AVP(Constants.AVPCode.SEC_EVENT_CHARGING_FN_NAME, true, Constants.Vendor.V3GPP);
+            fnNameAVP.setData(chargingInfoSet.getSec_event_chrg_fn_name().getPath());
             chargingInfoAVP.addChildAVP(fnNameAVP);
         }
 

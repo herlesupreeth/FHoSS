@@ -58,8 +58,8 @@ import de.fhg.fokus.cx.exceptions.base.InvalidAvpValue;
 import de.fhg.fokus.cx.exceptions.base.UnableToComply;
 import de.fhg.fokus.diameter.DiameterPeer.DiameterPeer;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
+import de.fhg.fokus.diameter.DiameterPeer.data.AVPDecodeException;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.diam.Constants.Vendor;
 
@@ -72,15 +72,12 @@ import de.fhg.fokus.hss.diam.Constants.Vendor;
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class MARCommandListener extends CxCommandListener
-{
+public class MARCommandListener extends CxCommandListener{
     /** the counter to count calls */
     public static long counter = 0;
     /** the Logger */
     private static final Logger LOGGER =
         Logger.getLogger(MARCommandListener.class);
-     /** the command id for MAR */     
-    private static final int COMMAND_ID = Constants.COMMAND.MAR;
     /** An object representing Cx Operations of HSS */
     private HSScxOperations operations;
 
@@ -90,8 +87,7 @@ public class MARCommandListener extends CxCommandListener
      * @param _diameterPeer diameterPeer
      */    
     public MARCommandListener(
-        HSScxOperations _operations, DiameterPeer _diameterPeer)
-    {
+        HSScxOperations _operations, DiameterPeer _diameterPeer){
         super(_diameterPeer);
         this.operations = _operations;
     }
@@ -101,71 +97,50 @@ public class MARCommandListener extends CxCommandListener
      * @param requestMessage the diameter message
      * @see de.fhg.fokus.diameter.DiameterPeer.EventListener#recvMessage(java.lang.String, de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage)
      */
-    public void recvMessage(String FQDN, DiameterMessage requestMessage)
-    {
-        if (requestMessage.commandCode == COMMAND_ID)
-        {
+    public void recvMessage(String FQDN, DiameterMessage requestMessage){
+    	
+        if (requestMessage.commandCode == Constants.Command.MAR){
             counter++;
             LOGGER.debug("entering");
             LOGGER.debug(FQDN);
 
-            try
-            {
+            try {
                 AVP resultCode = null;
-
-                PublicIdentity publicIdentity =
-                    loadPublicIdentity(requestMessage);
+                PublicIdentity publicIdentity = loadPublicIdentity(requestMessage);
                     
                 LOGGER.info("MAR of User: "+ publicIdentity.getIdentity() + 
                            " is being processed");      
                     
-                URI privateUserIdentity =
-                    loadPrivateUserIdentity(requestMessage);
-                Long numberOfAuthVectors =
-                    loadNumberOfAuthVectors(requestMessage);
-                AuthenticationVector authenticationVector =
-                    loadAuthVector(requestMessage);
+                URI privateUserIdentity = loadPrivateUserIdentity(requestMessage);
+                Long numberOfAuthVectors = loadNumberOfAuthVectors(requestMessage);
+                AuthenticationVector authenticationVector = loadAuthVector(requestMessage);
 
                 String scscfName =
-                    new String(
-                        avpLookUp(
-                            requestMessage, AVPCodes._CX_SERVER_NAME, true,
-                            Constants.Vendor.V3GPP).data);
+                    new String(avpLookUp(requestMessage, Constants.AVPCode.CX_SERVER_NAME, true, Constants.Vendor.V3GPP).data);
 
                 CxAuthDataResponse authDataResponse = null;
-
-                authDataResponse =
-                    operations.cxAuthData(
-                        publicIdentity, privateUserIdentity, numberOfAuthVectors,
-                        authenticationVector, scscfName);
-
-                if (authDataResponse == null)
-                {
+                
+                authDataResponse = operations.cxAuthData(publicIdentity, privateUserIdentity, numberOfAuthVectors, authenticationVector, scscfName);
+                
+                if (authDataResponse == null){
                     throw new UnableToComply();
                 }
 
-                DiameterMessage responseMessage =
-                    diameterPeer.newResponse(requestMessage);
-
+                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
                 saveAuthData(authDataResponse, responseMessage);
 
                 // Add result code
-                resultCode =
-                    saveResultCode(
-                        authDataResponse.getResultCode(),
-                        authDataResponse.resultCodeIsBase());
+                resultCode = saveResultCode(authDataResponse.getResultCode(), authDataResponse.resultCodeIsBase());
 
                 responseMessage.addAVP(resultCode);
                 diameterPeer.sendMessage(FQDN, responseMessage);
-                LOGGER.debug("exiting");
+                System.out.println("MAR finished!");
             }
-            catch (DiameterException e)
-            {
+            catch (DiameterException e){
                 LOGGER.warn(this, e);
                 sendDiameterException(FQDN, requestMessage, e);
             }
-            catch (Exception e)
-            {
+            catch (Exception e){
                 LOGGER.error(this, e);
                 sendUnableToComply(FQDN, requestMessage);
             }
@@ -178,53 +153,44 @@ public class MARCommandListener extends CxCommandListener
      * @param authDataResponse
      * @param responseMessage
      */
-    private void saveAuthData(
-        CxAuthDataResponse authDataResponse, DiameterMessage responseMessage)
-    {
+    private void saveAuthData(CxAuthDataResponse authDataResponse, DiameterMessage responseMessage){
         // Iterete and add vectors to response message
         Iterator it = authDataResponse.getAuthenticationVectors().iterator();
         int ix = 0;
 
-        while (it.hasNext())
-        {
+        while (it.hasNext()){
             // store one vector in message as Auth Data Item
             AuthenticationVector vector = (AuthenticationVector) it.next();
 
-            AVP authDataItem = AVPCodes.getAVP(AVPCodes._SIP_AUTH_DATA_ITEM);
-
-            //Constants.AVPCodes
-            AVP itemNumber = AVPCodes.getAVP(AVPCodes._SIP_ITEM_NUMBER);
+            AVP authDataItem = new AVP(Constants.AVPCode.SIP_AUTH_DATA_ITEM, true, Constants.Vendor.V3GPP);
+            AVP itemNumber = new AVP(Constants.AVPCode.SIP_ITEM_NUMBER, true, Constants.Vendor.V3GPP);
             itemNumber.setData(ix);
             authDataItem.addChildAVP(itemNumber);
 
-            AVP authScheme =
-                AVPCodes.getAVP(AVPCodes._SIP_AUTHENTICATION_SCHEME);
+            AVP authScheme = new AVP(Constants.AVPCode.SIP_AUTHENTICATION_SCHEME, true, Constants.Vendor.V3GPP);
             authScheme.setData(vector.authenticationScheme);
             authDataItem.addChildAVP(authScheme);
             
-            //For the sake of Early IMS
+            //in the case of Early IMS
             if((vector.authenticationScheme).compareTo("Early-IMS-Security") == 0){
-            	
-                AVP ip = AVPCodes.getAVP(AVPCodes._FRAMED_IP_ADDRESS);
+                AVP ip = new AVP(Constants.AVPCode.FRAMED_IP_ADDRESS, true, Constants.Vendor.V3GPP);
                 ip.setData((vector.ip).getAddress());
                 authDataItem.addChildAVP(ip);
             }
-            
 
-            AVP authenticate = AVPCodes.getAVP(AVPCodes._SIP_AUTHENTICATE);
+            AVP authenticate = new AVP(Constants.AVPCode.SIP_AUTHENTICATE, true, Constants.Vendor.V3GPP);
             authenticate.setData(vector.sipAuthenticate);
             authDataItem.addChildAVP(authenticate);
 
-            AVP authorization = AVPCodes.getAVP(AVPCodes._SIP_AUTHORIZATION);
+            AVP authorization = new AVP(Constants.AVPCode.SIP_AUTHORIZATION, true, Constants.Vendor.V3GPP);
             authorization.setData(vector.sipAuthorization);
             authDataItem.addChildAVP(authorization);
 
-            AVP confidentialityKey =
-                AVPCodes.getAVP(AVPCodes._CONFIDENTIALITY_KEY);
+            AVP confidentialityKey = new AVP(Constants.AVPCode.CONFIDENTIALITY_KEY, true, Constants.Vendor.V3GPP);
             confidentialityKey.setData(vector.confidentialityityKey);
             authDataItem.addChildAVP(confidentialityKey);
 
-            AVP integrityKey = AVPCodes.getAVP(AVPCodes._INTEGRITY_KEY);
+            AVP integrityKey = new AVP(Constants.AVPCode.INTEGRITY_KEY, true, Constants.Vendor.V3GPP);
             integrityKey.setData(vector.integrityKey);
             authDataItem.addChildAVP(integrityKey);
 
@@ -233,7 +199,7 @@ public class MARCommandListener extends CxCommandListener
         }
 
         // Save the number of items.
-        AVP numberOfItems = AVPCodes.getAVP(AVPCodes._SIP_NUMBER_AUTH_ITEMS);
+        AVP numberOfItems = new AVP(Constants.AVPCode.SIP_NUMBER_AUTH_ITEMS, true, Constants.Vendor.V3GPP);
         numberOfItems.setData(ix);
         responseMessage.addAVP(numberOfItems);
     }
@@ -245,21 +211,15 @@ public class MARCommandListener extends CxCommandListener
      * @throws DiameterException
      */
     private Long loadNumberOfAuthVectors(DiameterMessage requestMessage)
-        throws DiameterException
-    {
+        throws DiameterException{
+    	
         Long numberOfAuthVectors = null;
-
-        try
-        {
-            numberOfAuthVectors =
-                Long.valueOf(
-                    avpLookUp(
-                        requestMessage, AVPCodes._SIP_NUMBER_AUTH_ITEMS, true,
+        try{
+            numberOfAuthVectors = Long.valueOf(avpLookUp(requestMessage, Constants.AVPCode.SIP_NUMBER_AUTH_ITEMS, true,
                         Constants.Vendor.V3GPP).int_data);
         }
-        catch (NumberFormatException e)
-        {
-            LOGGER.warn(this, e);
+        catch (NumberFormatException e){
+            LOGGER.error(this, e);
             throw new InvalidAvpValue();
         }
 
@@ -273,21 +233,23 @@ public class MARCommandListener extends CxCommandListener
      * @throws DiameterException
      */
     private AuthenticationVector loadAuthVector(DiameterMessage requestMessage)
-        throws DiameterException
-    {
-        AuthenticationVector authenticationVector = null;
-        AVP authVectorAVP =
-            avpLookUp(
-                requestMessage, AVPCodes._SIP_AUTH_DATA_ITEM, true, Vendor.V3GPP);
+        throws DiameterException{
+    	
+    	AuthenticationVector authenticationVector = null;
+        AVP authVectorAVP = avpLookUp(requestMessage, Constants.AVPCode.SIP_AUTH_DATA_ITEM, true, Vendor.V3GPP);
 
-        AVP sipAuthorization =
-            authVectorAVP.findChildAVP(
-                AVPCodes._SIP_AUTHORIZATION, true, Vendor.V3GPP);
+        try {
+			authVectorAVP.ungroup();
+		} 
+        catch (AVPDecodeException e) {
+        	LOGGER.error("Ungrouping exception!!!");
+			e.printStackTrace();
+		}
 
-        if (sipAuthorization != null)
-        {
-            authenticationVector =
-                new AuthenticationVector(sipAuthorization.data);
+        AVP sipAuthorization = authVectorAVP.findChildAVP(Constants.AVPCode.SIP_AUTHORIZATION, true, Vendor.V3GPP);
+
+        if (sipAuthorization != null){
+            authenticationVector = new AuthenticationVector(sipAuthorization.data);
         }
 
         return authenticationVector;

@@ -64,25 +64,6 @@ import de.fhg.fokus.hss.model.Impi;
 import de.fhg.fokus.hss.model.Impu;
 import de.fhg.fokus.hss.model.UserSecSettings;
 import de.fhg.fokus.hss.util.HibernateUtil;
-import de.fhg.fokus.milenage.Ak;
-import de.fhg.fokus.milenage.Amf;
-import de.fhg.fokus.milenage.AuthKey;
-import de.fhg.fokus.milenage.Autn;
-import de.fhg.fokus.milenage.Auts;
-import de.fhg.fokus.milenage.Ck;
-import de.fhg.fokus.milenage.Ik;
-import de.fhg.fokus.milenage.Mac;
-import de.fhg.fokus.milenage.Nonce;
-import de.fhg.fokus.milenage.Op;
-import de.fhg.fokus.milenage.Opc;
-import de.fhg.fokus.milenage.Rand;
-import de.fhg.fokus.milenage.Res;
-import de.fhg.fokus.milenage.SIPAuthorization;
-import de.fhg.fokus.milenage.SimpleSqn;
-import de.fhg.fokus.milenage.Sqn;
-import de.fhg.fokus.milenage.codec.CoDecException;
-import de.fhg.fokus.milenage.kernel.KernelNotFoundException;
-import de.fhg.fokus.milenage.server.ServerDigestAKA;
 import de.fhg.fokus.zh.AuthenticationVector;
 import de.fhg.fokus.zh.ZhAuthDataResponse;
 import de.fhg.fokus.zh.ZhOperations;
@@ -198,7 +179,7 @@ public class HSSzhOperationsImpl implements ZhOperations
 
         Guss guss = new Guss();
         guss.setId(impi.getImpiString());
-
+/*
         boolean isGba =
             ((int) impi.getUiccType().byteValue() == 0) ? false : true;
         Integer keylifeTime = impi.getKeyLifeTime();
@@ -244,7 +225,7 @@ public class HSSzhOperationsImpl implements ZhOperations
             TussListItem ussItem = new TussListItem();
             Uss uss = new Uss();
             uss.setId(GussBO.getIdByType(impiUss.getUssType()));
-            uss.setType(impiUss.getUssType());
+            uss.setType(impiUss.getUssType());pso/index.php?section=Teme&file=Reguli
             uss.setNafGroup(impiUss.getNafGroup());
 
             Integer flags = impiUss.getFlag();
@@ -264,7 +245,7 @@ public class HSSzhOperationsImpl implements ZhOperations
         guss.setUssList(ussList);
 
         LOGGER.debug("exiting");
-
+*/
         return guss;
     }
 
@@ -302,7 +283,7 @@ public class HSSzhOperationsImpl implements ZhOperations
         LOGGER.debug("entering");
 
         ArrayList vector = null;
-
+/*
         try
         {
             // create per init answer vector
@@ -386,7 +367,7 @@ public class HSSzhOperationsImpl implements ZhOperations
                 throw new NullPointerException("Missing Operator ID.");
             }
         }
-
+*/
         LOGGER.debug("exiting");
 
         return vector;
@@ -400,7 +381,7 @@ public class HSSzhOperationsImpl implements ZhOperations
     public ArrayList handleSynchFailure() throws DiameterException
     {
         LOGGER.debug("entering");
-
+/*
         try
         {
             ServerDigestAKA digestAKA = new ServerDigestAKA();
@@ -491,7 +472,9 @@ public class HSSzhOperationsImpl implements ZhOperations
         {
             LOGGER.error(this, e);
             throw new DiameterBaseException(UnableToComply.ERRORCODE);
-        }
+        }*/
+        
+        return null;
     }
 
     /**
@@ -508,7 +491,8 @@ public class HSSzhOperationsImpl implements ZhOperations
      * @throws CoDecException
      * @throws InvalidKeyException
      */ 
-    private static AuthenticationVector generateAuthenticationVector(
+    
+/*    private static AuthenticationVector generateAuthenticationVector(
         SecureRandom random, AuthKey secretKey, Amf amf, Opc opc, Sqn sqn,
         long pos, ServerDigestAKA digestAKA, String authScheme)
         throws CoDecException, InvalidKeyException
@@ -522,7 +506,7 @@ public class HSSzhOperationsImpl implements ZhOperations
         return generateAuthenticationVector(
             rand, secretKey, amf, opc, sqn, pos, digestAKA, authScheme);
     }
-
+*/
     /**
      * It generates authentication vector with the help of provided arguments
      * @param rand an object which can generate some random value
@@ -537,7 +521,7 @@ public class HSSzhOperationsImpl implements ZhOperations
      * @throws CoDecException
      * @throws InvalidKeyException
      */ 
-    private static AuthenticationVector generateAuthenticationVector(
+/*    private static AuthenticationVector generateAuthenticationVector(
         Rand rand, AuthKey secretKey, Amf amf, Opc opc, Sqn sqn, long pos,
         ServerDigestAKA digestAKA, String authScheme)
         throws CoDecException, InvalidKeyException
@@ -581,7 +565,7 @@ public class HSSzhOperationsImpl implements ZhOperations
         return new AuthenticationVector(
             authScheme, sipAuthenticate, sipAuthorization, ck.getBytes(),
             ik.getBytes());
-    }
+    }*/
 
     /** 
      *  a string converter

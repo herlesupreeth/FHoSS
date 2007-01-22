@@ -42,20 +42,65 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
  * 
  */
-package de.fhg.fokus.milenage.client;
+package de.fhg.fokus.hss.main;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
 
 /**
- * @author Sebastian Linkiewicz, dev -at- open - ims dot org
+ * It contains some variables which describe the HSS properties.Further it reads
+ * the values for those variables from a property file.
+ * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class InvalidRegistrationSessionStateException extends Exception
-{
-    public InvalidRegistrationSessionStateException()
-	{
-		super();
-	}
+
+public class HSSProperties {
 	
-	public InvalidRegistrationSessionStateException(String message)
-	{
-		super(message);
+	private static final Logger LOGGER = Logger.getLogger(HSSProperties.class);
+	public static String TOMCAT_HOST;
+	public static String TOMCAT_PORT;
+	public static String OPERATOR_ID;
+	public static String AMF_ID;
+	public static String PSI_DEFAULT_IMPI;
+	public static String PSI_DEFAULT_PRI_COLL_CHRG_FN;
+
+	public static boolean USE_AK = false;
+	public static int IND_LEN = 5;
+	public static int delta = 268435456;
+	public static int L = 32;
+	
+	private static String fileName = "hss.properties";
+	
+	static {
+		Properties props;
+		
+		try{
+			props = new Properties();
+			props.load(new FileInputStream(fileName));
+			
+			TOMCAT_HOST = props.getProperty("host");
+			TOMCAT_PORT = props.getProperty("port");
+			OPERATOR_ID = props.getProperty("operatorId");
+			AMF_ID = props.getProperty("amfId");
+			PSI_DEFAULT_IMPI = props.getProperty("psi.defaultImpi");
+			PSI_DEFAULT_PRI_COLL_CHRG_FN = props.getProperty("psi.defaultPriChrgCollFN");
+			USE_AK = Boolean.valueOf(props.getProperty("USE_AK")).booleanValue();
+			IND_LEN = Integer.parseInt(props.getProperty("IND_LEN"));
+			delta = Integer.parseInt(props.getProperty("delta"));
+			L = Integer.parseInt(props.getProperty("L"));
+		}
+		catch (FileNotFoundException e) {
+			LOGGER.error("FileNotFoundException !", e);
+			LOGGER.error("Failed to load configuration from \"" + fileName + "\" file!");
+			System.exit(0);
+		}
+		catch (IOException e) {
+			LOGGER.error("IOException !", e);
+			LOGGER.error("Failed to load configuration from \"" + fileName + "\" file!");
+			System.exit(0);
+		}
 	}
 }

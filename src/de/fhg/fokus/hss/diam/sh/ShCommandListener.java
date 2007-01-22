@@ -53,7 +53,6 @@ import de.fhg.fokus.diameter.DiameterPeer.DiameterPeer;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVPDecodeException;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.CommandListener;
 import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.diam.ResultCode;
@@ -72,8 +71,7 @@ import de.fhg.fokus.sh.UnableToComply;
  * 
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public abstract class ShCommandListener extends CommandListener
-{
+public abstract class ShCommandListener extends CommandListener{
     /** logger */
     private static final Logger LOGGER =
         Logger.getLogger(ShCommandListener.class);
@@ -81,8 +79,7 @@ public abstract class ShCommandListener extends CommandListener
      * constructor
      * @param _diameterPeer diameterpeer
      */
-    public ShCommandListener(DiameterPeer _diameterPeer)
-    {
+    public ShCommandListener(DiameterPeer _diameterPeer){
         super(_diameterPeer);
     }
 
@@ -100,38 +97,31 @@ public abstract class ShCommandListener extends CommandListener
      * @throws DiameterException DIAMETER_MISSING_AVP
      */
     protected URI loadPublicIdentity(DiameterMessage msg)
-        throws DiameterException
-    {
-        AVP avp =
-            avpLookUp(
-                msg, AVPCodes._SH_USER_IDENTITY, true, Constants.Vendor.V3GPP);
-        // XLB
+        throws DiameterException{
+    	
+        AVP avp = avpLookUp(msg, Constants.AVPCode.SH_USER_IDENTITY, true, Constants.Vendor.V3GPP);
         try {
 			avp.ungroup();
-		} catch (AVPDecodeException e) {
+		} 
+        catch (AVPDecodeException e) {
             LOGGER.error(this, e);
             throw new UnableToComply();
 		}
-        
-        AVP sipUriAVP = avp.findChildAVP(AVPCodes._SH_PUBLIC_IDENTITY, true, Constants.Vendor.V3GPP);
-        
+
+        AVP sipUriAVP = avp.findChildAVP(Constants.AVPCode.SH_PUBLIC_IDENTITY, true, Constants.Vendor.V3GPP);
         URI publicIdentity = null;
 
-        try
-        {
+        try{
             String uriString = new String(sipUriAVP.data);
-            if (uriString.toLowerCase().startsWith("sip:"))
-            {
+            if (uriString.toLowerCase().startsWith("sip:")){
                 uriString = uriString.substring(4);
             }
             publicIdentity = new URI(uriString);
         }
-        catch (URISyntaxException e)
-        {
+        catch (URISyntaxException e){
             LOGGER.error(this, e);
             throw new UnableToComply();
         }
-
         return publicIdentity;
     }
 
@@ -144,15 +134,12 @@ public abstract class ShCommandListener extends CommandListener
      * @return AVP given by avpCode and VendorId
      * @throws DiameterException
      */
-    protected AVP avpLookUp(
-        DiameterMessage msg, int avpCode, boolean mandatory, int vendorId)
-        throws DiameterException
-    {
+    protected AVP avpLookUp(DiameterMessage msg, int avpCode, boolean mandatory, int vendorId)
+        throws DiameterException{
     	AVP avp = msg.findAVP(avpCode, mandatory, vendorId);
     	
-        if (avp == null)
-        {
-        	LOGGER.debug("Missing AVP: "+avpCode);
+        if (avp == null){
+        	LOGGER.debug("Missing AVP: " + avpCode);
             throw new MissingAVP();
         }
 
@@ -167,45 +154,83 @@ public abstract class ShCommandListener extends CommandListener
      */
     protected void sendDiameterException(
         String FQDN, DiameterMessage requestMessage,
-        DiameterException diameterException)
-    {
-        try
-        {
-            if (
-                (diameterPeer != null) && (FQDN != null)
-                    && (requestMessage != null))
-            {
-                DiameterMessage msg = diameterPeer.newResponse(requestMessage);
-                AVP resultAVP =
-                    saveResultCode(
-                        (int) diameterException.getCode(),
+        DiameterException diameterException){
+        
+    	try{
+            if ((diameterPeer != null) && (FQDN != null) && (requestMessage != null)){
+                
+            	DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
+            	
+                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, 
+                   		Constants.Vendor.DIAM);
+                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+                vendorID.setData(Constants.Vendor.V3GPP);
+                vendorSpecificApplicationID.addChildAVP(vendorID);
+                   
+                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+                applicationID.setData(Constants.Application.SH);
+                vendorSpecificApplicationID.addChildAVP(applicationID);
+                responseMessage.addAVP(vendorSpecificApplicationID);                
+                
+                AVP authSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+                authSessionState.setData(1);
+                responseMessage.addAVP(authSessionState);
+                
+                AVP resultAVP = saveResultCode((int) diameterException.getCode(),
                         (diameterException instanceof DiameterBaseException));
-                msg.addAVP(resultAVP);
-                diameterPeer.sendMessage(FQDN, msg);
+                
+                responseMessage.addAVP(resultAVP);
+                diameterPeer.sendMessage(FQDN, responseMessage);
             }
-            else
-            {
-                LOGGER.error(
-                    "Unable To Send Unable_To_Comply_Message, cause missing mandatory param.",
-                    new NullPointerException());
+            else{
+                LOGGER.error("Unable To Send Unable_To_Comply_Message, cause missing mandatory param.", new NullPointerException());
             }
         }
-        catch (RuntimeException e)
-        {
+        catch (RuntimeException e){
             LOGGER.error(this, e);
         }
     }
-
+    
     /**
-     * adds the DIAMETER_SUCCESS to the response
-     * @param responseMessage the diameter response message to which the 
-     *                         DIAMETER_SUCCESS AVP is added.
+     * Try to send a Diameter Unable To Comply Message
+     * 
+     * @param FQDN fully qualified domain name
+     * @param requestMessage the message
      */
-    protected void addDiameterSuccess(DiameterMessage responseMessage)
-    {
-        AVP resultCode = AVPCodes.getAVP(AVPCodes._RESULT_CODE);
-        resultCode.setData(ResultCode._DIAMETER_SUCCESS);
-        responseMessage.addAVP(resultCode);
+    protected void sendUnableToComply(String FQDN, DiameterMessage requestMessage){
+    	
+        try{
+            if ((diameterPeer != null) && (FQDN != null) && (requestMessage != null)){
+            	
+                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
+                
+                AVP resultAVP = new AVP(Constants.AVPCode.RESULT_CODE, true, Constants.Vendor.DIAM);
+                resultAVP.setData(ResultCode._DIAMETER_UNABLE_TO_COMPLY);
+                responseMessage.addAVP(resultAVP);
+                
+                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, 
+                		Constants.Vendor.DIAM);
+                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+                vendorID.setData(Constants.Vendor.V3GPP);
+                vendorSpecificApplicationID.addChildAVP(vendorID);
+                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+                applicationID.setData(Constants.Application.SH);
+                vendorSpecificApplicationID.addChildAVP(applicationID);
+                responseMessage.addAVP(vendorSpecificApplicationID);                
+                
+                AVP authSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+                authSessionState.setData(1);
+                responseMessage.addAVP(authSessionState);
+
+                diameterPeer.sendMessage(FQDN, responseMessage);
+            }
+            else{
+                LOGGER.error("Unable to send Unable-To-Comply message; missing mandatory param!");
+            }
+        }
+        catch (RuntimeException e){
+            LOGGER.error(this, e);
+        }
     }
 
     /**
@@ -215,37 +240,34 @@ public abstract class ShCommandListener extends CommandListener
      * @throws DiameterException
      */
     protected RequestedData loadDataReference(DiameterMessage requestMessage)
-        throws DiameterException
-    {
-        AVP dataReferenceAVP =
-            avpLookUp(
-                requestMessage, AVPCodes._SH_DATA_REFERENCE, true, Vendor.V3GPP);
+        throws DiameterException{
+    	
+        AVP dataReferenceAVP = avpLookUp(requestMessage, Constants.AVPCode.SH_DATA_REFERENCE, true, Vendor.V3GPP);
 
-        switch (dataReferenceAVP.int_data)
-        {
-        case RequestedData._CHARGINGINFORMATION:
-            return RequestedData.CHARGINGINFORMATION;
+        switch (dataReferenceAVP.int_data){
+        	case RequestedData._CHARGINGINFORMATION:
+        		return RequestedData.CHARGINGINFORMATION;
 
-        case RequestedData._IMSUSERSTATE:
-            return RequestedData.IMSUSERSTATE;
+        	case RequestedData._IMSUSERSTATE:
+        		return RequestedData.IMSUSERSTATE;
 
-        case RequestedData._INITIALFILTERCRITERIA:
-            return RequestedData.INITIALFILTERCRITERIA;
+        	case RequestedData._INITIALFILTERCRITERIA:
+        		return RequestedData.INITIALFILTERCRITERIA;
 
-        case RequestedData._LOCATIONINFORMATION:
-            return RequestedData.LOCATIONINFORMATION;
+        	case RequestedData._LOCATIONINFORMATION:
+        		return RequestedData.LOCATIONINFORMATION;
 
-        case RequestedData._PUBLICIDENTIFIERS:
-            return RequestedData.PUBLICIDENTIFIERS;
+        	case RequestedData._PUBLICIDENTIFIERS:
+        		return RequestedData.PUBLICIDENTIFIERS;
 
-        case RequestedData._REPOSITORYDATA:
-            return RequestedData.REPOSITORYDATA;
+        	case RequestedData._REPOSITORYDATA:
+        		return RequestedData.REPOSITORYDATA;
 
-        case RequestedData._SCSCFNAME:
-            return RequestedData.SCSCFNAME;
+        	case RequestedData._SCSCFNAME:
+        		return RequestedData.SCSCFNAME;
 
-        case RequestedData._USERSTATE:
-            return RequestedData.USERSTATE;
+        	case RequestedData._USERSTATE:
+        		return RequestedData.USERSTATE;
         }
 
         throw new InvalidAvpValue();
@@ -258,13 +280,10 @@ public abstract class ShCommandListener extends CommandListener
      * @throws DiameterException
      */
     protected String loadOriginHost(DiameterMessage requestMessage)
-        throws DiameterException
-    {
-        AVP originHostAVP =
-            avpLookUp(
-                requestMessage, AVPCodes._ORIGIN_HOST, true, Vendor.DIAM);
+        throws DiameterException {
+    	
+        AVP originHostAVP = avpLookUp(requestMessage, Constants.AVPCode.ORIGIN_HOST, true, Vendor.DIAM);
         String originHost = new String(originHostAVP.data);
-
         return originHost;
     }
 }

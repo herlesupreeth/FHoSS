@@ -87,7 +87,7 @@ public class OriginHostResolver
         Session session = HibernateUtil.currentSession();
         Iterator it =
             session.createCriteria(DiamServer.class).list().iterator();
-
+        
         while (it.hasNext())
         {
             DiamServer diamServer = (DiamServer) it.next();

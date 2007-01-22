@@ -59,11 +59,10 @@ import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
  * 
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public abstract class CommandListener implements EventListener
-{
+
+public abstract class CommandListener implements EventListener {
     /** the Logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(CommandListener.class);
+    private static final Logger LOGGER = Logger.getLogger(CommandListener.class);
     /** the diameterPeer */
     protected DiameterPeer diameterPeer;
 
@@ -73,46 +72,11 @@ public abstract class CommandListener implements EventListener
      * @param _diameterPeer
      */
     public CommandListener(
-        DiameterPeer _diameterPeer)
-    {
+        DiameterPeer _diameterPeer){
+    	
         LOGGER.debug("entering");
         this.diameterPeer = _diameterPeer;
         LOGGER.debug("exiting");
-    }
-
-   
-    /**
-     * Try to send a Diameter Unable To Comply Message
-     * 
-     * @param FQDN fully qualified domain name
-     * @param requestMessage the message
-     */
-    protected void sendUnableToComply(
-        String FQDN, DiameterMessage requestMessage)
-    {
-        try
-        {
-            if (
-                (diameterPeer != null) && (FQDN != null)
-                    && (requestMessage != null))
-            {
-                DiameterMessage msg = diameterPeer.newResponse(requestMessage);
-                AVP resultAVP = AVPCodes.getAVP(AVPCodes._RESULT_CODE);
-                resultAVP.setData(ResultCode._DIAMETER_UNABLE_TO_COMPLY);
-                msg.addAVP(resultAVP);
-                diameterPeer.sendMessage(FQDN, msg);
-            }
-            else
-            {
-                LOGGER.error(
-                    "Unable To Send Unable_To_Comply_Message, cause missing mandatory param.",
-                    new NullPointerException());
-            }
-        }
-        catch (RuntimeException e)
-        {
-            LOGGER.error(this, e);
-        }
     }
 
    
@@ -124,25 +88,18 @@ public abstract class CommandListener implements EventListener
      * @param isBase it indicates either a base or grouped experimental avp
      * @return result code avp.
      */
-    protected AVP saveResultCode(int resultCode, boolean isBase)
-    {
+    protected AVP saveResultCode(int resultCode, boolean isBase){
         AVP resultCodeAVP;
 
-        if (isBase)
-        {
-            resultCodeAVP = AVPCodes.getAVP(AVPCodes._RESULT_CODE);
+        if (isBase){
+            resultCodeAVP = new AVP(Constants.AVPCode.RESULT_CODE, true, Constants.Vendor.DIAM);
             resultCodeAVP.setData(resultCode);
         }
-        else
-        {
-            resultCodeAVP =
-                AVPCodes.getAVP(AVPCodes._EXPERIMENTAL_RESULT_CODE_AVP);
-
-            AVP resultCodeCode =
-                AVPCodes.getAVP(AVPCodes._EXPERIMENTAL_RESULT_CODE);
+        else{
+            resultCodeAVP = new AVP(Constants.AVPCode.EXPERIMENTAL_RESULT_CODE_AVP, true, Constants.Vendor.DIAM);
+            AVP resultCodeCode = new AVP (Constants.AVPCode.EXPERIMENTAL_RESULT_CODE, true, Constants.Vendor.DIAM);
             resultCodeCode.setData(resultCode);
-
-            AVP vendorAVP = AVPCodes.getAVP(AVPCodes._VENDOR_ID);
+            AVP vendorAVP = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
             vendorAVP.setData(Constants.Vendor.V3GPP);
             resultCodeAVP.addChildAVP(resultCodeCode);
             resultCodeAVP.addChildAVP(vendorAVP);

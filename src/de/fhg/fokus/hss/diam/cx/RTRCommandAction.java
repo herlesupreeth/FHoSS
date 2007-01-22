@@ -52,29 +52,26 @@ import de.fhg.fokus.cx.DeregistrationReason;
 import de.fhg.fokus.cx.DeregistrationSet;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.diam.HssDiameterStack;
 import de.fhg.fokus.hss.diam.Constants.Application;
-
-
+import de.fhg.fokus.hss.diam.CommandAction;
+import de.fhg.fokus.hss.util.Util;
 /**
  * This class implements the RTR Command Action. For more imformations about RTR
  * please refer to 3GPP TS 29.229. 
  * 
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class RTRCommandAction extends CxCommandAction
-{
+
+public class RTRCommandAction extends CommandAction{
     /** counter */
     public static long counter = 0;
     /** counter */
     public static long rCounter = 0;
     /** The Logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(RTRCommandAction.class);
-    /** the command id for RTR */    
-    private static final int COMMAND_ID = Constants.COMMAND.RTR;
+    private static final Logger LOGGER = Logger.getLogger(RTRCommandAction.class);
+
     /** deregistration set*/
     private DeregistrationSet deregistrationSet;
     /** deregistration reason */
@@ -91,8 +88,8 @@ public class RTRCommandAction extends CxCommandAction
      */ 
     public RTRCommandAction(
         DeregistrationSet deregistrationSet,
-        DeregistrationReason deregistrationReason, String scscfName)
-    {
+        DeregistrationReason deregistrationReason, String scscfName){
+    	
         LOGGER.debug("entering");
         this.deregistrationSet = deregistrationSet;
         this.deregistrationReason = deregistrationReason;
@@ -116,7 +113,7 @@ public class RTRCommandAction extends CxCommandAction
      */ 
     public void recvMessage(String FQDN, DiameterMessage msg)
     {
-        if (msg.commandCode == COMMAND_ID)
+        if (msg.commandCode == Constants.Command.RTR)
         {
             LOGGER.debug("entering");
             counter++;
@@ -128,54 +125,71 @@ public class RTRCommandAction extends CxCommandAction
      *  It processes the recieved diameter message and sends appropriate response
      *  to the peer
      */
-    public void execute()
-    {
+    public void execute(){
         LOGGER.debug("entering");
         rCounter++;
         
         DiameterMessage message;
-        try
-        {
-            message =
-                HssDiameterStack.diameterPeer.newRequest(
-                    COMMAND_ID, Application.CX);
+        try{
+            message = HssDiameterStack.diameterPeer.newRequest(Constants.Command.RTR, Application.CX);
 
+            AVP a, b;
+    		/* session-id */
+    		a = new AVP(263,true,0);
+    		a.setData(deregistrationSet.getUserName().getPath() + ";11271298949;" + System.currentTimeMillis());
+    		message.addAVP(a);
+
+    		/* vendor-specific app id */
+    		a = new AVP(260,true,0);
+    		b = new AVP(266,true,0);
+    		b.setData(10415);
+    		a.addChildAVP(b);
+    		b = new AVP(258,true,0);
+    		b.setData(16777216);
+    		a.addChildAVP(b);
+    		message.addAVP(a);            
+    		
+    		/* auth-session-state, no session maintained */
+    		a = new AVP(277,true,0);
+    		a.setData(1);
+    		message.addAVP(a);
+
+    		/* destionation host and realm */
+            AVP destHostAVP = new AVP(Constants.AVPCode.DESTINATION_HOST, true, Constants.Vendor.DIAM);
+            destHostAVP.setData(Util.getHost(scscfName));
+            message.addAVP(destHostAVP);
+            
+            AVP destRealm = new AVP(283,true,0);
+            destRealm.setData(Util.getRealm(scscfName));
+            message.addAVP(destRealm);
+
+            AVP privateIdAVP = new AVP(Constants.AVPCode.PRIVATE_USER_IDENTITY, true, Constants.Vendor.DIAM);
+            privateIdAVP.setData((String) deregistrationSet.getUserName().getPath());
+            message.addAVP(privateIdAVP);
+            
             Iterator it = deregistrationSet.getPublicIds().iterator();
-
-            while (it.hasNext())
-            {
-                AVP publicIdAVP = AVPCodes.getAVP(AVPCodes._CX_PUBLIC_IDENTITY);
+            while (it.hasNext()){
+                AVP publicIdAVP = new AVP(Constants.AVPCode.CX_PUBLIC_IDENTITY, true, Constants.Vendor.V3GPP);
                 publicIdAVP.setData((String) it.next());
                 message.addAVP(publicIdAVP);
             }
 
-            AVP privateIdAVP = AVPCodes.getAVP(AVPCodes._PRIVATE_USER_IDENTITY);
-            privateIdAVP.setData(
-                (String) deregistrationSet.getUserName().getPath());
-            message.addAVP(privateIdAVP);
 
-            AVP deregAVP = AVPCodes.getAVP(AVPCodes._DEREGISTRATION_REASON);
-            AVP deregCode = AVPCodes.getAVP(AVPCodes._REASON_CODE);
+            AVP deregAVP = new AVP(Constants.AVPCode.DEREGISTRATION_REASON, true, Constants.Vendor.V3GPP);
+            AVP deregCode = new AVP(Constants.AVPCode.REASON_CODE, true, Constants.Vendor.V3GPP);
             deregCode.setData(deregistrationReason.getDeregistrationCode());
             deregAVP.addChildAVP(deregCode);
-
-            AVP deregInfo = AVPCodes.getAVP(AVPCodes._REASON_INFO);
+            AVP deregInfo = new AVP(Constants.AVPCode.REASON_INFO, true, Constants.Vendor.V3GPP);
             deregInfo.setData(deregistrationReason.getDeregistrationInfo());
             deregAVP.addChildAVP(deregInfo);
             message.addAVP(deregAVP);
 
-            AVP destHostAVP = AVPCodes.getAVP(AVPCodes._DESTINATION_HOST);
-            destHostAVP.setData(scscfName);
-            message.addAVP(destHostAVP);
-
             sendMessage(message, scscfName, true);
         }
-        catch (Exception e)
-        {
+        catch (Exception e){
             LOGGER.error(this, e);
         }
 
         LOGGER.debug("exiting");
     }
-
 }

@@ -110,7 +110,7 @@ public class LocationCxOperation extends CxOperation
                 }
             }
 
-            if (serverName != null)
+            if (serverName != null && serverName.equals("") == false)
             {
                 locationQueryResponse =
                     new CxLocationQueryResponse(
@@ -120,7 +120,8 @@ public class LocationCxOperation extends CxOperation
             }
             else
             {
-                throw new IdentityNotRegistered();
+            	LOGGER.info("User not registered, sending LIA: DIAMETER_ERROR_IDENTITY_NOT_REGISTERED !");
+            	throw new IdentityNotRegistered();
             }
         }
         finally

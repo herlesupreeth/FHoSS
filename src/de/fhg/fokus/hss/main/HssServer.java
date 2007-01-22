@@ -47,6 +47,7 @@ package de.fhg.fokus.hss.main;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
 
 import de.fhg.fokus.hss.diam.HssDiameterStack;
 
@@ -54,24 +55,22 @@ import de.fhg.fokus.hss.diam.HssDiameterStack;
 /**
  * HSS Server:
  * 
- * The main class for starting the FHoSS
- *
- * 	Starting Tomcat Server
- * 	Starting the Diameter Stack
+ * It is the main class which is starting FHoSS:
+ * 		- It starts the Tomcat Server
+ * 		- It starts the Diameter Stack
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
+
 public class HssServer
 {
-		/**
-		 * The logger
-		 */
     private static final Logger LOGGER = Logger.getLogger(HssServer.class);
+    
     
     /**
      * the current time at start up
      */
-    public static long STARTUP = System.currentTimeMillis();
+    public static long STARTUP_TIME = System.currentTimeMillis();
 
     /**
      * The main method
@@ -79,61 +78,68 @@ public class HssServer
      */
     public static void main(String[] args)
     {
-        LOGGER.info("Starting ...");
-
-        try
-        {
-        	// Startup tomcat
+    	try{
+    		Thread.sleep(1000);
+    	}
+    	catch(InterruptedException e){
+    		
+    	}
+    	LOGGER.debug("Starting FHoSS...");
+        
+        try{
+        	// Starting Tomcat
+        	
             TomcatServer tomcatServer = new TomcatServer();
             tomcatServer.setPath("./");
             tomcatServer.startTomcat();
-            STARTUP = System.currentTimeMillis();
-            // Startup Diameter Stack
+            STARTUP_TIME = System.currentTimeMillis();
+            
+            // Starting Diameter Stack
+            
             HssDiameterStack diameterStack = new HssDiameterStack();
             diameterStack.startup();
-            // HSS ready!
-            LOGGER.info("FHoSS was started and is ready to use.");
+            
+            LOGGER.info("FHoSS was started and is ready for use !");
+            LOGGER.debug("Testing");
+            LOGGER.warn("Testing");
             
             waitForExit();
-            // On any key pressed, shut down ...
+            
+            // stoping FHoSS
             tomcatServer.stopTomcat();
            	diameterStack.shutdown();
             LOGGER.info("FHoSS was stopped!");
+            
             System.exit(0);
         }
-        catch (Exception e)
-        {
+        catch (Exception e){
             LOGGER.error(e);
+            e.printStackTrace();
         }
     }
 
-		/**
-		 * This method waits until exit is typed in the console
-		 * If wait is typed, then it returns.
-		 */
-		private static void waitForExit() {
-			byte[] buffer = new byte[80]; 
-			int read;
-			String input = new String("leer");
-			while (true)
-			{
-			    try
-			    {
-			        System.out.println("Type 'exit' to exit");			       
-			        read = System.in.read(buffer, 0, 80);			        
-			        input = new String(buffer, 0, read);
-			        input  = input.trim();			        
-			        System.out.print(input);
-			    }
-			    catch (IOException e)
-			    {
-			        e.printStackTrace();
-			    }
+	/**
+	 * This method waits until exit is typed in the console
+	 * If wait is typed, then it returns.
+	 */
+	private static void waitForExit() {
+		byte[] buffer = new byte[80]; 
+		int read;
+		String input="";
+		while (true){
+		    try{
+		        LOGGER.info("Type 'exit' if you want to exit.");			       
+		        read = System.in.read(buffer, 0, 80);			        
+		        input = new String(buffer, 0, read);
+		        input  = input.trim();
+		    }
+		    catch (IOException e){
+		        e.printStackTrace();
+		    }
 			   
-			    if(input.equals("exit")){
-			    	return;
-			    }
-			}
+		    if(input.equals("exit")){
+		    	return;
+		    }
 		}
-
+	}
 }

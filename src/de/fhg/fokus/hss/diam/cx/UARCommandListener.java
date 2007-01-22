@@ -56,7 +56,6 @@ import de.fhg.fokus.cx.exceptions.base.UnableToComply;
 import de.fhg.fokus.diameter.DiameterPeer.DiameterPeer;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.diam.UserAuthorizationTypeAVP;
 
@@ -77,7 +76,7 @@ public class UARCommandListener extends CxCommandListener
     private static final Logger LOGGER =
         Logger.getLogger(UARCommandListener.class);
     /** command id for UAR */    
-    private static final int COMMAND_ID = Constants.COMMAND.UAR;
+    private static final int COMMAND_ID = Constants.Command.UAR;
     /** an Object representing the Cx operations of HSS*/
     private HSScxOperations operations;
 
@@ -117,42 +116,27 @@ public class UARCommandListener extends CxCommandListener
                     loadPrivateUserIdentity(requestMessage);
 
                 // Check for Type of Authorization, if null default is set to REGISTRATION.
-                AVP typeOfAuthAVP =
-                    requestMessage.findAVP(
-                        AVPCodes._USER_AUTHORIZATION_TYPE, true,
-                        Constants.Vendor.V3GPP);
-                int typeOfAuthorization =
-                    UserAuthorizationTypeAVP._REGISTRATION;
-
-                if (typeOfAuthAVP != null)
-                {
+                AVP typeOfAuthAVP = requestMessage.findAVP(Constants.AVPCode.USER_AUTHORIZATION_TYPE, true, 
+                		Constants.Vendor.V3GPP);
+                int typeOfAuthorization = UserAuthorizationTypeAVP._REGISTRATION;
+                if (typeOfAuthAVP != null){
                     typeOfAuthorization = typeOfAuthAVP.int_data;
                 }
 
-                String visitedNetworkIdentifier =
-                    new String(
-                        requestMessage.findAVP(
-                            AVPCodes._VISITED_NETWORK_IDENTIFIER, true,
-                            Constants.Vendor.V3GPP).data);
+                String visitedNetworkIdentifier = new String(
+                		requestMessage.findAVP(Constants.AVPCode.VISITED_NETWORK_IDENTIFIER, true,Constants.Vendor.V3GPP).data);
 
                 CxUserRegistrationStatusResponse response = null;
                 AVP resultCode = null;
+                response = operations.cxQuery(publicIdentity, visitedNetworkIdentifier, typeOfAuthorization, privateUserIdentity);
 
-                response =
-                    operations.cxQuery(
-                        publicIdentity, visitedNetworkIdentifier,
-                        typeOfAuthorization, privateUserIdentity);
-
-                if (response == null)
-                {
+                if (response == null){
                     throw new UnableToComply();
                 }
 
-                DiameterMessage responseMessage =
-                    diameterPeer.newResponse(requestMessage);
+                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
 
-                if (resultCode == null)
-                {
+                if (resultCode == null){
                 	//add  Session Id from Request
                 	AVP sessionIdAVP = requestMessage.getAVP(0);
                 	responseMessage.addAVP(sessionIdAVP);
@@ -160,35 +144,25 @@ public class UARCommandListener extends CxCommandListener
                 	AVP vsAVP = null;
                 	
                     // Add assigned Server Name
-                    if (
-                        (response.getAssignedSCSCFName() != null)
-                            && (response.getAssignedSCSCFName().length() > 0))
-                    {
-                        AVP assginedSCSCFName =
-                            AVPCodes.getAVP(AVPCodes._CX_SERVER_NAME);
-                        assginedSCSCFName.setData(
-                            response.getAssignedSCSCFName());
+                    if ( (response.getAssignedSCSCFName() != null) && (response.getAssignedSCSCFName().length() > 0)){
+                        AVP assginedSCSCFName = new AVP(Constants.AVPCode.CX_SERVER_NAME, true, Constants.Vendor.V3GPP);
+                        assginedSCSCFName.setData(response.getAssignedSCSCFName());
                         responseMessage.addAVP(assginedSCSCFName);
                     }
 
                     // Add result code
-                    resultCode =
-                        saveResultCode(
-                            response.getResultCode(),
-                            response.resultCodeIsBase());
+                    resultCode = saveResultCode(response.getResultCode(), response.resultCodeIsBase());
                 }
 
                 responseMessage.addAVP(resultCode);
                 diameterPeer.sendMessage(FQDN, responseMessage);
                 LOGGER.debug("exiting");
             }
-            catch (DiameterException e)
-            {
+            catch (DiameterException e){
                 LOGGER.warn(this, e);
                 sendDiameterException(FQDN, requestMessage, e);
             }
-            catch (Exception e)
-            {
+            catch (Exception e){
                 LOGGER.error(this, e);
                 sendUnableToComply(FQDN, requestMessage);
             }

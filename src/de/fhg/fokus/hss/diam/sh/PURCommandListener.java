@@ -52,8 +52,8 @@ import org.apache.log4j.Logger;
 import de.fhg.fokus.diameter.DiameterPeer.DiameterPeer;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
+import de.fhg.fokus.hss.diam.ResultCode;
 import de.fhg.fokus.hss.diam.Constants.Vendor;
 import de.fhg.fokus.sh.DiameterException;
 import de.fhg.fokus.sh.HSSOperations;
@@ -74,8 +74,6 @@ public class PURCommandListener extends ShCommandListener
         Logger.getLogger(PURCommandListener.class);
     /** counter to count calls*/
     public static long counter = 0;
-    /** command id for PUR */
-    private static final int COMMAND_ID = Constants.COMMAND.PUR;
     /** an object representing the HSS operations */
 	private HSSOperations operations;
     
@@ -100,43 +98,51 @@ public class PURCommandListener extends ShCommandListener
      */ 
     public void recvMessage(String FQDN, DiameterMessage requestMessage)
     {
-    	 if (requestMessage.commandCode == COMMAND_ID)
-       {
+    	 if (requestMessage.commandCode == Constants.Command.PUR){
            counter++;
            LOGGER.debug("entering");
            LOGGER.debug(FQDN);
-           try
-           {
+           
+           try{
                URI publicIdentity = loadPublicIdentity(requestMessage);
                String applicationServerIdentity = loadOriginHost(requestMessage);
                RequestedData requestedData = loadDataReference(requestMessage);
                
-               AVP shDataAVP = avpLookUp(requestMessage, AVPCodes._SH_USER_DATA, true, Vendor.V3GPP);
+               AVP shDataAVP = avpLookUp(requestMessage, Constants.AVPCode.SH_USER_DATA, true, Vendor.V3GPP);
                String shDataString = new String(shDataAVP.data);               
-               //System.out.println("DATA: \n" + shDataString + "\n");
-
                ShData shData = (ShData) ShData.unmarshal(new StringReader(shDataString));
- 
                operations.shUpdate(publicIdentity, shData, applicationServerIdentity, requestedData);
 
-               DiameterMessage responseMessage =
-                   diameterPeer.newResponse(requestMessage);
-
-               addDiameterSuccess(responseMessage);
+               DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
+               AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, 
+               		Constants.Vendor.DIAM);
+               AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+               vendorID.setData(Constants.Vendor.V3GPP);
+               vendorSpecificApplicationID.addChildAVP(vendorID);
+               
+               AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+               applicationID.setData(Constants.Application.SH);
+               vendorSpecificApplicationID.addChildAVP(applicationID);
+               responseMessage.addAVP(vendorSpecificApplicationID);
+               
+               AVP authSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+               authSessionState.setData(1);
+               responseMessage.addAVP(authSessionState);
+               
+               AVP resultCode = new AVP (Constants.AVPCode.RESULT_CODE, true, Constants.Vendor.DIAM);
+               resultCode.setData(ResultCode._DIAMETER_SUCCESS);
+               responseMessage.addAVP(resultCode);
+               
                diameterPeer.sendMessage(FQDN, responseMessage);
            }
-           catch (DiameterException e)
-           {
-               LOGGER.warn(this, e);
+           catch (DiameterException e){
+        	   LOGGER.error(this, e);
                sendDiameterException(FQDN, requestMessage, e);
            }
-           catch (Exception e)
-           {
+           catch (Exception e){
                LOGGER.error(this, e);
                sendUnableToComply(FQDN, requestMessage);
            }
-           
-           
        }
     }
 }

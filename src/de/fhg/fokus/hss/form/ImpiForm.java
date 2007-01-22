@@ -44,8 +44,8 @@
  */
 package de.fhg.fokus.hss.form;
 
+import de.fhg.fokus.hss.main.HSSProperties;
 import de.fhg.fokus.hss.model.AuthSchemeBO;
-import de.fhg.fokus.hss.server.HSSProperties;
 import de.fhg.fokus.hss.util.Converter;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -77,17 +77,19 @@ public class ImpiForm extends ImpuSubSelectForm
     static
     {
         authSchemes = new ArrayList();
-        authSchemes.add(new Tupel(AuthSchemeBO.AUS_MD5, AuthSchemeBO.AUS_MD5));
-
-        //authSchemes.add(
-        //  new Tupel(AuthSchemeBO.AUS_EARLY, AuthSchemeBO.AUS_EARLY));
+        //authSchemes.add(new Tupel(AuthSchemeBO.AUS_EARLY, AuthSchemeBO.AUS_EARLY));
+        authSchemes.add(new Tupel(AuthSchemeBO.AUTH_SCHEME_AKAv1, AuthSchemeBO.AUTH_SCHEME_AKAv1));
+        authSchemes.add(new Tupel(AuthSchemeBO.AUTH_SCHEME_AKAv2, AuthSchemeBO.AUTH_SCHEME_AKAv2));
+        authSchemes.add(new Tupel(AuthSchemeBO.AUTH_SCHEME_MD5, AuthSchemeBO.AUTH_SCHEME_MD5));
     }
 
     static
     {
         authAlgos = new ArrayList();
-        authAlgos.add(
-            new Tupel(AuthSchemeBO.AUTH_ALGO_MD5, AuthSchemeBO.AUTH_ALGO_MD5));
+        //authAlgos.add(new Tupel(AuthSchemeBO));
+        authAlgos.add(new Tupel(AuthSchemeBO.AUTH_ALGORITHM_AKAv1, AuthSchemeBO.AUTH_ALGORITHM_AKAv1));
+        authAlgos.add(new Tupel(AuthSchemeBO.AUTH_ALGORITHM_AKAv2, AuthSchemeBO.AUTH_ALGORITHM_AKAv2));
+        authAlgos.add(new Tupel(AuthSchemeBO.AUTH_ALGORITHM_MD5, AuthSchemeBO.AUTH_ALGORITHM_MD5));
     }
 
     public static final String SQD_UPDATE_TRUE = "1";
@@ -133,7 +135,7 @@ public class ImpiForm extends ImpuSubSelectForm
 
         if (
             (getAuthScheme() != null)
-                && (getAuthScheme().equals(AuthSchemeBO.AUS_MD5)))
+                && (getAuthScheme().equals(AuthSchemeBO.AUTH_SCHEME_AKAv1) || getAuthScheme().equals(AuthSchemeBO.AUTH_SCHEME_AKAv2)))
         {
             if ((getAmf() == null) || (getAmf().length() != 4))
             {
@@ -175,9 +177,9 @@ public class ImpiForm extends ImpuSubSelectForm
         roamNetworkIdentifiers = new TreeSet();
         scscfName = null;
         skey = "00000000000000000000000000000000";
-        authScheme = AuthSchemeBO.AUS_MD5;
+        authScheme = AuthSchemeBO.AUTH_SCHEME_AKAv1;
         amf = HSSProperties.AMF_ID;
-        algorithm = AuthSchemeBO.AUTH_ALGO_MD5;
+        algorithm = AuthSchemeBO.AUTH_ALGORITHM_AKAv1;
         operatorId = HSSProperties.OPERATOR_ID;
         sqn = "000000000000";
         sqnUpdate = SQD_UPDATE_FALSE;

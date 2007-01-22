@@ -51,9 +51,9 @@ import org.apache.log4j.Logger;
 import de.fhg.fokus.diameter.DiameterPeer.DiameterPeer;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.diam.OriginHostResolver;
+import de.fhg.fokus.hss.diam.ResultCode;
 import de.fhg.fokus.hss.diam.Constants.Vendor;
 import de.fhg.fokus.sh.DiameterException;
 import de.fhg.fokus.sh.HSSOperations;
@@ -68,15 +68,13 @@ import de.fhg.fokus.sh.SubscriptionRequestType;
  * 
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class SNRCommandListener extends ShCommandListener
-{
+
+public class SNRCommandListener extends ShCommandListener{
     /** logger */
     private static final Logger LOGGER =
         Logger.getLogger(SNRCommandListener.class);
     /** counter to count calls */
     public static long counter = 0;
-    /** command id */
-    private static final int COMMAND_ID = Constants.COMMAND.SNR;
     /** an object representing the hss operations */
     private HSSOperations operations;
 
@@ -99,86 +97,69 @@ public class SNRCommandListener extends ShCommandListener
      */ 
     public void recvMessage(String FQDN, DiameterMessage requestMessage)
     {
-        if (requestMessage.commandCode == COMMAND_ID)
-        {
+        if (requestMessage.commandCode == Constants.Command.SNR){
+        	
             counter++;
             LOGGER.debug("entering");
             LOGGER.debug(FQDN);
 
-            try
-            {
+            try{
                 // request extract part
                 URI publicIdentity = loadPublicIdentity(requestMessage);
-                String applicationServerIdentity =
-                    loadOriginHost(requestMessage);
+                String applicationServerIdentity = loadOriginHost(requestMessage);
                 RequestedData requestedData = loadDataReference(requestMessage);
                 SubscriptionRequestType subscriptionRequestType = null;
-                AVP subReqTypeAVP =
-                    avpLookUp(
-                        requestMessage, AVPCodes._SH_SUBSCRIBTION_REQ_TYPE, true,
+                AVP subReqTypeAVP = avpLookUp(requestMessage, Constants.AVPCode.SH_SUBSCRIBTION_REQ_TYPE, true,
                         Vendor.V3GPP);
 
-                if (
-                    subReqTypeAVP.int_data == SubscriptionRequestType._SUBSCRIBE)
-                {
+                if (subReqTypeAVP.int_data == SubscriptionRequestType._SUBSCRIBE){
                     subscriptionRequestType = SubscriptionRequestType.SUBSCRIBE;
                 }
-                else if (
-                    subReqTypeAVP.int_data == SubscriptionRequestType._UNSUBSCRIBE)
-                {
+                else if (subReqTypeAVP.int_data == SubscriptionRequestType._UNSUBSCRIBE){
                     subscriptionRequestType =
                         SubscriptionRequestType.UNSUBSCRIBE;
                 }
-                else
-                {
+                else{
                     throw new InvalidAvpValue();
                 }
 
                 URI applicationServerName = null;
-                AVP asNameAVP =
-                    requestMessage.findAVP(
-                        AVPCodes._SH_SERVER_NAME, true, Vendor.V3GPP);
-                // XLB
-                if (asNameAVP != null)
-                {
-                    applicationServerName = new URI(new String(asNameAVP.data));
-     
+                AVP asNameAVP = requestMessage.findAVP(Constants.AVPCode.SH_SERVER_NAME, true, Vendor.V3GPP);
 
+                if (asNameAVP != null){
+                    applicationServerName = new URI(new String(asNameAVP.data));
 	                OriginHostResolver.setOriginHost(
 	                    applicationServerName.getPath(), applicationServerIdentity);
                 }
+                
                 byte[] serviceIndication = null;
 
-                AVP svcIndAVP =
-                    requestMessage.findAVP(
-                        AVPCodes._SH_SERVICE_INDICATION, true, Vendor.V3GPP);
+                AVP svcIndAVP = requestMessage.findAVP(Constants.AVPCode.SH_SERVICE_INDICATION, true, Vendor.V3GPP);
 
-                if (svcIndAVP != null)
-                {
+                if (svcIndAVP != null){
                     serviceIndication = svcIndAVP.data;
                 }
 
                 // Do HSS Bussiness
-                operations.shSubsNotif(
-                    publicIdentity, requestedData, subscriptionRequestType,
-                    serviceIndication, applicationServerIdentity,
-                    applicationServerName);
+                operations.shSubsNotif(publicIdentity, requestedData, subscriptionRequestType,
+                    serviceIndication, applicationServerIdentity, applicationServerName);
 
                 // Answer with a DIAMETER_SUCCESS, error cases will be handled
                 // by the exception handlers.
                 DiameterMessage responseMessage =
                     diameterPeer.newResponse(requestMessage);
 
-                addDiameterSuccess(responseMessage);
+                AVP responseCode = new AVP(Constants.AVPCode.RESULT_CODE, true, Constants.Vendor.DIAM);
+                responseCode.setData(ResultCode._DIAMETER_SUCCESS);
+                responseMessage.addAVP(responseCode);
+
                 diameterPeer.sendMessage(FQDN, responseMessage);
             }
-            catch (DiameterException e)
-            {
-                LOGGER.warn(this, e);
+            catch (DiameterException e){
+                LOGGER.error(this, e);
                 sendDiameterException(FQDN, requestMessage, e);
             }
-            catch (Exception e)
-            {
+            catch (Exception e){
                 LOGGER.error(this, e);
                 sendUnableToComply(FQDN, requestMessage);
             }

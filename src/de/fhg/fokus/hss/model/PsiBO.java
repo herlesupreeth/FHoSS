@@ -52,7 +52,7 @@ import org.hibernate.LockMode;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import de.fhg.fokus.hss.server.HSSProperties;
+import de.fhg.fokus.hss.main.HSSProperties;
 import de.fhg.fokus.hss.util.HibernateUtil;
 
 

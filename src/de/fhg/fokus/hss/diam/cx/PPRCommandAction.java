@@ -54,11 +54,11 @@ import de.fhg.fokus.cx.ChargingInfoSet;
 import de.fhg.fokus.cx.datatypes.IMSSubscription;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.diam.HssDiameterStack;
 import de.fhg.fokus.hss.diam.Constants.Application;
-
+import de.fhg.fokus.hss.diam.CommandAction;
+import de.fhg.fokus.hss.util.Util;
 
 /**
  * This class implements the PPR Command Action. For more imformations about PPR
@@ -66,7 +66,7 @@ import de.fhg.fokus.hss.diam.Constants.Application;
  * 
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class PPRCommandAction extends CxCommandAction
+public class PPRCommandAction extends CommandAction
 {
     /** counter */
     public static long counter = 0;
@@ -76,7 +76,7 @@ public class PPRCommandAction extends CxCommandAction
     private static final Logger LOGGER =
         Logger.getLogger(PPRCommandAction.class);
     /** the command id for PPR */     
-    private static final int COMMAND_ID = Constants.COMMAND.PPR;
+    private static final int COMMAND_ID = Constants.Command.PPR;
     /** the private user identity */
     private URI privateUserIdentity;
     /** ims subscription */
@@ -137,37 +137,57 @@ public class PPRCommandAction extends CxCommandAction
      *  to the peer
      *
      */
-    public void execute()
-    {
+    public void execute(){
         LOGGER.debug("entering");
         rCounter++;
         DiameterMessage message;
 
-        try
-        {
-            message =
-                HssDiameterStack.diameterPeer.newRequest(
-                    COMMAND_ID, Application.CX);
+        try{
+            message = HssDiameterStack.diameterPeer.newRequest(COMMAND_ID, Application.CX);
+            AVP a, b;
+            
+    		/* session-id */
+    		a = new AVP(263,true,0);
+    		a.setData(privateUserIdentity.getPath() + ";11271298949;" + System.currentTimeMillis());
+    		message.addAVP(a);
 
-            // create the message
-            AVP privateUserAVP =
-                AVPCodes.getAVP(AVPCodes._PRIVATE_USER_IDENTITY);
+    		/* vendor-specific app id */
+    		a = new AVP(260,true,0);
+    		b = new AVP(266,true,0);
+    		b.setData(10415);
+    		a.addChildAVP(b);
+    		b = new AVP(258,true,0);
+    		b.setData(16777216);
+    		a.addChildAVP(b);
+    		message.addAVP(a);            
+    		
+    		/* auth-session-state, no session maintained */
+    		a = new AVP(277,true,0);
+    		a.setData(1);
+    		message.addAVP(a);
+
+    		/* destionation host and realm */
+            AVP destHostAVP = new AVP(Constants.AVPCode.DESTINATION_HOST, true, Constants.Vendor.DIAM);
+            destHostAVP.setData(Util.getHost(scscfName));
+            message.addAVP(destHostAVP);
+            
+            AVP destRealm = new AVP(283,true,0);
+            destRealm.setData(Util.getRealm(scscfName));
+            message.addAVP(destRealm);
+    		
+            /* username */ 
+            AVP privateUserAVP = new AVP(Constants.AVPCode.PRIVATE_USER_IDENTITY, true, Constants.Vendor.DIAM);
             privateUserAVP.setData(privateUserIdentity.getPath());
             message.addAVP(privateUserAVP);
 
-            if (userData != null)
-            {
+            /* userdata */ 
+            
+            if (userData != null){
                 SARCommandListener.saveIMSSubscription(userData, message);
             }
-            else
-            {
-                SARCommandListener.saveChargingInfoSet(
-                    chargingInfoSet, message);
+            else{
+                SARCommandListener.saveChargingInfoSet(chargingInfoSet, message);
             }
-
-            AVP destHostAVP = AVPCodes.getAVP(AVPCodes._DESTINATION_HOST);
-            destHostAVP.setData(scscfName);
-            message.addAVP(destHostAVP);
 
             sendMessage(message, scscfName, true);
         }

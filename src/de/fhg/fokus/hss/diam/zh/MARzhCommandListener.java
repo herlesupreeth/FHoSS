@@ -55,8 +55,8 @@ import org.exolab.castor.xml.ValidationException;
 import de.fhg.fokus.diameter.DiameterPeer.DiameterPeer;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
+import de.fhg.fokus.hss.diam.ResultCode;
 import de.fhg.fokus.hss.model.AuthSchemeBO;
 import de.fhg.fokus.zh.AuthenticationVector;
 import de.fhg.fokus.zh.ZhAuthDataResponse;
@@ -79,7 +79,7 @@ public class MARzhCommandListener extends ZhCommandListener
     private static final Logger LOGGER =
         Logger.getLogger(MARzhCommandListener.class);
     /** command id for MARzh */    
-    private static final int COMMAND_ID = Constants.COMMAND.MARzh;
+    private static final int COMMAND_ID = Constants.Command.MARzh;
     /** an object representing zh operations */
     private ZhOperations zhOperations;
 
@@ -214,13 +214,11 @@ public class MARzhCommandListener extends ZhCommandListener
      */
     private void saveGussData(
         ZhAuthDataResponse authDataResponse, DiameterMessage responseMessage)
-        throws MarshalException, ValidationException
-    {
+        throws MarshalException, ValidationException{
         Guss guss = authDataResponse.getGuss();
 
-        if (guss != null)
-        {
-            AVP gussAVP = AVPCodes.getAVP(AVPCodes._ZH_GUSS);
+        if (guss != null){
+            AVP gussAVP = new AVP (Constants.AVPCode.ZH_GUSS, true, Constants.Vendor.V3GPP);
             StringWriter sw = new StringWriter();
             guss.marshal(sw);
             gussAVP.setData(sw.getBuffer().toString());
@@ -235,43 +233,38 @@ public class MARzhCommandListener extends ZhCommandListener
      * @param responseMessage
      */
     private void saveAuthData(
-        ZhAuthDataResponse authDataResponse, DiameterMessage responseMessage)
-    {
+        ZhAuthDataResponse authDataResponse, DiameterMessage responseMessage){
         // Iterete and add vectors to response message
         Iterator it = authDataResponse.getAuthenticationVectors().iterator();
         int ix = 0;
 
-        while (it.hasNext())
-        {
+        while (it.hasNext()){
             // store one vector in message as Auth Data Item
             AuthenticationVector vector = (AuthenticationVector) it.next();
 
-            AVP authDataItem = AVPCodes.getAVP(AVPCodes._SIP_AUTH_DATA_ITEM);
-
-            //Constants.AVPCodes
-            AVP itemNumber = AVPCodes.getAVP(AVPCodes._SIP_ITEM_NUMBER);
+            AVP authDataItem = new AVP(Constants.AVPCode.SIP_AUTH_DATA_ITEM, true, Constants.Vendor.V3GPP);
+            
+            AVP itemNumber = new AVP(Constants.AVPCode.SIP_ITEM_NUMBER, true, Constants.Vendor.V3GPP);
             itemNumber.setData(ix);
             authDataItem.addChildAVP(itemNumber);
-
-            AVP authScheme =
-                AVPCodes.getAVP(AVPCodes._SIP_AUTHENTICATION_SCHEME);
+            
+            AVP authScheme = new AVP (Constants.AVPCode.SIP_AUTHENTICATION_SCHEME, true, Constants.Vendor.V3GPP);
             authScheme.setData(vector.authenticationScheme);
             authDataItem.addChildAVP(authScheme);
 
-            AVP authenticate = AVPCodes.getAVP(AVPCodes._SIP_AUTHENTICATE);
+            AVP authenticate = new AVP(Constants.AVPCode.SIP_AUTHENTICATE, true, Constants.Vendor.V3GPP);
             authenticate.setData(vector.sipAuthenticate);
             authDataItem.addChildAVP(authenticate);
 
-            AVP authorization = AVPCodes.getAVP(AVPCodes._SIP_AUTHORIZATION);
+            AVP authorization = new AVP (Constants.AVPCode.SIP_AUTHORIZATION, true, Constants.Vendor.V3GPP);
             authorization.setData(vector.sipAuthorization);
             authDataItem.addChildAVP(authorization);
 
-            AVP confidentialityKey =
-                AVPCodes.getAVP(AVPCodes._CONFIDENTIALITY_KEY);
+            AVP confidentialityKey = new AVP(Constants.AVPCode.CONFIDENTIALITY_KEY, true, Constants.Vendor.V3GPP);
             confidentialityKey.setData(vector.confidentialityityKey);
             authDataItem.addChildAVP(confidentialityKey);
 
-            AVP integrityKey = AVPCodes.getAVP(AVPCodes._INTEGRITY_KEY);
+            AVP integrityKey = new AVP(Constants.AVPCode.INTEGRITY_KEY, true, Constants.Vendor.V3GPP);
             integrityKey.setData(vector.integrityKey);
             authDataItem.addChildAVP(integrityKey);
 
@@ -280,7 +273,7 @@ public class MARzhCommandListener extends ZhCommandListener
         }
 
         // Save the number of items.
-        AVP numberOfItems = AVPCodes.getAVP(AVPCodes._SIP_NUMBER_AUTH_ITEMS);
+        AVP numberOfItems = new AVP(Constants.AVPCode.SIP_NUMBER_AUTH_ITEMS, true, Constants.Vendor.V3GPP);
         numberOfItems.setData(ix);
         responseMessage.addAVP(numberOfItems);
     }
@@ -340,6 +333,49 @@ public class MARzhCommandListener extends ZhCommandListener
         //        }
         //
         //        return authenticationVector;
-        return new AuthenticationVector(AuthSchemeBO.AUTH_ALGO_MD5.getBytes());
+        return new AuthenticationVector(AuthSchemeBO.AUTH_ALGORITHM_AKAv1.getBytes());
     }
+    
+    /**
+     * Try to send a Diameter Unable To Comply Message
+     * 
+     * @param FQDN fully qualified domain name
+     * @param requestMessage the message
+     */
+    protected void sendUnableToComply(String FQDN, DiameterMessage requestMessage){
+    	
+        try{
+            if ((diameterPeer != null) && (FQDN != null) && (requestMessage != null)){
+            	
+                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
+                
+                AVP resultAVP = new AVP(Constants.AVPCode.RESULT_CODE, true, Constants.Vendor.DIAM);
+                resultAVP.setData(ResultCode._DIAMETER_UNABLE_TO_COMPLY);
+                responseMessage.addAVP(resultAVP);
+                
+                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, 
+                		Constants.Vendor.DIAM);
+                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+                vendorID.setData(Constants.Vendor.V3GPP);
+                vendorSpecificApplicationID.addChildAVP(vendorID);
+                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+                applicationID.setData(Constants.Application.ZH);
+                vendorSpecificApplicationID.addChildAVP(applicationID);
+                responseMessage.addAVP(vendorSpecificApplicationID);                
+                
+                AVP authSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+                authSessionState.setData(1);
+                responseMessage.addAVP(authSessionState);
+
+                diameterPeer.sendMessage(FQDN, responseMessage);
+            }
+            else{
+                LOGGER.error("Unable to send Unable-To-Comply message; missing mandatory param!");
+            }
+        }
+        catch (RuntimeException e){
+            LOGGER.error(this, e);
+        }
+    }
+
 }

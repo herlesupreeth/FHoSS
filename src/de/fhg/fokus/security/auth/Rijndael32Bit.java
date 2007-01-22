@@ -1,56 +1,33 @@
-/*
- * $Id$
+
+/**
+ * Rijndael.java
  *
- * Copyright (C) 2004-2006 FhG Fokus
+ * @version 1.0 (May 2001)
  *
- * This file is part of Open IMS Core - an open source IMS CSCFs & HSS
- * implementation
+ * Optimised Java implementation of the Rijndael (AES) block cipher.
  *
- * Open IMS Core is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * @author Paulo Barreto <paulo.barreto@terra.com.br>
  *
- * For a license to use the Open IMS Core software under conditions
- * other than those described here, or to purchase support for this
- * software, please contact Fraunhofer FOKUS by e-mail at the following
- * addresses:
- *     info@open-ims.org
+ * This software is hereby placed in the public domain.
  *
- * Open IMS Core is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * It has to be noted that this Open Source IMS Core System is not
- * intended to become or act as a product in a commercial context! Its
- * sole purpose is to provide an IMS core reference implementation for
- * IMS technology testing and IMS application prototyping for research
- * purposes, typically performed in IMS test-beds.
- *
- * Users of the Open Source IMS Core System have to be aware that IMS
- * technology may be subject of patents and licence terms, as being
- * specified within the various IMS-related IETF, ITU-T, ETSI, and 3GPP
- * standards. Thus all Open IMS Core users have to take notice of this
- * fact and have to agree to check out carefully before installing,
- * using and extending the Open Source IMS Core System, if related
- * patents and licenses may become applicable to the intended usage
- * context. 
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
- * 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ''AS IS'' AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package de.fhg.fokus.milenage.kernel;
+package de.fhg.fokus.security.auth;
 
 import java.security.InvalidKeyException;
 
-/**
- * @author Sizhong Liu, sli -at- fokus dot fraunhofer dot de
- */
-public class Rijndael32Bit implements Kernel
+public class Rijndael32Bit 
 {
     public Rijndael32Bit() {
     }
@@ -247,6 +224,124 @@ public class Rijndael32Bit implements Kernel
         temp = 0;
     }
 
+	/*
+	 * Faster implementation of the key expansion
+	 * (only worthwhile in Rijndael is used in a hashing function mode).
+	 */
+	/*
+    private void expandKey(byte[] cipherKey) {
+        int keyOffset = 0;
+   	    int i = 0;
+	    int temp;
+
+        rek[0] =
+            (cipherKey[ 0]       ) << 24 |
+            (cipherKey[ 1] & 0xff) << 16 |
+            (cipherKey[ 2] & 0xff) <<  8 |
+            (cipherKey[ 3] & 0xff);
+	    rek[1] =
+            (cipherKey[ 4]       ) << 24 |
+            (cipherKey[ 5] & 0xff) << 16 |
+            (cipherKey[ 6] & 0xff) <<  8 |
+            (cipherKey[ 7] & 0xff);
+	    rek[2] =
+            (cipherKey[ 8]       ) << 24 |
+            (cipherKey[ 9] & 0xff) << 16 |
+            (cipherKey[10] & 0xff) <<  8 |
+            (cipherKey[11] & 0xff);
+	    rek[3] =
+            (cipherKey[12]       ) << 24 |
+            (cipherKey[13] & 0xff) << 16 |
+            (cipherKey[14] & 0xff) <<  8 |
+            (cipherKey[15] & 0xff);
+	    if (Nk == 4) {
+	    	for (;;) {
+	    		temp = rek[keyOffset + 3];
+	    		rek[keyOffset + 4] = rek[keyOffset] ^
+	    			((Se[(temp >>> 16) & 0xff]       ) << 24) ^
+	    			((Se[(temp >>>  8) & 0xff] & 0xff) << 16) ^
+                    ((Se[(temp       ) & 0xff] & 0xff) <<  8) ^
+                    ((Se[(temp >>> 24)       ] & 0xff)      ) ^
+	    			rcon[i];
+	    		rek[keyOffset + 5] = rek[keyOffset + 1] ^ rek[keyOffset + 4];
+	    		rek[keyOffset + 6] = rek[keyOffset + 2] ^ rek[keyOffset + 5];
+	    		rek[keyOffset + 7] = rek[keyOffset + 3] ^ rek[keyOffset + 6];
+	    		if (++i == 10) {
+	    			return;
+	    		}
+	    		keyOffset += 4;
+	    	}
+	    }
+        rek[keyOffset + 4] =
+            (cipherKey[16]       ) << 24 |
+            (cipherKey[17] & 0xff) << 16 |
+            (cipherKey[18] & 0xff) <<  8 |
+            (cipherKey[19] & 0xff);
+	    rek[keyOffset + 5] =
+            (cipherKey[20]       ) << 24 |
+            (cipherKey[21] & 0xff) << 16 |
+            (cipherKey[22] & 0xff) <<  8 |
+            (cipherKey[23] & 0xff);
+	    if (Nk == 6) {
+	    	for (;;) {
+	    		temp = rek[keyOffset + 5];
+	    		rek[keyOffset +  6] = rek[keyOffset] ^
+                    ((Se[(temp >>> 16) & 0xff]       ) << 24) ^
+                    ((Se[(temp >>>  8) & 0xff] & 0xff) << 16) ^
+                    ((Se[(temp       ) & 0xff] & 0xff) <<  8) ^
+                    ((Se[(temp >>> 24)       ] & 0xff)      ) ^
+                    rcon[i];
+	    		rek[keyOffset +  7] = rek[keyOffset +  1] ^ rek[keyOffset +  6];
+	    		rek[keyOffset +  8] = rek[keyOffset +  2] ^ rek[keyOffset +  7];
+	    		rek[keyOffset +  9] = rek[keyOffset +  3] ^ rek[keyOffset +  8];
+	    		if (++i == 8) {
+	    			return;
+	    		}
+	    		rek[keyOffset + 10] = rek[keyOffset +  4] ^ rek[keyOffset +  9];
+	    		rek[keyOffset + 11] = rek[keyOffset +  5] ^ rek[keyOffset + 10];
+	    		keyOffset += 6;
+	    	}
+	    }
+        rek[keyOffset + 6] =
+            (cipherKey[24]       ) << 24 |
+            (cipherKey[25] & 0xff) << 16 |
+            (cipherKey[26] & 0xff) <<  8 |
+            (cipherKey[27] & 0xff);
+	    rek[keyOffset + 7] =
+            (cipherKey[28]       ) << 24 |
+            (cipherKey[29] & 0xff) << 16 |
+            (cipherKey[30] & 0xff) <<  8 |
+            (cipherKey[31] & 0xff);
+	    if (Nk == 8) {
+            for (;;) {
+            	temp = rek[keyOffset +  7];
+            	rek[keyOffset +  8] = rek[keyOffset] ^
+                    ((Se[(temp >>> 16) & 0xff]       ) << 24) ^
+                    ((Se[(temp >>>  8) & 0xff] & 0xff) << 16) ^
+                    ((Se[(temp       ) & 0xff] & 0xff) <<  8) ^
+                    ((Se[(temp >>> 24)       ] & 0xff)      ) ^
+                    rcon[i];
+            	rek[keyOffset +  9] = rek[keyOffset +  1] ^ rek[keyOffset +  8];
+            	rek[keyOffset + 10] = rek[keyOffset +  2] ^ rek[keyOffset +  9];
+            	rek[keyOffset + 11] = rek[keyOffset +  3] ^ rek[keyOffset + 10];
+	    		if (++i == 7) {
+	    			return;
+	    		}
+            	temp = rek[keyOffset + 11];
+            	rek[keyOffset + 12] = rek[keyOffset +  4] ^
+            		((Se[(temp >>> 24)       ]       ) << 24) ^
+            		((Se[(temp >>> 16) & 0xff] & 0xff) << 16) ^
+            		((Se[(temp >>>  8) & 0xff] & 0xff) <<  8) ^
+            		((Se[(temp       ) & 0xff] & 0xff));
+            	rek[keyOffset + 13] = rek[keyOffset +  5] ^ rek[keyOffset + 12];
+            	rek[keyOffset + 14] = rek[keyOffset +  6] ^ rek[keyOffset + 13];
+            	rek[keyOffset + 15] = rek[keyOffset +  7] ^ rek[keyOffset + 14];
+	    		keyOffset += 8;
+            }
+	    }
+    }
+    */
+
     /**
      * Compute the decryption schedule from the encryption schedule .
      */
@@ -316,6 +411,16 @@ public class Rijndael32Bit implements Kernel
         rdk = new int[Nw];
         if ((direction & DIR_BOTH) != 0) {
             expandKey(cipherKey);
+            /*
+            for (int r = 0; r <= Nr; r++) {
+            	System.out.print("RK" + r + "=");
+            	for (int i = 0; i < 4; i++) {
+            		int w = rek[4*r + i];
+            		System.out.print(" " + Integer.toHexString(w));
+            	}
+            	System.out.println();
+            }
+            */
             if ((direction & DIR_DECRYPT) != 0) {
                 invertKey();
             }
@@ -529,17 +634,11 @@ public class Rijndael32Bit implements Kernel
         }
     }
 
-    /* (non-Javadoc)
-     * @see de.fhg.fokus.milenage.kernel.Kernel#init(byte[])
-     */
     public void init(byte[] key) throws InvalidKeyException
     {
         makeKey(key, BLOCK_BITS, DIR_ENCRYPT);
     }
 
-    /* (non-Javadoc)
-     * @see de.fhg.fokus.milenage.kernel.Kernel#encrypt(byte[])
-     */
     public byte[] encrypt(byte[] input)
     {
         byte[] output= new byte[input.length];

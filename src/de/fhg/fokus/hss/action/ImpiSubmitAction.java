@@ -154,14 +154,31 @@ public class ImpiSubmitAction extends HssAction
 		impi.setImpiString(form.getImpiString());
 		impi.setScscfName(form.getScscfName());
 
-		if (form.getAuthScheme().equals(AuthSchemeBO.AUS_MD5))
+		if (form.getAuthScheme().equals(AuthSchemeBO.AUTH_SCHEME_AKAv1))
+		{
+			System.out.println("\n\nAUTH_SCHEME: 1");
+			impi.setAlgorithm(form.getAlgorithm());
+			impi.setAuthScheme(form.getAuthScheme());
+			impi.setSkey(form.getSkey());
+			impi.setOperatorId(form.getOperatorId());
+			impi.setAmf(form.getAmf());
+		} 
+		else if (form.getAuthScheme().equals(AuthSchemeBO.AUTH_SCHEME_AKAv2))
 		{
 			impi.setAlgorithm(form.getAlgorithm());
 			impi.setAuthScheme(form.getAuthScheme());
 			impi.setSkey(form.getSkey());
 			impi.setOperatorId(form.getOperatorId());
 			impi.setAmf(form.getAmf());
-		} else
+		} 
+		else if (form.getAuthScheme().equals(AuthSchemeBO.AUTH_SCHEME_MD5)){
+			impi.setAlgorithm(form.getAlgorithm());
+			impi.setAuthScheme(form.getAuthScheme());
+			impi.setSkey(form.getSkey());
+			impi.setOperatorId(form.getOperatorId());
+			impi.setAmf(form.getAmf());
+		}
+		else
 		{
 			impi.setAlgorithm(null);
 			impi.setAuthScheme(null);

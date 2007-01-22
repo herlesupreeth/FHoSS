@@ -54,7 +54,6 @@ import de.fhg.fokus.cx.exceptions.base.UnableToComply;
 import de.fhg.fokus.diameter.DiameterPeer.DiameterPeer;
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
 
 
@@ -66,15 +65,15 @@ import de.fhg.fokus.hss.diam.Constants;
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class LIRCommandListener extends CxCommandListener
-{
-    /** the counter */
+
+public class LIRCommandListener extends CxCommandListener{
+    /** the counter for LIR commands */
     public static long counter = 0;
     /** the LOGGER */
     private static final Logger LOGGER =
         Logger.getLogger(LIRCommandListener.class);
     /** the command id for LIR*/    
-    private static final int COMMAND_ID = Constants.COMMAND.LIR;
+    private static final int COMMAND_ID = Constants.Command.LIR;
     /** An object representing Cx Operations of HSS*/
     private HSScxOperations operations;
 
@@ -84,8 +83,7 @@ public class LIRCommandListener extends CxCommandListener
      * @param _diameterPeer diameterPeer
      */
     public LIRCommandListener(
-        HSScxOperations _operations, DiameterPeer _diameterPeer)
-    {
+        HSScxOperations _operations, DiameterPeer _diameterPeer){
         super(_diameterPeer);
         this.operations = _operations;
     }
@@ -96,16 +94,11 @@ public class LIRCommandListener extends CxCommandListener
      * @param requestMessage the diameter message
      * @see de.fhg.fokus.diameter.DiameterPeer.EventListener#recvMessage(java.lang.String, de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage)
      */
-    public void recvMessage(String FQDN, DiameterMessage requestMessage)
-    {
-        if (requestMessage.commandCode == COMMAND_ID)
-        {
+    public void recvMessage(String FQDN, DiameterMessage requestMessage){
+    	
+        if (requestMessage.commandCode == COMMAND_ID){
             counter++;
-            LOGGER.debug("entering");
-            LOGGER.debug(FQDN);
-
-            try
-            {
+            try{
                 PublicIdentity publicIdentity =
                     loadPublicIdentity(requestMessage);
 
@@ -113,41 +106,40 @@ public class LIRCommandListener extends CxCommandListener
                 AVP resultCode = null;
 
                 response = operations.cxLocationQuery(publicIdentity);
-
-                if (response == null)
-                {
+                if (response == null){
                     throw new UnableToComply();
                 }
 
                 DiameterMessage responseMessage =
                     diameterPeer.newResponse(requestMessage);
 
-                if (resultCode == null)
-                {
-                    // Add assigned Server Name
-                    AVP assginedSCSCFName =
-                        AVPCodes.getAVP(AVPCodes._CX_SERVER_NAME);
-                    assginedSCSCFName.setData(response.getAssignedSCSCFName());
-                    responseMessage.addAVP(assginedSCSCFName);
-
-                    resultCode =
-                        saveResultCode(
-                            response.getResultCode(),
-                            response.resultCodeIsBase());
-                }
-
+                 // Add assigned Server Name
+                AVP assginedSCSCFName = new AVP(Constants.AVPCode.CX_SERVER_NAME, true, Constants.Vendor.V3GPP);
+                assginedSCSCFName.setData(response.getAssignedSCSCFName());
+                responseMessage.addAVP(assginedSCSCFName);
+                    
+                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, Constants.Vendor.V3GPP);
+                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+                vendorSpecificApplicationID.addChildAVP(vendorID);
+                
+                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.V3GPP);
+                vendorSpecificApplicationID.addChildAVP(applicationID);
+                responseMessage.addAVP(vendorSpecificApplicationID);
+                    
+                AVP authenticationSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.V3GPP);
+                authenticationSessionState.setData(1);
+                responseMessage.addAVP(authenticationSessionState);
+                
+                resultCode = saveResultCode(response.getResultCode(), response.resultCodeIsBase());
                 responseMessage.addAVP(resultCode);
 
                 diameterPeer.sendMessage(FQDN, responseMessage);
-                LOGGER.debug("exiting");
             }
-            catch (DiameterException e)
-            {
+            catch (DiameterException e){
                 LOGGER.warn(this, e);
                 sendDiameterException(FQDN, requestMessage, e);
             }
-            catch (Exception e)
-            {
+            catch (Exception e){
                 LOGGER.error(this, e);
                 sendUnableToComply(FQDN, requestMessage);
             }

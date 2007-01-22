@@ -87,19 +87,18 @@
  */
 package de.fhg.fokus.hss.diam;
 
-
-
 /**
- * It contains constant values like AVPCodes-Codes, Command code values.
+ * It contains constant values like Application types, Vendor types and AVP Codes
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
+
 public class Constants
 {
     /** 
-     *  an abstract inner class containing the constants for application
+     *  an inner class containing the constants for application
      */
-    public abstract class Application {
+    public class Application {
 			/** constant for cx application */
 			public static final int CX = 16777216;
 			/** constant for sh application */
@@ -109,9 +108,9 @@ public class Constants
     }
  
     /** 
-     *  an abstract inner class containing the constants for vendor
+     *  an inner class containing the constants for vendor
      */    
-    public abstract class Vendor
+    public class Vendor
     {
         /** constant for diam */
         public static final int DIAM = 0;
@@ -120,10 +119,10 @@ public class Constants
     }
 
     /** 
-     *  an abstract inner class containing the constants for ims 
+     *  an inner class containing the constants for ims 
      *  specific requests and responses
      */  
-    public abstract class COMMAND
+    public class Command
     {
     	/** constant for Capablities Exchange Request */
         public static final int CER = 257;
@@ -176,4 +175,57 @@ public class Constants
         /** constant for Multimedia Authentication Request for Zh-Interface */
 		public static final int MARzh = 903;
     }
+    
+    public class AVPCode{
+        public static final int PRIVATE_USER_IDENTITY = 1;
+        public static final int FRAMED_IP_ADDRESS = 8;
+    	public static final int AUTH_APPLICATION_ID = 258;
+        public static final int VENDOR_SPECIFIC_APPLICATION_ID = 260;
+        public static final int ORIGIN_HOST = 264;
+        public static final int VENDOR_ID = 266;
+        public static final int RESULT_CODE = 268;
+    	public static final int AUTH_SESSION_STATE = 277;
+        public static final int DESTINATION_HOST = 293;
+        public static final int EXPERIMENTAL_RESULT_CODE_AVP = 297;
+        public static final int EXPERIMENTAL_RESULT_CODE = 298;
+        public static final int VISITED_NETWORK_IDENTIFIER = 600;
+        public static final int CX_PUBLIC_IDENTITY = 601;
+        public static final int CX_SERVER_NAME = 602;
+        public static final int CX_SERVER_CAPABILITIES = 603;
+        public static final int MANDATORY_CAPABILITY = 604;
+        public static final int OPTIONAL_CAPABILITY = 605;
+        public static final int CX_USER_DATA = 606;
+        public static final int SIP_NUMBER_AUTH_ITEMS = 607;
+        public static final int SIP_AUTHENTICATION_SCHEME = 608;
+        public static final int SIP_AUTHENTICATE = 609;
+        public static final int SIP_AUTHORIZATION = 610;
+        public static final int SIP_AUTHENTICATION_CONTEXT = 611;
+        public static final int SIP_AUTH_DATA_ITEM = 612;
+        public static final int SIP_ITEM_NUMBER = 613;
+        public static final int SERVER_ASSIGNMENT_TYPE = 614;
+        public static final int DEREGISTRATION_REASON = 615;
+        public static final int REASON_CODE = 616;
+        public static final int REASON_INFO = 617;
+        public static final int CHARGING_INFO = 618;
+        public static final int PRI_EVENT_CHARGING_FN_NAME = 619;
+        public static final int SEC_EVENT_CHARGING_FN_NAME = 620;
+        public static final int PRI_CHRG_COLL_FN_NAME = 621;
+        public static final int SEC_CHRG_COLL_FN_NAME = 622;
+        public static final int USER_AUTHORIZATION_TYPE = 623;
+        public static final int USER_DATA_ALREADY_AVAILABLE = 624;
+        public static final int CONFIDENTIALITY_KEY = 625;
+        public static final int INTEGRITY_KEY = 626;
+        
+        public static final int SH_USER_IDENTITY = 700;
+        public static final int SH_PUBLIC_IDENTITY = 601;
+        public static final int SH_SERVER_NAME = 602;
+        public static final int SH_USER_DATA = 702;
+        public static final int SH_DATA_REFERENCE = 703;
+        public static final int SH_SERVICE_INDICATION = 704;
+        public static final int SH_SUBSCRIBTION_REQ_TYPE = 705;
+        
+    	public static final int ZH_GUSS = 400;
+    	
+    }
+    
 }

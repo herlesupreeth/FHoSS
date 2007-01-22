@@ -44,7 +44,6 @@
  */
 package de.fhg.fokus.hss.main;
 
-import de.fhg.fokus.hss.server.HSSProperties;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
@@ -53,27 +52,10 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.realm.MemoryRealm;
 import org.apache.catalina.startup.Embedded;
 
-import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.apache.log4j.jmx.HierarchyDynamicMBean;
-import org.apache.log4j.spi.LoggerRepository;
-
-import java.io.FileInputStream;
-
-import java.util.Enumeration;
-import java.util.Properties;
-
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
-
 
 /**
- * Embeds tomcat ass part of the hss application.
+ * Embedded Tomcat Server, as part of the FHoSS
  * The following XML code snippet contains the hierarchy of the Tomcat containers:
  *                &lt;Server&gt;
  *                  &ltService&gt;
@@ -87,8 +69,10 @@ import javax.management.ObjectName;
  *                &ltServer&gt;
  * The server runs in a endless thread.
  * @see  a href="http://www.onjava.com/pub/a/onjava/2002/04/03/tomcat.html">Tomcat Documentation</a>
+ * 
  * @author Andre Charton (dev -at- open-ims dot org)
  */
+
 public class TomcatServer
 {
     /**
@@ -117,92 +101,49 @@ public class TomcatServer
      */
     public void startTomcat() throws Exception
     {
-        LOGGER.debug("entering");
-
-        String hostProperty = HSSProperties.TOMCAT_HOST;
-        String appPath =  HSSProperties.APP_PATH;
+        LOGGER.info("Tomcat-Server is started.");
 
         Engine engine = null;
 
-        System.setProperty("catalina.home", getPath());
+        System.setProperty("catalina.home", this.path);
 
-        // Create a embedded server
+        // Create an embedded server
         embedded = new Embedded();
 
-        // Add realm
+        // Add a realm
         MemoryRealm memRealm = new MemoryRealm();
-
         embedded.setRealm(memRealm);
 
         // Create an engine
         engine = embedded.createEngine();
         engine.setDefaultHost("localhost");
 
-        // Create default virutal host
-        host = embedded.createHost(hostProperty, getPath() + "/webapps");
-
-        engine.addChild(host);
-
-        // Create the ROOT context
-        Context context = embedded.createContext("", getPath() + "/ROOT");
-        host.addChild(context);
-
         // Install the containers
         embedded.addEngine(engine);
 
         // Create a connector
-        Connector connector =
-            embedded.createConnector(hostProperty, 8080, false);
+        Connector connector = embedded.createConnector(HSSProperties.TOMCAT_HOST, Integer.parseInt(HSSProperties.TOMCAT_PORT), false);
         embedded.addConnector(connector);
-
         embedded.start();
 
-        // Create the Manager context
-        context = embedded.createContext("/manager", getPath() + "/manager");
-        host.addChild(context);
+        // Create default virutal host
+        host = embedded.createHost(HSSProperties.TOMCAT_HOST, this.path + "/webapps");
+        engine.addChild(host);
 
-        LOGGER.debug("Starting App on path: " + appPath);
-        context = embedded.createContext("/hss.web.console", getPath() + appPath);
+        // Create the ROOT context
+        Context context = embedded.createContext("", this.path + "/ROOT");
+        host.addChild(context);
+        
+        // Create the Manager context
+        context = embedded.createContext("/manager", this.path + "/manager");
+        host.addChild(context);
+        
+        context = embedded.createContext("/hss.web.console", this.path + "/hss.web.console");
         context.setReloadable(true);
         host.addChild(context);
-
-        //startMBeanServer();
-        LOGGER.debug("exiting");
+        LOGGER.info("WebConsole of FHoSS was started !");
     }
 
-    /**
-     * @throws MalformedObjectNameException
-     * @throws InstanceAlreadyExistsException
-     * @throws MBeanRegistrationException
-     * @throws NotCompliantMBeanException
-     */
-    private void startMBeanServer()
-        throws MalformedObjectNameException, InstanceAlreadyExistsException, 
-            MBeanRegistrationException, NotCompliantMBeanException
-    {
-        MBeanServer mbs = MBeanServerFactory.createMBeanServer();
-
-        // Create and Register the top level Log4J MBean
-        HierarchyDynamicMBean hdm = new HierarchyDynamicMBean();
-        ObjectName mbo = new ObjectName("log4j:hiearchy=default");
-        mbs.registerMBean(hdm, mbo);
-
-        // Add the root logger to the Hierarchy MBean
-        Logger rootLogger = Logger.getRootLogger();
-        hdm.addLoggerMBean(rootLogger.getName());
-
-        // Get each logger from the Log4J Repository and add it to
-        // the Hierarchy MBean created above.
-        LoggerRepository r = LogManager.getLoggerRepository();
-        Enumeration en = r.getCurrentLoggers();
-        Logger logger = null;
-
-        while (en.hasMoreElements())
-        {
-            logger = (Logger) en.nextElement();
-            hdm.addLoggerMBean(logger.getName());
-        }
-    }
 
     /**
      * It stops tomcat
@@ -210,10 +151,8 @@ public class TomcatServer
      */
     public void stopTomcat() throws Exception
     {
-        LOGGER.debug("entering");
         embedded.stop();
-        LOGGER.info("tomcat stoped");
-        LOGGER.debug("exiting");
+        LOGGER.info("Tomcat was stoped !");
     }
 
     /**

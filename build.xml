@@ -76,7 +76,8 @@
 			destdir="${build}"
 			debug="${compile.debug}"
 			deprecation="${compile.deprecation}"
-			optimize="${compile.optimize}">
+			optimize="${compile.optimize}"
+			compiler="javac1.5">
 			
 			<classpath refid="compile.classpath" />			
 		</javac>	
@@ -86,7 +87,8 @@
 			destdir="${build}"
 			debug="${compile.debug}"
 			deprecation="${compile.deprecation}"
-			optimize="${compile.optimize}">
+			optimize="${compile.optimize}"
+			compiler="javac1.5">
 			
 			<classpath refid="compile.classpath" />			
 		</javac>	
@@ -109,6 +111,7 @@
 				<include name="MessageResources.properties"/>								
 				<include name="castor.properties"/>								
 			</fileset>
+			
 		</jar>	
 	</target>
 	
@@ -139,6 +142,8 @@
 		</copy>
 				
 		<copy todir="${install.dest}/lib" file="${build}/lib/FHoSS.jar" />
+<!--		<copy todir="${install.dest}/lib" file="config/log4j.properties" /> -->
+
 		<copy todir="${install.dest}/lib">
 			<fileset dir="lib">
 				<include name="*.jar"/>
@@ -151,6 +156,7 @@
 			</fileset>
 			<fileset dir="config">
 				<include name="*"/>
+				
 			</fileset>			
 		</copy>
 		
@@ -186,10 +192,10 @@
 	</target>
 
 	<target name="cleanall" depends="clean-gen">
+		<delete dir="${install.dest}" />
+		<delete dir="${src-gen}" />
 		<delete dir="${build}" />
 	  	<delete dir="${docs}" />
 	</target>
-	
-	
 </project>
 

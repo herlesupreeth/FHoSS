@@ -108,8 +108,7 @@ public class RepDataBO extends HssBO
             ServiceData serviceData = repositoryData.getServiceData();
             byte[] bufRepData = null;
 
-            if (serviceData != null)
-            {
+            if (serviceData != null){
                 Object serviceDataObj = serviceData.getAnyObject();
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 ObjectOutput out = new ObjectOutputStream(bos);
@@ -127,13 +126,11 @@ public class RepDataBO extends HssBO
             RepData repData = null;
             repData = (RepData) getSession().get(RepData.class, repDataPK);
 
-            if ((repData == null) && (bufRepData != null))
-            {
+            if ((repData == null) && (bufRepData != null)){
                 // Create entry
                 LOGGER.debug("create");
 
-                if (sqn == 0)
-                {
+                if (sqn == 0){
                     beginnTx();
                     repData = new RepData();
                     repData.setComp_id(repDataPK);
@@ -143,51 +140,46 @@ public class RepDataBO extends HssBO
                     getSession().save(repData);
                     endTx();
                 }
-                else
-                {
-                    throw new TransparentDataOutOfSync();
+                else{
+                	throw new TransparentDataOutOfSync();
                 }
             }
-            else
-            {
-                if (bufRepData != null)
-                {
-                    // Update entry
-                    LOGGER.debug("update");
+            else if (repData != null && (bufRepData != null)){
+            	// Update entry
+                LOGGER.debug("update");
 
-                    if ((sqn - 1) == repData.getSqn().intValue())
-                    {
-                        repData.setSvcData(bufRepData);
-                        repData.setSqn(sqn);
-                        beginnTx();
-                        getSession().update(repData);
-                        endTx();
-                        commitShChanges(repData);
-                    }
-                    else
-                    {
+                if ((sqn - 1) == repData.getSqn().intValue()){
+                	repData.setSvcData(bufRepData);
+                	repData.setSqn(sqn);
+                	beginnTx();
+                	getSession().update(repData);
+                	endTx();
+                	commitShChanges(repData);
+                }
+                else{
                         LOGGER.warn(
-                            "Out of Sync SH-SQN (-1): " + (sqn - 1)
-                            + "/ HSS-SQN: " + repData.getSqn().intValue());
+                            "Repository-Data out of Sync! SH-SQN-1: " + (sqn - 1)
+                            + " versus HSS-SQN: " + repData.getSqn().intValue());
                         throw new TransparentDataOutOfSync();
-                    }
-                }
-                else
-                {
-                    LOGGER.debug("delete");
-
-                    // Delete
-                    beginnTx();
-                    getSession().delete(repData);
-                    endTx();
-                    commitShChanges(repData);
-                }
+               }
             }
-
+             else if (repData != null && bufRepData == null){
+            	 LOGGER.debug("delete");
+                 commitShChanges(repData);
+                 
+                 // Delete
+                 beginnTx();
+                 getSession().delete(repData);
+                 endTx();
+                 
+            }
+             else{
+            	 // repository data is already null
+            	 throw new UnableToComply();
+             }
             closeSession();
         }
-        catch (IOException e)
-        {
+        catch (IOException e){
             LOGGER.error(this, e);
             throw new UnableToComply();
         }
@@ -203,6 +195,9 @@ public class RepDataBO extends HssBO
     {
         LOGGER.debug("entering");
 
+        //BUG, the repData is null after some time... NULLPointerException is sent!!!         
+        LOGGER.error("Notify: " + repData.getNotifyRepDatas());
+
         if (repData.getNotifyRepDatas().isEmpty() == false)
         {
             Iterator it = repData.getNotifyRepDatas().iterator();
@@ -211,20 +206,12 @@ public class RepDataBO extends HssBO
             while (it.hasNext())
             {
                 NotifyRepData notifyRepData = (NotifyRepData) it.next();
-                Apsvr notifApsvr =
-                    (Apsvr) getSession().get(
-                        Apsvr.class, notifyRepData.getComp_id().getApsvrId());
+                Apsvr notifApsvr = (Apsvr) getSession().get(Apsvr.class, notifyRepData.getComp_id().getApsvrId());
 
-                try
-                {
-                    // Use FQDN name instead of SIP     XLB
-                    operationsImpl.shNotif(
-                        userProfil.getUri(), shData, notifApsvr.getName());
-/*                    operationsImpl.shNotif(
-                            userProfil.getUri(), shData, notifApsvr.getAddress()); */ 
+                try{
+                    operationsImpl.shNotif(userProfil.getUri(), shData, notifApsvr.getName());
                 }
-                catch (DiameterException e)
-                {
+                catch (DiameterException e){
                     LOGGER.error(this, e);
                 }
             }

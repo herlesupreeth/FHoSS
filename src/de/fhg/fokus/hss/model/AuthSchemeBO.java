@@ -50,10 +50,17 @@ package de.fhg.fokus.hss.model;
  * @author Andre Charton (dev -at- open-ims dot org)
  */
 public class AuthSchemeBO {
-	/** the digest AKAv1 MD5 authentication scheme */
-	public static final String AUS_MD5 = "Digest-AKAv1-MD5";
 	/** Early IMS authentication Scheme */
-	public static final String AUS_EARLY = "Early IMS";
-	/** the AKAv1 MD5 authentication scheme */
-	public static final String AUTH_ALGO_MD5 = "AKAv1-MD5";
+	public static final String AUS_EARLY = "Early IMS";		
+
+	// AKA and MD5
+	public static final String AUTH_SCHEME_AKAv1 = "Digest-AKAv1-MD5";
+	public static final String AUTH_SCHEME_AKAv2 = "Digest-AKAv2-MD5";
+	public static final String AUTH_SCHEME_MD5 = "Digest-MD5";
+	
+	public static final String AUTH_ALGORITHM_AKAv1 = "AKAv1-MD5";
+	public static final String AUTH_ALGORITHM_AKAv2 = "AKAv2-MD5";
+	public static final String AUTH_ALGORITHM_MD5 = "MD5";
+	
+	
 }

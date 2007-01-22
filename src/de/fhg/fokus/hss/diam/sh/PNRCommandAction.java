@@ -48,15 +48,13 @@ import java.io.StringWriter;
 import java.net.URI;
 
 import org.apache.log4j.Logger;
-
 import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
-import de.fhg.fokus.hss.diam.AVPCodes;
 import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.diam.HssDiameterStack;
 import de.fhg.fokus.hss.diam.Constants.Application;
 import de.fhg.fokus.sh.data.ShData;
-
+import de.fhg.fokus.hss.diam.CommandAction;
 
 /**
  * Implementation of the SH-Command PNR
@@ -65,15 +63,13 @@ import de.fhg.fokus.sh.data.ShData;
  * 
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class PNRCommandAction extends ShCommandAction
+public class PNRCommandAction extends CommandAction
 {
     /** Logger */
     private static final Logger LOGGER =
         Logger.getLogger(PNRCommandAction.class);
     /** counter to count calls*/
     public static long counter = 0;
-    /** command id for PNR */
-    private static final int COMMAND_ID = Constants.COMMAND.PNR;
     /** address of application server*/
     private String asAddress;
     /** the public identity*/
@@ -108,7 +104,7 @@ public class PNRCommandAction extends ShCommandAction
      */
     public void recvMessage(String FQDN, DiameterMessage msg)
     {
-        if (msg.commandCode == COMMAND_ID)
+        if (msg.commandCode == Constants.Command.PNR)
         {
             LOGGER.debug("entering");
             counter++;
@@ -127,32 +123,25 @@ public class PNRCommandAction extends ShCommandAction
 
         DiameterMessage message = null;
 
-        try
-        {
-            message =
-                HssDiameterStack.diameterPeer.newRequest(
-                    COMMAND_ID, Application.SH);
-            
-            AVP userDataAVP = AVPCodes.getAVP(AVPCodes._SH_USER_DATA);
+        try{
+            message = HssDiameterStack.diameterPeer.newRequest(Constants.Command.PNR, Application.SH);
+
+            AVP userDataAVP = new AVP(Constants.AVPCode.SH_USER_DATA, true, Constants.Vendor.V3GPP);
             StringWriter sw = new StringWriter();
             shData.marshal(sw);
             userDataAVP.setData(sw.getBuffer().toString());
             message.addAVP(userDataAVP);
             
-            AVP userIdentityAVP = AVPCodes.getAVP(AVPCodes._SH_USER_IDENTITY);
-            AVP publicIdentityAVP = AVPCodes.getAVP(AVPCodes._SH_PUBLIC_IDENTITY);
+            AVP userIdentityAVP = new AVP(Constants.AVPCode.SH_USER_IDENTITY, true, Constants.Vendor.V3GPP);
+            AVP publicIdentityAVP = new AVP(Constants.AVPCode.SH_PUBLIC_IDENTITY, true, Constants.Vendor.V3GPP);
             
-            // XLB
-            //publicIdentityAVP.setData(publicIdentity.getPath());
-            publicIdentityAVP.setData((publicIdentity.toString()).trim());
-            
+            publicIdentityAVP.setData(publicIdentity.getPath());
+            //publicIdentityAVP.setData((publicIdentity.toString()).trim());
             userIdentityAVP.addChildAVP(publicIdentityAVP);
             message.addAVP(userIdentityAVP);
-            
             sendMessage(message, asAddress, false);
         }
-        catch (Exception e)
-        {
+        catch (Exception e){
             LOGGER.error(this, e);
         }
 
