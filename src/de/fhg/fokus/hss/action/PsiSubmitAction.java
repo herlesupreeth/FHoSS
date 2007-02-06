@@ -48,6 +48,7 @@ import de.fhg.fokus.hss.form.PsiForm;
 import de.fhg.fokus.hss.model.Impu;
 import de.fhg.fokus.hss.model.Psi;
 import de.fhg.fokus.hss.model.PsiTempl;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -67,12 +68,10 @@ public class PsiSubmitAction extends HssAction
 			.getLogger(PsiSubmitAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
 		LOGGER.debug("entering");
 
-		ActionForward forward;
+		ActionForward forward = null;
 
 		try
 		{
@@ -85,68 +84,58 @@ public class PsiSubmitAction extends HssAction
 			Impu assginedImpu = null;
 			String sipName = null;
 
-			PsiTempl psiTempl = (PsiTempl) getSession().load(PsiTempl.class,
-					Integer.valueOf(form.getPsiTemplId()));
-
-			beginnTx();
-
-			/*
-			 * If create (id = -1), dont load the psi, create new psi.
-			 */
-			if (primaryKey.intValue() == -1)
-			{
+			HibernateUtil.beginTransaction();
+			PsiTempl psiTempl = (PsiTempl) HibernateUtil.getCurrentSession().load(PsiTempl.class, Integer.valueOf(form.getPsiTemplId()));
+			
+			 //If id = -1 create a new psi.
+			if (primaryKey.intValue() == -1){
 				psi = new Psi();
 				assginedImpu = new Impu();
 				assginedImpu.setUserStatus(Impu.USER_STATUS_UNREGISTERED);
 				assginedImpu.setPsi(true);
 
-				sipName = psiTempl.getUsername() + form.getWildcard() + "@"
-						+ psiTempl.getHostname();
+				sipName = psiTempl.getUsername() + form.getWildcard() + "@" + psiTempl.getHostname();
 				assginedImpu.setSipUrl(sipName);
 				assginedImpu.setTelUrl("");
 				assginedImpu.setBarringIndication(false);
-				getSession().save(assginedImpu);
+				HibernateUtil.getCurrentSession().save(assginedImpu);
 
 				// impu --> psi
 				psi.setImpuRoot(assginedImpu);
-
 				psi.setName(form.getPsiName());
 				psi.setWildcard(form.getWildcard());
 				psi.setPsiTempl(psiTempl);
-
-				getSession().save(psi);
+				HibernateUtil.getCurrentSession().save(psi);
 
 				// psi --> impu
 				assginedImpu.setAssignedPsi(psi);
-				getSession().saveOrUpdate(assginedImpu);
-			} else
-			{
-				psi = (Psi) getSession().load(Psi.class, primaryKey);
+				HibernateUtil.getCurrentSession().saveOrUpdate(assginedImpu);
+			} 
+			else{
+				psi = (Psi) HibernateUtil.getCurrentSession().load(Psi.class, primaryKey);
 				assginedImpu = psi.getImpuRoot();
 
 				psi.setName(form.getPsiName());
 				psi.setWildcard(form.getWildcard());
 				psi.setPsiTempl(psiTempl);
 
-				sipName = psiTempl.getUsername() + psi.getWildcard() + "@"
-						+ psiTempl.getHostname();
+				sipName = psiTempl.getUsername() + psi.getWildcard() + "@" + psiTempl.getHostname();
 				assginedImpu.setSipUrl(sipName);
-				getSession().saveOrUpdate(psi);
-				getSession().saveOrUpdate(assginedImpu);
+				HibernateUtil.getCurrentSession().saveOrUpdate(psi);
+				HibernateUtil.getCurrentSession().saveOrUpdate(assginedImpu);
 			}
 
-			endTx();
+			HibernateUtil.commitTransaction();
 			LOGGER.debug(form);
 
 			forward = mapping.findForward(FORWARD_SUCCESS);
-			forward = new ActionForward(forward.getPath() + "?psiId="
-					+ psi.getPsiId(), true);
-		} finally
-		{
-			LOGGER.debug("exiting");
-			closeSession();
+			forward = new ActionForward(forward.getPath() + "?psiId=" + psi.getPsiId(), true);
 		}
-
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
+		LOGGER.debug("exiting");
 		return forward;
 	}
 }

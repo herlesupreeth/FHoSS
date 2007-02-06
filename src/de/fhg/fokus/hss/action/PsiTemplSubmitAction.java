@@ -47,6 +47,7 @@ package de.fhg.fokus.hss.action;
 import de.fhg.fokus.hss.form.PsiTemplForm;
 import de.fhg.fokus.hss.model.Apsvr;
 import de.fhg.fokus.hss.model.PsiTempl;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -78,43 +79,35 @@ public class PsiTemplSubmitAction extends HssAction
 
 		PsiTempl psiTempl = null;
 
-		try
-		{
-			beginnTx();
-
+		try{
 			Integer primaryKey = form.getPrimaryKey();
-
-			if (primaryKey.intValue() == -1)
-			{
+			
+			HibernateUtil.beginTransaction();
+			if (primaryKey.intValue() == -1){
 				psiTempl = new PsiTempl();
-			} else
-			{
-				psiTempl = (PsiTempl) getSession().load(PsiTempl.class,
-						primaryKey);
+			} 
+			else{
+				psiTempl = (PsiTempl) HibernateUtil.getCurrentSession().load(PsiTempl.class,primaryKey);
 			}
 
 			psiTempl.setTemplName(form.getPsiTemplName());
-			psiTempl.setApsvr((Apsvr) getSession().load(Apsvr.class,
-					Integer.valueOf(form.getApsvrId())));
+			psiTempl.setApsvr((Apsvr) HibernateUtil.getCurrentSession().load(Apsvr.class, Integer.valueOf(form.getApsvrId())));
 			psiTempl.setHostname(form.getHostname());
 			psiTempl.setUsername(form.getUsername());
 
-			getSession().saveOrUpdate(psiTempl);
-
-			endTx();
-		} finally
-		{
-			closeSession();
+			HibernateUtil.getCurrentSession().saveOrUpdate(psiTempl);
+			HibernateUtil.commitTransaction();
+			
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
-
 		LOGGER.debug(form);
 
 		ActionForward forward = mapping.findForward(FORWARD_SUCCESS);
-		forward = new ActionForward(forward.getPath() + "?psiTemplId="
-				+ psiTempl.getTemplId(), true);
+		forward = new ActionForward(forward.getPath() + "?psiTemplId="+ psiTempl.getTemplId(), true);
 
 		LOGGER.debug("exiting");
-
 		return forward;
 	}
 }

@@ -1,7 +1,4 @@
-/*
- * $Id$
- *
- * Copyright (C) 2004-2006 FhG Fokus
+/* Copyright (C) 2004-2006 FhG Fokus
  *
  * This file is part of Open IMS Core - an open source IMS CSCFs & HSS
  * implementation
@@ -42,73 +39,54 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
  * 
  */
-package de.fhg.fokus.hss.action;
+package de.fhg.fokus.hss.servlet;
 
-import de.fhg.fokus.hss.form.PsiSearchForm;
-import de.fhg.fokus.hss.util.HibernateUtil;
+import java.io.IOException;
+
+import javax.servlet.FilterChain;
+import javax.servlet.Filter;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 
 import org.apache.log4j.Logger;
 
-import org.apache.struts.action.ActionForm;
-import org.apache.struts.action.ActionForward;
-import org.apache.struts.action.ActionMapping;
-
-import org.hibernate.Query;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
- * Search for PSI's.
+ * This class is a simple servlet filter which close the hibernate transaction and session, before the response is sent back 
+ * to the client. It is used by some jsp pages from hss.web.console. 
  * 
- * @author Andre Charton (dev -at- open-ims dot org)
+ * @author adp dot fokus dot fraunhofer dot de 
+ * Adrian Popescu / FOKUS Fraunhofer Institute
  */
-public class PsiSearchAction extends HssAction
-{
-	private static final Logger LOGGER = Logger.getLogger(PsiSearchAction.class);
 
-	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
+public class ResponseFilter implements Filter{
+	
+	private static final Logger LOGGER = Logger.getLogger(ResponseFilter.class);
+	protected FilterConfig filterConfig;
+	
+	public void init(FilterConfig filterConfig) throws ServletException {
+		this.filterConfig = filterConfig;
+		LOGGER.info("Response Filter Initialisation!");
+	}
+
+	public void destroy() {
+		this.filterConfig = null;
+		LOGGER.info("Response Filter was destroyed!");
+	}
+	
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+		throws IOException, ServletException {
 		
-		LOGGER.debug("entering");
-
-		PsiSearchForm form = (PsiSearchForm) actionForm;
-		LOGGER.debug(form);
-
-		try{
-			
-			HibernateUtil.beginTransaction();
-			Query query = HibernateUtil.getCurrentSession().createQuery("select psi from de.fhg.fokus.hss.model.Psi as psi where psi.name like ?");
-			query.setString(0, "%" + form.getPsiName() + "%");
-
-			// Check page browsing values
-			int rowPerPage = Integer.parseInt(form.getRowsPerPage());
-			int currentPage = Integer.parseInt(form.getPage()) - 1;
-			int maxPages = (int) ((query.list().size() - 1) / rowPerPage) + 1;
-
-			if (currentPage > maxPages){
-				currentPage = 0;
-			}
-
-			int firstResult = currentPage * rowPerPage;
-
-			// Edit page browsing parameters
-			query.setMaxResults(rowPerPage);
-			query.setFirstResult(firstResult);
-
-			// store attributes in request
-			request.setAttribute("result", query.list());
+		try {
+			chain.doFilter(request, response);
 			HibernateUtil.commitTransaction();
-			
-			request.setAttribute("maxPages", String.valueOf(maxPages));
-			request.setAttribute("currentPage", String.valueOf(currentPage));
-			request.setAttribute("rowPerPage", String.valueOf(rowPerPage));
 		}
-		finally{
+		finally {
 			HibernateUtil.closeSession();
 		}
-
-		LOGGER.debug("exiting");
-		return mapping.findForward(FORWARD_SUCCESS);
 	}
+
 }

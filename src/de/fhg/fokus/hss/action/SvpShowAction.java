@@ -59,57 +59,52 @@ import de.fhg.fokus.hss.form.IfcForm;
 import de.fhg.fokus.hss.form.SvpForm;
 import de.fhg.fokus.hss.model.Ifc2svp;
 import de.fhg.fokus.hss.model.Svp;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class SvpShowAction extends HssAction
-{
+public class SvpShowAction extends HssAction{
 	private static final Logger LOGGER = Logger.getLogger(SvpShowAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception{
+		
 		LOGGER.debug("entering");
 
 		SvpForm form = (SvpForm) actionForm;
 		LOGGER.debug(form);
 
-		try
-		{
+		try{
 			Integer primaryKey = form.getPrimaryKey();
-			if (primaryKey.intValue() != -1)
-			{
-				Svp svp = (Svp) getSession().get(Svp.class, primaryKey);
+			HibernateUtil.beginTransaction();
+			if (primaryKey.intValue() != -1){
+				Svp svp = (Svp) HibernateUtil.getCurrentSession().get(Svp.class, primaryKey);
 				form.setName(svp.getName());
 				addIfcs(svp, form);
 			}
-
-		} catch (NullPointerException excep)
-		{
-			LOGGER.error("A nullpointerexception occured");
+			HibernateUtil.commitTransaction();
+		}
+		catch (NullPointerException e){
+			LOGGER.error("NULL pointer exception!");
+			e.printStackTrace();
 		}
 
-		finally
-		{
-			closeSession();
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 
 	private void addIfcs(Svp svp, SvpForm form)
 	{
 		Iterator it = svp.getIfc2svps().iterator();
-		while (it.hasNext())
-		{
+		while (it.hasNext()){
 			Ifc2svp ifc2svp = (Ifc2svp) it.next();
 			IfcForm ifcForm = new IfcForm();
-			ifcForm
-					.setIfcId(convString(ifc2svp.getIfc().getIfcId().intValue()));
+			ifcForm.setIfcId(convString(ifc2svp.getIfc().getIfcId().intValue()));
 			ifcForm.setIfcName(ifc2svp.getIfc().getName());
 			ifcForm.setPriority(convString(ifc2svp.getPriority()));
 			form.getIfcs().add(ifcForm);
@@ -120,17 +115,14 @@ public class SvpShowAction extends HssAction
 
 		IfcForm temp;
 		int a, b;
-		for (int x = 0; x < length - 1; x++)
-		{
-			for (int y = 0; y < length - 1 - x; y++)
-			{
+		for (int x = 0; x < length - 1; x++){
+			for (int y = 0; y < length - 1 - x; y++){
 
 				IfcForm form1 = (IfcForm) lst.get(y);
 				IfcForm form2 = (IfcForm) lst.get(y + 1);
 				a = Integer.parseInt(form2.getPriority());
 				b = Integer.parseInt(form1.getPriority());
-				if (a < b)
-				{
+				if (a < b){
 					temp = (IfcForm) lst.get(y);
 					lst.set(y, (IfcForm) lst.get(y + 1));
 					lst.set(y + 1, temp);
@@ -138,8 +130,6 @@ public class SvpShowAction extends HssAction
 			}
 
 		}
-
 		form.setIfcs(lst);
-
 	}
 }

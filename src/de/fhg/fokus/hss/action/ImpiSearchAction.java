@@ -45,6 +45,7 @@
 package de.fhg.fokus.hss.action;
 
 import de.fhg.fokus.hss.form.ImpiSearchForm;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -76,10 +77,10 @@ public class ImpiSearchAction extends HssAction
 
 		try
 		{
+			HibernateUtil.beginTransaction();
 			// Prepare Querry
-			Query query = getSession()
-					.createQuery(
-							"select impi from de.fhg.fokus.hss.model.Impi as impi where impi.impiString like ? order by impi.impiString");
+			Query query = HibernateUtil.getCurrentSession()
+					.createQuery("select impi from de.fhg.fokus.hss.model.Impi as impi where impi.impiString like ? order by impi.impiString");
 			query.setString(0, form.getImpiString() + "%");
 
 			// Check page browsing values
@@ -104,9 +105,11 @@ public class ImpiSearchAction extends HssAction
 			request.setAttribute("maxPages", String.valueOf(maxPages));
 			request.setAttribute("currentPage", String.valueOf(currentPage));
 			request.setAttribute("rowPerPage", String.valueOf(rowPerPage));
+			
+			HibernateUtil.commitTransaction();
 		} finally
 		{
-			closeSession();
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");

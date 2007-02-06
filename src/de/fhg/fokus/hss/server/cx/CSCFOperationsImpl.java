@@ -65,11 +65,9 @@ import de.fhg.fokus.hss.diam.cx.RTRCommandAction;
  * @author Andre Charton (dev -at- open-ims dot org)
  */
 
-public class CSCFOperationsImpl implements CSCFOperations
-{
+public class CSCFOperationsImpl implements CSCFOperations{
     /** logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(CSCFOperationsImpl.class);
+    private static final Logger LOGGER = Logger.getLogger(CSCFOperationsImpl.class);
 
     /**
      * It updates subscriber data. It is the implemenatation of PPR request which
@@ -81,15 +79,11 @@ public class CSCFOperationsImpl implements CSCFOperations
      * @param _scscfName the name of serving call session control function
      * @throws DiameterException
      */
-    public void cxUpdateSubscriberData(
-        URI _privateUserIdentity, IMSSubscription _userData,
-        ChargingInfoSet _chargingInfoSet, String _scscfName)
-        throws DiameterException
-    {
-        LOGGER.debug("entering");
-        PPRCommandAction commandAction =
-            new PPRCommandAction(
-                _privateUserIdentity, _userData, _chargingInfoSet, _scscfName);
+    public void cxUpdateSubscriberData(URI _privateUserIdentity, IMSSubscription _userData,
+        ChargingInfoSet _chargingInfoSet, String _scscfName) throws DiameterException{
+        
+    	LOGGER.debug("entering");
+        PPRCommandAction commandAction = new PPRCommandAction(_privateUserIdentity, _userData, _chargingInfoSet, _scscfName);
         commandAction.execute();
         LOGGER.debug("exiting");
     }
@@ -104,12 +98,12 @@ public class CSCFOperationsImpl implements CSCFOperations
      * @param scscfName the name of serving call session control function
      * @throws DiameterException
      */
-	 public void cxDeregister(DeregistrationSet deregistrationSet, DeregistrationReason deregistrationReason, String scscfName) throws DiameterException {
-			 LOGGER.debug("entering");
-       RTRCommandAction commandAction =
-           new RTRCommandAction(
-          		 deregistrationSet, deregistrationReason, scscfName);
-       commandAction.execute();
-       LOGGER.debug("exiting");
-		}
+	 public void cxDeregister(DeregistrationSet deregistrationSet, DeregistrationReason deregistrationReason, String scscfName) 
+	 	throws DiameterException {
+		 
+		 LOGGER.debug("entering");
+		 RTRCommandAction commandAction = new RTRCommandAction(deregistrationSet, deregistrationReason, scscfName);
+		 commandAction.execute();
+		 LOGGER.debug("exiting");
+	}
 }

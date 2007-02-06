@@ -54,6 +54,8 @@ import org.apache.struts.action.ActionMapping;
 
 import de.fhg.fokus.hss.form.ImpiForm;
 import de.fhg.fokus.hss.model.ImpuBO;
+import de.fhg.fokus.hss.util.HibernateUtil;
+import de.fhg.fokus.hss.util.InfrastructureException;
 
 /**
  * Link or unlink a Impu to a Impi.
@@ -62,13 +64,12 @@ import de.fhg.fokus.hss.model.ImpuBO;
  */
 public class Impu2ImpiAction extends HssAction
 {
-	private static final Logger LOGGER = Logger
-			.getLogger(Impu2ImpiAction.class);
+	private static final Logger LOGGER = Logger.getLogger(Impu2ImpiAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
 			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			throws Exception{
+		
 		LOGGER.debug("entering");
 
 		ImpiForm form = (ImpiForm) actionForm;
@@ -80,8 +81,15 @@ public class Impu2ImpiAction extends HssAction
 		Integer impuPk = Integer.valueOf(form.getImpuSelectId());
 		boolean isLink = form.getImpuSelect().equals("remove") == false;
 
-		impuBO.linkImpu2Impi(impiPk, impuPk, isLink);
-
+		try{
+			HibernateUtil.beginTransaction();
+			impuBO.linkImpu2Impi(impiPk, impuPk, isLink);
+			HibernateUtil.commitTransaction();
+		}
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
 		// find forward
 		ActionForward forward = mapping.findForward(FORWARD_SUCCESS);
 		String actionPath = forward.getPath() + "?impiId=" + form.getImpiId();

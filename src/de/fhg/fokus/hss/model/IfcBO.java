@@ -53,6 +53,8 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import de.fhg.fokus.hss.server.sh.ASshOperationsImpl;
+import de.fhg.fokus.hss.util.HibernateUtil;
+import de.fhg.fokus.hss.util.Util;
 import de.fhg.fokus.sh.data.ApplicationServer;
 import de.fhg.fokus.sh.data.InitialFilterCriteria;
 import de.fhg.fokus.sh.data.SIPHeader;
@@ -71,7 +73,7 @@ import de.fhg.fokus.sh.data.types.TDirectionOfRequest;
  * other Cx and Sh specific functions.
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class IfcBO extends HssBO
+public class IfcBO
 {
     /** logger */
     private static final Logger LOGGER = Logger.getLogger(IfcBO.class);
@@ -95,9 +97,8 @@ public class IfcBO extends HssBO
      */
     public Ifc load(Serializable primaryKey)
     {
-        Ifc ifc = (Ifc) getSession().load(Ifc.class, primaryKey);
+        Ifc ifc = (Ifc) HibernateUtil.getCurrentSession().load(Ifc.class, primaryKey);
         ifc.addPropertyChangeListener(ifc);
-
         return ifc;
     }
 
@@ -108,21 +109,11 @@ public class IfcBO extends HssBO
      */
     public void saveOrUpdate(Ifc ifc)
     {
-        try
-        {
-            beginnTx();
-            getSession().saveOrUpdate(ifc);
-            endTx();
+        HibernateUtil.getCurrentSession().saveOrUpdate(ifc);
 
-            if (ifc.isChange())
-            {
-                commitShChanges(ifc);
-                commitCxChanges(ifc);
-            }
-        }
-        finally
-        {
-            closeSession();
+        if (ifc.isChange()){
+            commitShChanges(ifc);
+            commitCxChanges(ifc);
         }
     }
 
@@ -134,8 +125,7 @@ public class IfcBO extends HssBO
     {
         LOGGER.debug("entering");
 
-        List notifyIfcs =
-            getSession()
+        List notifyIfcs = HibernateUtil.getCurrentSession()
                 .createQuery(
                 "select nifc from de.fhg.fokus.hss.model.NotifyIfc as nifc where nifc.comp_id.ifcApsvrId = ?")
                 .setInteger(0, ifc.getApsvr().getApsvrId()).list();
@@ -150,32 +140,18 @@ public class IfcBO extends HssBO
 
             Iterator it = notifyIfcs.iterator();
 
-            while (it.hasNext())
-            {
+            while (it.hasNext()){
                 NotifyIfc notifyIfc = (NotifyIfc) it.next();
                 Impu impu = notifyIfc.getImpu();
-                Apsvr notifApsvr =
-                    (Apsvr) getSession().get(
-                        Apsvr.class, notifyIfc.getComp_id().getApsvrId());
+                Apsvr notifApsvr = (Apsvr) HibernateUtil.getCurrentSession().get(Apsvr.class, notifyIfc.getComp_id().getApsvrId());
 
-                try
-                {
-                	// XLB
-                    // Use FQDN name instead of SIP     
-                    operationsImpl.shNotif(
-                            new URI(impu.getSipUrl()), shData,
-                            notifApsvr.getName());  
-                    
-/*                    operationsImpl.shNotif(
-                        new URI(impu.getSipUrl()), shData,
-                        notifApsvr.getAddress());*/
+                try{
+                    operationsImpl.shNotif(new URI(impu.getSipUrl()), shData, Util.getHost(notifApsvr.getAddress()));
                 }
-                catch (URISyntaxException e)
-                {
+                catch (URISyntaxException e){
                     LOGGER.warn(IfcBO.class, e);
                 }
-                catch (de.fhg.fokus.sh.DiameterException e)
-                {
+                catch (de.fhg.fokus.sh.DiameterException e){
                     LOGGER.warn(IfcBO.class, e);
                 }
             }
@@ -193,7 +169,6 @@ public class IfcBO extends HssBO
         LOGGER.debug("entering");
 
         SvpBO svpBO = new SvpBO();
-        svpBO.setSession(getSession());
 
         // Forward to assigned Service Profiles
         if (ifc.getSvp() != null)

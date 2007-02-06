@@ -126,19 +126,41 @@ public class PNRCommandAction extends CommandAction
         try{
             message = HssDiameterStack.diameterPeer.newRequest(Constants.Command.PNR, Application.SH);
 
+    		/* session-id */
+    		AVP sessionID = new AVP(263,true,0);
+    		sessionID.setData(asAddress + publicIdentity.getPath() + ";11271298949;" + System.currentTimeMillis());
+    		message.addAVP(sessionID);
+            
+    		/* add Vendor-Specific app id */
+            AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, Constants.Vendor.DIAM);
+            AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+            vendorID.setData(Constants.Vendor.V3GPP);
+            vendorSpecificApplicationID.addChildAVP(vendorID);
+            AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+            applicationID.setData(Constants.Application.SH);
+            vendorSpecificApplicationID.addChildAVP(applicationID);
+            message.addAVP(vendorSpecificApplicationID);
+    		
+    		/* add Auth-Session-State, no state maintained */
+            AVP authenticationSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+            authenticationSessionState.setData(1);
+            message.addAVP(authenticationSessionState);
+
+            
+            /* add User-Identity */
+            AVP userIdentityAVP = new AVP(Constants.AVPCode.SH_USER_IDENTITY, true, Constants.Vendor.V3GPP);
+            AVP publicIdentityAVP = new AVP(Constants.AVPCode.SH_PUBLIC_IDENTITY, true, Constants.Vendor.V3GPP);
+            publicIdentityAVP.setData((publicIdentity.toString()).trim());
+            userIdentityAVP.addChildAVP(publicIdentityAVP);
+            message.addAVP(userIdentityAVP);
+            
+            /* add User-Data */
             AVP userDataAVP = new AVP(Constants.AVPCode.SH_USER_DATA, true, Constants.Vendor.V3GPP);
             StringWriter sw = new StringWriter();
             shData.marshal(sw);
             userDataAVP.setData(sw.getBuffer().toString());
             message.addAVP(userDataAVP);
             
-            AVP userIdentityAVP = new AVP(Constants.AVPCode.SH_USER_IDENTITY, true, Constants.Vendor.V3GPP);
-            AVP publicIdentityAVP = new AVP(Constants.AVPCode.SH_PUBLIC_IDENTITY, true, Constants.Vendor.V3GPP);
-            
-            publicIdentityAVP.setData(publicIdentity.getPath());
-            //publicIdentityAVP.setData((publicIdentity.toString()).trim());
-            userIdentityAVP.addChildAVP(publicIdentityAVP);
-            message.addAVP(userIdentityAVP);
             sendMessage(message, asAddress, false);
         }
         catch (Exception e){

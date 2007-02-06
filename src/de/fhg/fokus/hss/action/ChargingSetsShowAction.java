@@ -46,6 +46,8 @@ package de.fhg.fokus.hss.action;
 
 import de.fhg.fokus.hss.form.ChrginfoForm;
 import de.fhg.fokus.hss.model.Chrginfo;
+import de.fhg.fokus.hss.model.Impi;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -56,8 +58,11 @@ import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.apache.struts.action.ActionMessages;
 
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
 
+import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -75,95 +80,101 @@ public class ChargingSetsShowAction extends HssAction
 			.getLogger(ChargingSetsShowAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm form,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
+		
 		LOGGER.debug("entering");
-
 		ActionForward forward = null;
-		List chrginfoList = getSession().createCriteria(Chrginfo.class).list();
-
-		ChrginfoForm chrgForm = (ChrginfoForm) form;
-
-		try
-		{
+		
+		try{
+			HibernateUtil.beginTransaction();
+			Session session = HibernateUtil.getCurrentSession();
+			
+			List chrginfoList = session.createCriteria(Chrginfo.class).list();
+			ChrginfoForm chrgForm = (ChrginfoForm) form;
 			if (chrgForm.getAction() != null)
 			{
-				Integer primaryKey = Integer.valueOf(request
-						.getParameter("chrgId"));
+				Integer primaryKey = Integer.valueOf(request.getParameter("chrgId"));
 
-				if (chrgForm.getAction().equals(ChrginfoForm.ACTION_EDIT))
-				{
-					Chrginfo chrginfo = (Chrginfo) getSession().get(
-							Chrginfo.class, primaryKey);
+				if (chrgForm.getAction().equals(ChrginfoForm.ACTION_EDIT)){
+					Chrginfo chrginfo = (Chrginfo) session.get(Chrginfo.class, primaryKey);
+					
 					chrgForm.setChrgId(convString(chrginfo.getChrgId()));
 					chrgForm.setName(chrginfo.getName());
-					chrgForm.setPriChrgCollFnName(chrginfo
-							.getPriChrgCollFnName());
-					chrgForm.setSecChrgCollFnName(chrginfo
-							.getSecChrgCollFnName());
-					chrgForm.setPriEventChrgFnName(chrginfo
-							.getPriEventChrgFnName());
-					chrgForm.setSecEventChrgFnName(chrginfo
-							.getSecEventChrgFnName());
-				} else if (chrgForm.getAction().equals(
-						ChrginfoForm.ACTION_SUBMIT))
-				{
+					chrgForm.setPriChrgCollFnName(chrginfo.getPriChrgCollFnName());
+					chrgForm.setSecChrgCollFnName(chrginfo.getSecChrgCollFnName());
+					chrgForm.setPriEventChrgFnName(chrginfo.getPriEventChrgFnName());
+					chrgForm.setSecEventChrgFnName(chrginfo.getSecEventChrgFnName());
+				}
+				else if (chrgForm.getAction().equals(ChrginfoForm.ACTION_SUBMIT)){
 					Chrginfo chrginfo = null;
 
-					if (primaryKey.intValue() != -1)
-					{
-						chrginfo = (Chrginfo) getSession().get(Chrginfo.class,
-								primaryKey);
-					} else
-					{
+					if (primaryKey.intValue() != -1){
+						chrginfo = (Chrginfo) session.get(Chrginfo.class,primaryKey);
+					} 
+					else{
 						chrginfo = new Chrginfo();
 						chrginfoList.add(chrginfo);
 					}
 
 					chrginfo.setName(chrgForm.getName());
-					chrginfo.setPriChrgCollFnName(chrgForm
-							.getPriChrgCollFnName());
-					chrginfo.setPriEventChrgFnName(chrgForm
-							.getPriEventChrgFnName());
-					chrginfo.setSecChrgCollFnName(chrgForm
-							.getSecChrgCollFnName());
-					chrginfo.setSecEventChrgFnName(chrgForm
-							.getSecEventChrgFnName());
-					beginnTx();
-					getSession().saveOrUpdate(chrginfo);
-					endTx();
-				} else if (chrgForm.getAction().equals(
-						ChrginfoForm.ACTION_DELETE))
-				{
-					Chrginfo chrginfo = (Chrginfo) getSession().get(
-							Chrginfo.class, primaryKey);
-					beginnTx();
-					getSession().delete(chrginfo);
-					chrginfoList.remove(chrginfo);
-					endTx();
+					chrginfo.setPriChrgCollFnName(chrgForm.getPriChrgCollFnName());
+					chrginfo.setPriEventChrgFnName(chrgForm.getPriEventChrgFnName());
+					chrginfo.setSecChrgCollFnName(chrgForm.getSecChrgCollFnName());
+					chrginfo.setSecEventChrgFnName(chrgForm.getSecEventChrgFnName());
+					session.saveOrUpdate(chrginfo);
+				}
+				else if (chrgForm.getAction().equals(ChrginfoForm.ACTION_DELETE)){
+					
+					if(checkAssignedImpis(primaryKey)){
+                    	ActionMessages actionMessages = new ActionMessages();
+                        actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("chrginfo.set.error.assigned.impi"));
+                        saveMessages(request, actionMessages);
+                        forward = mapping.findForward(FORWARD_FAILURE);
+                        HibernateUtil.commitTransaction();
+                        HibernateUtil.closeSession();
+                        return forward;
+                    }					
+					else{
+						Chrginfo chrginfo = (Chrginfo) session.get(Chrginfo.class, primaryKey);
+						session.delete(chrginfo);
+						chrginfoList.remove(chrginfo);
+					}
 				}
 			}
-
+			
+			HibernateUtil.commitTransaction();
 			forward = mapping.findForward(FORWARD_SUCCESS);
-		} catch (ConstraintViolationException e)
-		{
+			request.setAttribute("chrginfos", chrginfoList);
+			
+		} 
+		catch (ConstraintViolationException e){
 			LOGGER.debug(this, e);
 
 			ActionMessages actionMessages = new ActionMessages();
-			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-					"error.duplicate"));
+			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("error.duplicate"));
 			saveMessages(request, actionMessages);
 			forward = mapping.findForward(FORWARD_FAILURE);
-		} finally
-		{
-			closeSession();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
 
-		request.setAttribute("chrginfos", chrginfoList);
-
 		LOGGER.debug("exiting");
-
-		return mapping.findForward(FORWARD_SUCCESS);
+		return forward;
 	}
+	
+    private boolean checkAssignedImpis(Integer pKey){
+    	Chrginfo chrgInfo = null;
+        Impi impi = null;
+        Iterator it = null;
+        Chrginfo chrginfo = (Chrginfo) HibernateUtil.getCurrentSession().get(Chrginfo.class, pKey);
+        List list = HibernateUtil.getCurrentSession().createQuery("from de.fhg.fokus.hss.model.Impi as impi where impi.chrginfo = :value")
+        	.setEntity("value", chrginfo).list();
+        
+        if (list != null && list.size() > 0){
+        	return true;
+        }
+        
+        return false;
+    }	
 }

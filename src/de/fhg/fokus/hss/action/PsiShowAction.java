@@ -44,16 +44,22 @@
  */
 package de.fhg.fokus.hss.action;
 
+import java.util.List;
+import java.util.Set;
+
 import de.fhg.fokus.hss.form.ImpuSubSelectForm;
 import de.fhg.fokus.hss.form.PsiForm;
 import de.fhg.fokus.hss.model.Psi;
 import de.fhg.fokus.hss.model.PsiTempl;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
+import org.hibernate.Query;
+import org.hibernate.Session;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -66,9 +72,7 @@ public class PsiShowAction extends HssAction
 	private static final Logger LOGGER = Logger.getLogger(PsiShowAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
 		LOGGER.debug("entering");
 
 		PsiForm form = (PsiForm) actionForm;
@@ -78,12 +82,9 @@ public class PsiShowAction extends HssAction
 
 		try
 		{
-			/**
-			 * If create (id = -1), dont load the ifc, only the selection values
-			 */
-			if (primaryKey.intValue() != -1)
-			{
-				Psi psi = (Psi) getSession().get(Psi.class, primaryKey);
+			HibernateUtil.beginTransaction();
+			if (primaryKey.intValue() != -1){
+				Psi psi = (Psi) HibernateUtil.getCurrentSession().get(Psi.class, primaryKey);
 
 				form.setPsiId(convString(psi.getPsiId()));
 				form.setPsiName(psi.getName());
@@ -92,35 +93,59 @@ public class PsiShowAction extends HssAction
 				PsiTempl psiTempl = psi.getPsiTempl();
 				form.setPsiTemplId(convString(psiTempl.getTemplId()));
 
-				String impuName = psiTempl.getUsername() + psi.getWildcard()
-						+ "@" + psiTempl.getHostname();
+				String impuName = psiTempl.getUsername() + psi.getWildcard() + "@" + psiTempl.getHostname();
 				form.setImpuName(impuName);
 
-				if (psi.getImpus().size() > 1)
-				{
+				if (psi.getImpus().size() > 1){
 					form.setImpus(psi.getImpus());
-				} else
-				{
+				} 
+				else{
 					form.getImpus().addAll(psi.getImpus());
 				}
-
-				ImpuSubSelectForm.doImpuSelection(getSession(), form, psi
-						.getImpus());
+				doImpuSelection(HibernateUtil.getCurrentSession(), form, psi.getImpus());
 			}
-
-			form.setPsiTempls(getSession().createCriteria(PsiTempl.class)
-					.list());
-		} finally
-		{
-			closeSession();
+			form.setPsiTempls(HibernateUtil.getCurrentSession().createCriteria(PsiTempl.class).list());
+			HibernateUtil.commitTransaction();
+		}
+		finally{
+			HibernateUtil.closeSession();
 		}
 
-		if (LOGGER.isDebugEnabled())
-		{
+		if (LOGGER.isDebugEnabled()){
 			LOGGER.debug(form);
 			LOGGER.debug("exiting");
 		}
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
+	
+    public static void doImpuSelection(Session session, ImpuSubSelectForm form, Set givenImpus){
+    	
+        if ((form.getImpuSelect().equals("true")) && ((form.getImpuUrl() != null) && (form.getImpuUrl().length() > 0))){
+            List results = null;
+
+            if (form.getImsuId() != null){
+                Query query = session.createQuery("select impu from de.fhg.fokus.hss.model.Impu as impu where impu.psi = 0 and impu.sipUrl like ? and impu.impis.imsu.imsuId = ?");
+                query.setString(0, "%" + form.getImpuUrl() + "%");
+                query.setInteger(1, form.getImsuId());
+                query.setMaxResults(20);
+                results = query.list();
+                query = session.createQuery
+                	("select impu from de.fhg.fokus.hss.model.Impu as impu where impu.psi = 0 and impu.sipUrl like ? and impu.impis is empty");
+                query.setString(0, "%" + form.getImpuUrl() + "%");
+                results.addAll(query.list());
+            }
+            else{
+                // Prepare Querry
+                Query query = session.createQuery("select impu from de.fhg.fokus.hss.model.Impu as impu where impu.psi = 0 and impu.sipUrl like ?");
+                query.setString(0, "%" + form.getImpuUrl() + "%");
+                query.setMaxResults(20);
+                results = query.list();
+            }
+
+            results.removeAll(givenImpus);
+            form.setImpusSelected(results);
+            LOGGER.debug(form);
+        }
+    }
+
 }

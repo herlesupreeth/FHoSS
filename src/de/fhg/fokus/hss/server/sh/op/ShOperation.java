@@ -50,6 +50,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import de.fhg.fokus.cx.exceptions.ims.IdentitiesDontMatch;
 import de.fhg.fokus.hss.model.Apsvr;
@@ -87,10 +88,8 @@ public abstract class ShOperation
      *  This is string converter
      *  @return the string
      */
-    public String toString()
-    {
-        return ToStringBuilder.reflectionToString(
-            this, ToStringStyle.MULTI_LINE_STYLE);
+    public String toString(){
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
     /**
@@ -106,15 +105,12 @@ public abstract class ShOperation
      * @throws IdentitiesDontMatch
      * @throws DiameterException
      */
-    protected void loadUserProfile() throws DiameterException
-    {
+    protected void loadUserProfile() throws DiameterException{
         LOGGER.debug("entering");
 
-        if (publicUserIdentity != null)
-        {
+        if (publicUserIdentity != null){
             userProfil = new ShUserProfil(publicUserIdentity);
             LOGGER.debug("exititng");
-
             return;
         }
 
@@ -126,8 +122,7 @@ public abstract class ShOperation
      * Markup user profil update flag.
      *
      */
-    protected void markUpdateUserProfile()
-    {
+    protected void markUpdateUserProfile(){
         needUpdate = true;
     }
 
@@ -135,10 +130,8 @@ public abstract class ShOperation
      * Update user profil if flag is set to true.
      *
      */
-    protected void updateUserProfile()
-    {
-        if (needUpdate == true)
-        {
+    protected void updateUserProfile(){
+        if (needUpdate == true){
             userProfil.update();
         }
     }
@@ -149,27 +142,19 @@ public abstract class ShOperation
      */
     protected void loadApsvr() throws DiameterException
     {
-        Session session = HibernateUtil.currentSession();
-        apsvr =
-            (Apsvr) session.createQuery(
-                "select apsvr from de.fhg.fokus.hss.model.Apsvr as apsvr where apsvr.name = ?")
-                           .setString(0, applicationServerIdentity)
-                           .uniqueResult();
-
-        if (apsvr == null)
-        {
-            LOGGER.warn(
-                this,
-                new NullPointerException(
-                    "Unknown application server: " + applicationServerIdentity));
+        apsvr = (Apsvr) HibernateUtil.getCurrentSession()
+        	.createQuery("select apsvr from de.fhg.fokus.hss.model.Apsvr as apsvr where apsvr.name = ?")
+            .setString(0, applicationServerIdentity)
+            .uniqueResult();
+        
+        if (apsvr == null){
+            LOGGER.warn(this,new NullPointerException("Unknown application server: " + applicationServerIdentity));
             throw new UnableToComply();
         }
 
-        asPermList =
-            (AsPermList) session.get(AsPermList.class, apsvr.getApsvrId());
-
-        if (asPermList == null)
-        {
+        asPermList = (AsPermList) HibernateUtil.getCurrentSession().get(AsPermList.class, apsvr.getApsvrId());
+        
+        if (asPermList == null){
             throw new UserDataCannotBeRead();
         }
     }

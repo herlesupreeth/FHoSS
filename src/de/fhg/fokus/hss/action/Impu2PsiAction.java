@@ -54,6 +54,7 @@ import org.apache.struts.action.ActionMapping;
 
 import de.fhg.fokus.hss.form.PsiForm;
 import de.fhg.fokus.hss.model.PsiBO;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * Link or unlink a Impu to a Impi.
@@ -66,10 +67,9 @@ public class Impu2PsiAction extends HssAction
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
 			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			throws Exception{
+		
 		LOGGER.debug("entering");
-
 		PsiForm form = (PsiForm) actionForm;
 		LOGGER.debug(form);
 
@@ -77,8 +77,15 @@ public class Impu2PsiAction extends HssAction
 		Integer impuPk = Integer.valueOf(form.getImpuSelectId());
 		boolean isLink = form.getImpuSelect().equals("remove") == false;
 
-		PsiBO.linkImpu2Psi(psiPk, impuPk, isLink);
-
+		try{
+			HibernateUtil.beginTransaction();
+			PsiBO.linkImpu2Psi(psiPk, impuPk, isLink);
+			HibernateUtil.commitTransaction();
+		}
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
 		// find forward
 		ActionForward forward = mapping.findForward(FORWARD_SUCCESS);
 		String actionPath = forward.getPath() + "?psiId=" + form.getPsiId();

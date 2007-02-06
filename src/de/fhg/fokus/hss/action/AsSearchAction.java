@@ -45,6 +45,8 @@
 package de.fhg.fokus.hss.action;
 
 import de.fhg.fokus.hss.form.AsSearchForm;
+import de.fhg.fokus.hss.util.HibernateUtil;
+import de.fhg.fokus.hss.util.InfrastructureException;
 
 import org.apache.log4j.Logger;
 
@@ -66,9 +68,7 @@ public class AsSearchAction extends HssAction
 
 	
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
 		LOGGER.debug("entering");
 
 		AsSearchForm form = (AsSearchForm) actionForm;
@@ -76,10 +76,10 @@ public class AsSearchAction extends HssAction
 
 		try
 		{
+			HibernateUtil.beginTransaction();
 			// Prepare Querry
-			Query query = getSession()
-					.createQuery(
-							"select apsvr from de.fhg.fokus.hss.model.Apsvr as apsvr where apsvr.name like ?");
+			Query query = HibernateUtil.getCurrentSession()
+					.createQuery("select apsvr from de.fhg.fokus.hss.model.Apsvr as apsvr where apsvr.name like ?");
 			query.setString(0, "%" + form.getAsName() + "%");
 
 			// Check page browsing values
@@ -87,8 +87,7 @@ public class AsSearchAction extends HssAction
 			int currentPage = Integer.parseInt(form.getPage()) - 1;
 			int maxPages = (int) ((query.list().size() - 1) / rowPerPage) + 1;
 
-			if (currentPage > maxPages)
-			{
+			if (currentPage > maxPages){
 				currentPage = 0;
 			}
 
@@ -100,13 +99,15 @@ public class AsSearchAction extends HssAction
 
 			// store attributes in request
 			request.setAttribute("result", query.list());
-
+			HibernateUtil.commitTransaction();
+			
 			request.setAttribute("maxPages", String.valueOf(maxPages));
 			request.setAttribute("currentPage", String.valueOf(currentPage));
 			request.setAttribute("rowPerPage", String.valueOf(rowPerPage));
-		} finally
+		}
+		finally
 		{
-			closeSession();
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");

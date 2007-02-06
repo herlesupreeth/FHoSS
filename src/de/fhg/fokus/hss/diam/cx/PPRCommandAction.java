@@ -152,19 +152,20 @@ public class PPRCommandAction extends CommandAction
     		message.addAVP(a);
 
     		/* vendor-specific app id */
-    		a = new AVP(260,true,0);
-    		b = new AVP(266,true,0);
-    		b.setData(10415);
-    		a.addChildAVP(b);
-    		b = new AVP(258,true,0);
-    		b.setData(16777216);
-    		a.addChildAVP(b);
-    		message.addAVP(a);            
+            AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, Constants.Vendor.DIAM);
+            AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+            vendorID.setData(Constants.Vendor.V3GPP);
+            vendorSpecificApplicationID.addChildAVP(vendorID);
+            AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+            applicationID.setData(Constants.Application.CX);
+            vendorSpecificApplicationID.addChildAVP(applicationID);
+            message.addAVP(vendorSpecificApplicationID);
     		
-    		/* auth-session-state, no session maintained */
-    		a = new AVP(277,true,0);
-    		a.setData(1);
-    		message.addAVP(a);
+    		
+    		/* auth-session-state, no state maintained */
+            AVP authenticationSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+            authenticationSessionState.setData(1);
+            message.addAVP(authenticationSessionState);
 
     		/* destionation host and realm */
             AVP destHostAVP = new AVP(Constants.AVPCode.DESTINATION_HOST, true, Constants.Vendor.DIAM);

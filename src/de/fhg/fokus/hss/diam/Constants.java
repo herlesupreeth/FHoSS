@@ -88,7 +88,7 @@
 package de.fhg.fokus.hss.diam;
 
 /**
- * It contains constant values like Application types, Vendor types and AVP Codes
+ * It contains all the possible values for Application, Vendor, Command Code, AVP Code, Authentication Scheme
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
@@ -228,4 +228,11 @@ public class Constants
     	
     }
     
+    public class AuthScheme{
+    	public static final String AUTH_SCHEME_AKAv1 = "Digest-AKAv1-MD5";
+    	public static final String AUTH_SCHEME_AKAv2 = "Digest-AKAv2-MD5";
+    	public static final String AUTH_SCHEME_MD5 = "Digest-MD5";
+    	public static final String AUTH_SCHEME_EARLY = "Early IMS";		
+    	public static final String AUTH_SCHEME_ANY = "any";
+    }
 }

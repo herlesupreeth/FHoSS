@@ -46,9 +46,11 @@ package de.fhg.fokus.hss.util;
 
 import org.apache.log4j.Logger;
 
+import org.hibernate.FlushMode;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 
 
@@ -60,61 +62,119 @@ import org.hibernate.cfg.Configuration;
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class HibernateUtil
-{
+
+public class HibernateUtil{
     /** the logger */
     private static final Logger LOGGER = Logger.getLogger(HibernateUtil.class);
     /** the session factory */
     private static final SessionFactory sessionFactory;
 
-    static
-    {
-        try
-        {
+    /** thread local variable  */
+    private static final ThreadLocal threadSession = new ThreadLocal();
+    private static final ThreadLocal threadTransaction = new ThreadLocal();
+
+    static{
+        try{
             //Create the SessionFactory
-            sessionFactory =
-                new Configuration().configure().buildSessionFactory();
+            sessionFactory = new Configuration().configure().buildSessionFactory();
         }
-        catch (Throwable ex)
-        {
+        catch (Throwable ex){
             //Make sure you log the exception, as it might be swallowed
             LOGGER.error("Initial SessionFactory creation failed.", ex);
             throw new ExceptionInInitializerError(ex);
         }
     }
-    /** thread local variable  */
-    public static final ThreadLocal session = new ThreadLocal();
+    
 
     /**
-     *  this method provides the current session
+     *  This method provides the session for the current thread
      *  @return the current session
      */
-    public static Session currentSession()
-    {
-        Session s = (Session) session.get();
+    public static Session getCurrentSession(){
+    	
+   		Session s = (Session) threadSession.get();
 
-        //	 Open a new Session, if this Thread has none yet
-        if (s == null)
-        {
-            s = sessionFactory.openSession();
-            session.set(s);
-        }
-
+   		try{
+    		// Open a new Session, if this Thread hasn't any session associated or if is closed 
+    		if (s == null || s.isOpen() == false){
+    			s = sessionFactory.openSession();
+    			threadSession.set(s);
+    		}
+    	}
+    	catch(HibernateException e){
+    		LOGGER.error("Problem in opening a new session for the thread!\nMessage:" + e.getMessage());
+    		e.printStackTrace();
+    		throw new InfrastructureException(e);
+    	}
         return s;
     }
 
     /**
-     *  This method closes the Session
+     *  This method close the session for the current thread
      */
-    public static void closeSession()
-    {
-        Session s = (Session) session.get();
-
-        if (s != null)
-        {
-            s.close();
+    public static void closeSession(){
+    	
+        Session s = (Session) threadSession.get();
+        try{
+        	if (s != null){
+        		s.close();
+        		threadSession.set(null);            
+        	}
         }
-
-        session.set(null);
+        catch(HibernateException e){
+    		LOGGER.error("Problem in closing the session for the thread!\nMessage:" + e.getMessage());
+    		e.printStackTrace();
+    		throw new InfrastructureException(e);
+        }
     }
+
+    public static void beginTransaction() {
+    	Transaction tx = (Transaction) threadTransaction.get();
+    	try {
+    		if (tx == null) {
+    			tx = getCurrentSession().beginTransaction();
+    			threadTransaction.set(tx);
+    		}
+    	}
+    	catch (HibernateException e) {
+    		LOGGER.error("Problem in starting a new transaction for the session!\nMessage:" + e.getMessage());
+    		e.printStackTrace();
+    		throw new InfrastructureException(e);
+    	}
+    }
+
+    public static void commitTransaction() {
+    	Transaction tx = (Transaction) threadTransaction.get();
+    	try {
+    		if ( tx != null && !tx.wasCommitted() && !tx.wasRolledBack() )
+    			tx.commit();
+    		threadTransaction.set(null);
+    	} 
+    	catch (HibernateException e) {
+    		rollbackTransaction();
+    		LOGGER.error("Problem in commiting the transaction for the current session; transaction was rolledback!\nMessage:" + e.getMessage());
+    		e.printStackTrace();
+    		throw new InfrastructureException(e);
+
+    	}
+   	}
+
+    public static void rollbackTransaction() {
+    	Transaction tx = (Transaction) threadTransaction.get();
+    	try {
+    		threadTransaction.set(null);
+    		if ( tx != null && !tx.wasCommitted() && !tx.wasRolledBack() ) {
+    			tx.rollback();
+    		}
+    	} 
+    	catch (HibernateException e) {
+    		LOGGER.error("Problem in rolling back the transaction of the current session!\nMessage:" + e.getMessage());
+    		e.printStackTrace();
+    		throw new InfrastructureException(e);
+    	}
+    	finally {
+    		closeSession();
+    	}
+    }
+    
 }

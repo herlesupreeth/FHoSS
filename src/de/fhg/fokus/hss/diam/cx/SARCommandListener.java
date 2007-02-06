@@ -78,8 +78,7 @@ public class SARCommandListener extends CxCommandListener
     /** counter */
     public static long counter = 0;
     /** logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(SARCommandListener.class);
+    private static final Logger LOGGER = Logger.getLogger(SARCommandListener.class);
     /** the command id for SAR */     
     private static final int COMMAND_ID = Constants.Command.SAR;
     /** an object representing the Cx operations for HSS*/
@@ -90,9 +89,7 @@ public class SARCommandListener extends CxCommandListener
      * @param _operations HssCxOpeation
      * @param _diameterPeer diameterPeer
      */ 
-    public SARCommandListener(
-        HSScxOperations _operations, DiameterPeer _diameterPeer)
-    {
+    public SARCommandListener(HSScxOperations _operations, DiameterPeer _diameterPeer){
         super(_diameterPeer);
         this.operations = _operations;
     }
@@ -105,33 +102,25 @@ public class SARCommandListener extends CxCommandListener
      * @param requestMessage the diameter message
      * @see de.fhg.fokus.diameter.DiameterPeer.EventListener#recvMessage(java.lang.String, de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage) 
      */
-    public void recvMessage(String FQDN, DiameterMessage requestMessage)
-    {
-        if (requestMessage.commandCode == COMMAND_ID)
-        {
+    public void recvMessage(String FQDN, DiameterMessage requestMessage){
+        if (requestMessage.commandCode == COMMAND_ID){
             counter++;
             LOGGER.debug("entering");
             LOGGER.debug(FQDN);
 
-            try
-            {                
-                PublicIdentity publicIdentity =
-                    loadPublicIdentity(requestMessage);
+            try{                
+                PublicIdentity publicIdentity = loadPublicIdentity(requestMessage);
                 LOGGER.info("SAR of User: "+ publicIdentity.getIdentity() + " is being processed");                    
                 URI privateUserIdentity;
 
-                try
-                {
-                    privateUserIdentity =
-                        loadPrivateUserIdentity(requestMessage);
+                try{
+                    privateUserIdentity = loadPrivateUserIdentity(requestMessage);
                 }
-                catch (MissingAVP e)
-                {
+                catch (MissingAVP e){
                     privateUserIdentity = null;
                 }
 
                 String scscfName = loadServerName(requestMessage);
-
                 int serverAssignmentType = avpLookUp(requestMessage, Constants.AVPCode.SERVER_ASSIGNMENT_TYPE, true,
                         Constants.Vendor.V3GPP).int_data;
 
@@ -140,11 +129,9 @@ public class SARCommandListener extends CxCommandListener
                 int userDataAlreadyAvailable = avpLookUp(requestMessage, Constants.AVPCode.USER_DATA_ALREADY_AVAILABLE,
                         true, Constants.Vendor.V3GPP).int_data;
                 CxSCSCFNotificationResponse response = null;
-                AVP resultCode = null;
 
-                response = operations.cxPull(
-                        publicIdentity, scscfName, privateUserIdentity,
-                        serverAssignmentType, userDataRequestType,
+
+                response = operations.cxPull(publicIdentity, scscfName, privateUserIdentity, serverAssignmentType, userDataRequestType,
                         userDataAlreadyAvailable);
 
                 if (response == null){
@@ -152,36 +139,41 @@ public class SARCommandListener extends CxCommandListener
                 }
 
                 DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
+                
+        		/* vendor-specific app id */
+                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, Constants.Vendor.DIAM);
+                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+                vendorID.setData(Constants.Vendor.V3GPP);
+                vendorSpecificApplicationID.addChildAVP(vendorID);
+                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+                applicationID.setData(Constants.Application.CX);
+                vendorSpecificApplicationID.addChildAVP(applicationID);
+                responseMessage.addAVP(vendorSpecificApplicationID);
+        		
+        		/* auth-session-state, no state maintained */
+                AVP authenticationSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+                authenticationSessionState.setData(1);
+                responseMessage.addAVP(authenticationSessionState);
+                
+                AVP resultCode = null;
+                if (response.getUserProfile() != null){
+                	saveIMSSubscription(response.getUserProfile(), responseMessage);
+                	saveChargingInfoSet(response.getChargingInfoSet(), responseMessage);
 
-                if (resultCode == null)
-                {
-                    if (response.getUserProfile() != null)
-                    {
-                        saveIMSSubscription(
-                            response.getUserProfile(), responseMessage);
-                        saveChargingInfoSet(
-                            response.getChargingInfoSet(), responseMessage);
-                    }
-
-                    // Add result code
-                    resultCode =
-                        saveResultCode(
-                            response.getResultCode(),
-                            response.resultCodeIsBase());
                 }
 
+                // Generate the result code AVP and add it to the responseMessage
+                resultCode = getResultCodeAVP(response.getResultCode(), response.resultCodeIsBase());
                 responseMessage.addAVP(resultCode);
 
                 diameterPeer.sendMessage(FQDN, responseMessage);
                 LOGGER.debug("exiting");
             }
-            catch (DiameterException e)
-            {
+            catch (DiameterException e){
                 LOGGER.warn(this, e);
                 sendDiameterException(FQDN, requestMessage, e);
             }
-            catch (Exception e)
-            {
+            catch (Exception e){
                 LOGGER.error(this, e);
                 sendUnableToComply(FQDN, requestMessage);
             }
@@ -195,10 +187,9 @@ public class SARCommandListener extends CxCommandListener
      * @throws MarshalException
      * @throws ValidationException
      */
-    public static void saveIMSSubscription(
-        IMSSubscription subscription, DiameterMessage responseMessage)
-        throws MarshalException, ValidationException
-    {
+    public static void saveIMSSubscription(IMSSubscription subscription, DiameterMessage responseMessage) 
+    	throws MarshalException, ValidationException {
+    	
         AVP userProfileAVP = new AVP(Constants.AVPCode.CX_USER_DATA, true, Constants.Vendor.V3GPP);
         StringWriter sw = new StringWriter();
         subscription.marshal(sw);
@@ -211,9 +202,8 @@ public class SARCommandListener extends CxCommandListener
      * @param chargingInfoSet
      * @param responseMessage
      */
-    public static void saveChargingInfoSet(
-        ChargingInfoSet chargingInfoSet, DiameterMessage responseMessage)
-    {
+    public static void saveChargingInfoSet(ChargingInfoSet chargingInfoSet, DiameterMessage responseMessage){
+    	
         AVP chargingInfoAVP = new AVP(Constants.AVPCode.CHARGING_INFO, true, Constants.Vendor.V3GPP);
         AVP fnNameAVP = null;
 

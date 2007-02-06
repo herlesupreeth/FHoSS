@@ -70,6 +70,7 @@ import de.fhg.fokus.hss.model.Apsvr;
 import de.fhg.fokus.hss.model.Impu;
 import de.fhg.fokus.hss.model.Psi;
 import de.fhg.fokus.hss.model.PsiBO;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 
 /**
@@ -98,15 +99,12 @@ public class PullCxOperation extends CxOperation
      * @param _privateUserIdentity private user identity
      * @param _serverAssignmentType type of server assignment
      * @param _userDataRequestType type of user data request
-     * @param _userDataAlreadyAvailable an int value for the availability or 
-     *                                  unavailability of user data
+     * @param _userDataAlreadyAvailable an int value for the availability or unavailability of user data
      */ 
-    public PullCxOperation(
-        PublicIdentity _publicIdentity, String _serverName,
-        URI _privateUserIdentity, int _serverAssignmentType,
-        int _userDataRequestType, int _userDataAlreadyAvailable)
-    {
-        LOGGER.debug("entering");
+    public PullCxOperation( PublicIdentity _publicIdentity, String _serverName,
+        URI _privateUserIdentity, int _serverAssignmentType, int _userDataRequestType, int _userDataAlreadyAvailable){
+        
+    	LOGGER.debug("entering");
         this.publicIdentity = _publicIdentity;
         this.privateUserIdentity = _privateUserIdentity;
         this.serverName = _serverName;
@@ -122,46 +120,38 @@ public class PullCxOperation extends CxOperation
      * @return an object providing SAA specific information 
      * @throws DiameterException
      */	
-    public Object execute() throws DiameterException
-    {
-        if (LOGGER.isDebugEnabled())
-        {
+    public Object execute() throws DiameterException{
+        if (LOGGER.isDebugEnabled()){
             LOGGER.debug("entering");
             LOGGER.debug(this);
         }
 
         CxSCSCFNotificationResponse notificationResponse = null;
-
-        try
-        {
+        try{
+        	HibernateUtil.beginTransaction();
             loadUserProfile();
             Impu impu1=getUserProfil().getImpu();
             String impu_status=impu1.getUserStatus();
+            
     	    if(impu_status.equals(impu1.USER_STATUS_NOT_REGISTERED))
-                    LOGGER.info("The current status of IMPU "+ publicIdentity.getIdentity() +" is "
-                                 +"not registered"); 
+                    LOGGER.info("The current status of IMPU "+ publicIdentity.getIdentity() +" is not registered"); 
             else if(impu_status.equals(impu1.USER_STATUS_REGISTERED))
-                    LOGGER.info("The current status of IMPU "+ publicIdentity.getIdentity() +" is "
-                                 +"registered");
+                    LOGGER.info("The current status of IMPU "+ publicIdentity.getIdentity() +" is registered");
             else if(impu_status.equals(impu1.USER_STATUS_UNREGISTERED))
-                    LOGGER.info("The current status of IMPU "+ publicIdentity.getIdentity() +" is "
-                                 +"unregistered");            
+                    LOGGER.info("The current status of IMPU "+ publicIdentity.getIdentity() +" is unregistered");            
 
-            if (getUserProfil().getImpu().getPsi() == true)
-            {
+            if (getUserProfil().getImpu().getPsi() == true){
                 // Look if Public User is PSI
                 notificationResponse = handlePSI();
             }
-            else
-            {
+            else{
                 notificationResponse = handleUserProfil();
             }
+            
         }
-        finally
-        {
-        	if(getUserProfil() != null){
-            getUserProfil().closeSession();
-        	}
+        finally{
+        	HibernateUtil.commitTransaction();
+        	HibernateUtil.closeSession();	
         }
 
         return notificationResponse;
@@ -174,154 +164,99 @@ public class PullCxOperation extends CxOperation
      * @throws IdentitiesDontMatch
      */
     private CxSCSCFNotificationResponse handleUserProfil()
-        throws IdentitiesDontMatch, DiameterException
-    {
+        throws IdentitiesDontMatch, DiameterException{
+    	
         CxSCSCFNotificationResponse notificationResponse = null;
-
         boolean needUserProfil = false;
 
-        if (serverAssignmentType == ServerAssignmentTypeAVP._UNREGISTERED_USER)
-        {
-            userProfil.getImpu().setUserStatus(Impu.USER_STATUS_UNREGISTERED);
+        if (serverAssignmentType == ServerAssignmentTypeAVP._UNREGISTERED_USER){
+            
+        	userProfil.getImpu().setUserStatus(Impu.USER_STATUS_UNREGISTERED);
             userProfil.getImpi().setScscfName(serverName);
             markUpdateUserProfile();
-            LOGGER.info("user status of "+userProfil.getImpu().getSipUrl()+" set to unregistered");
+            LOGGER.info("User status of " + userProfil.getImpu().getSipUrl()+" set to unregistered");
             needUserProfil = true;
         }
-        else if (
-            (serverAssignmentType == ServerAssignmentTypeAVP._REGISTRATION)
-                || (
-                    serverAssignmentType == ServerAssignmentTypeAVP._RE_REGISTRATION
-                ))
-        {
+        else if ((serverAssignmentType == ServerAssignmentTypeAVP._REGISTRATION)
+                || (serverAssignmentType == ServerAssignmentTypeAVP._RE_REGISTRATION)){
+        	
             userProfil.getImpu().setUserStatus(Impu.USER_STATUS_REGISTERED);
             userProfil.getImpi().setScscfName(serverName);
             markUpdateUserProfile();
             LOGGER.info("user status of "+userProfil.getImpu().getSipUrl()+" set to registered");
             needUserProfil = true;
         }
-        else if (
-            (
-                    serverAssignmentType == ServerAssignmentTypeAVP._TIMEOUT_DEREGISTRATION
-                )
-                || (
-                    serverAssignmentType == ServerAssignmentTypeAVP._USER_DEREGISTRATION
-                )
-                || (
-                    serverAssignmentType == ServerAssignmentTypeAVP._DEREGISTRATION_TOO_MUCH_DATA
-                )
-                || (
-                    serverAssignmentType == ServerAssignmentTypeAVP._ADMINISTRATIVE_DEREGISTRATION
-                ))
-        {
-            if (
-                (
-                        userProfil.getImpu().getUserStatus().equals(
-                            Impu.USER_STATUS_REGISTERED)
-                    )
-                    || (
-                        userProfil.getImpu().getUserStatus().equals(
-                            Impu.USER_STATUS_UNREGISTERED)
-                    ))
-            {
-                if (userProfil.getImpu().getImpis().size() == 1)
-                {
-                    userProfil.getImpu().setUserStatus(
-                        Impu.USER_STATUS_NOT_REGISTERED);
+        else if ((serverAssignmentType == ServerAssignmentTypeAVP._TIMEOUT_DEREGISTRATION)
+                || (serverAssignmentType == ServerAssignmentTypeAVP._USER_DEREGISTRATION)
+                || (serverAssignmentType == ServerAssignmentTypeAVP._DEREGISTRATION_TOO_MUCH_DATA)
+                || (serverAssignmentType == ServerAssignmentTypeAVP._ADMINISTRATIVE_DEREGISTRATION)){
+        	
+            if ((userProfil.getImpu().getUserStatus().equals(Impu.USER_STATUS_REGISTERED))
+                    || (userProfil.getImpu().getUserStatus().equals(Impu.USER_STATUS_UNREGISTERED))){
+            	
+                if (userProfil.getImpu().getImpis().size() == 1){
+                    userProfil.getImpu().setUserStatus(Impu.USER_STATUS_NOT_REGISTERED);
                     userProfil.getImpi().setScscfName("");
                     LOGGER.info("user status of "+userProfil.getImpu().getSipUrl()+" set to not registered");
                     markUpdateUserProfile();
                 }
-                else
-                {
-                    LOGGER.info(
-                        "user status not updated, because impu assigned to multiple impis");
+                else{
+                    LOGGER.info("user status not updated, because impu assigned to multiple impis");
                 }
 
                 needUserProfil = false;
             }
         }
-        else if (
-            (
-                    serverAssignmentType == ServerAssignmentTypeAVP._TIMEOUT_DEREGISTRATION_STORE_SERVER_NAME
-                )
-                || (
-                    serverAssignmentType == ServerAssignmentTypeAVP._USER_DEREGISTRATION_STORE_SERVER_NAME
-                ))
-        {
-            if (userProfil.getImpu().getImpis().size() == 1)
-            {
-                userProfil.getImpu().setUserStatus(
-                    Impu.USER_STATUS_UNREGISTERED);
+        else if ((serverAssignmentType == ServerAssignmentTypeAVP._TIMEOUT_DEREGISTRATION_STORE_SERVER_NAME)
+                || (serverAssignmentType == ServerAssignmentTypeAVP._USER_DEREGISTRATION_STORE_SERVER_NAME)){
+            
+        	if (userProfil.getImpu().getImpis().size() == 1){
+                userProfil.getImpu().setUserStatus(Impu.USER_STATUS_UNREGISTERED);
                 LOGGER.info("user status of "+userProfil.getImpu().getSipUrl()+" set to unregistered");
                 markUpdateUserProfile();
             }
 
             needUserProfil = false;
         }
-        else if (serverAssignmentType == ServerAssignmentTypeAVP._NO_ASSIGNMENT)
-        {
-            if (userProfil.getImpi().getScscfName().equals(serverName))
-            {
+        else if (serverAssignmentType == ServerAssignmentTypeAVP._NO_ASSIGNMENT){
+            if (userProfil.getImpi().getScscfName().equals(serverName)){
                 needUserProfil = true;
             }
-            else
-            {
+            else{
                 throw new UnableToComply();
             }
         }
-        else if (
-            (
-                    serverAssignmentType == ServerAssignmentTypeAVP._AUTHENTICATION_FAILURE
-                )
-                || (
-                    serverAssignmentType == ServerAssignmentTypeAVP._AUTHENTICATION_TIMEOUT
-                ))
-        {
-            if (userProfil.getImpu() != null)
-            {
-                userProfil.getImpu().setUserStatus(
-                    Impu.USER_STATUS_NOT_REGISTERED);
+        else if ((serverAssignmentType == ServerAssignmentTypeAVP._AUTHENTICATION_FAILURE)
+                || (serverAssignmentType == ServerAssignmentTypeAVP._AUTHENTICATION_TIMEOUT)){
+            
+        	if (userProfil.getImpu() != null){
+                userProfil.getImpu().setUserStatus(Impu.USER_STATUS_NOT_REGISTERED);
                 markUpdateUserProfile();
                 LOGGER.info("user status of "+userProfil.getImpu().getSipUrl()+" set to not registered");
             }
-            else
-            {
+            else{
                 Iterator it = userProfil.getImpuList().iterator();
-
-                while (it.hasNext())
-                {
+                while (it.hasNext()){
                     Impu next = (Impu) it.next();
                     next.setUserStatus(Impu.USER_STATUS_NOT_REGISTERED);
                 }
-
                 markUpdateUserProfile();
             }
         }
-
-        notificationResponse =
-            new CxSCSCFNotificationResponse(ResultCode._DIAMETER_SUCCESS, true);
-
-        if (needUserProfil == true)
-        {
+        notificationResponse = new CxSCSCFNotificationResponse(ResultCode._DIAMETER_SUCCESS, true);
+        if (needUserProfil == true){
             // Store the private user identity
-            try
-            {
-                notificationResponse.setPrivateUserIdentity(
-                    new URI(userProfil.getImpi().getImpiString()));
+            try{
+                notificationResponse.setPrivateUserIdentity(new URI(userProfil.getImpi().getImpiString()));
             }
-            catch (URISyntaxException e)
-            {
+            catch (URISyntaxException e){
                 throw new UnableToComply();
             }
-
             // Download the user profile and the charging functions
-            notificationResponse.setUserProfile(
-                userProfil.getIMSSubscription(), userProfil.getChargingInfoSet());
+            notificationResponse.setUserProfile(userProfil.getIMSSubscription(), userProfil.getChargingInfoSet());
         }
 
         updateUserProfile();
-
         return notificationResponse;
     }
 
@@ -335,11 +270,9 @@ public class PullCxOperation extends CxOperation
         LOGGER.debug("entering");
 
         CxSCSCFNotificationResponse notificationResponse = null;
-
         Psi psi = getUserProfil().getImpu().getAssignedPsi();
         Apsvr apsvr = psi.getPsiTempl().getApsvr();
-        notificationResponse =
-            new CxSCSCFNotificationResponse(ResultCode._DIAMETER_SUCCESS);
+        notificationResponse = new CxSCSCFNotificationResponse(ResultCode._DIAMETER_SUCCESS);
 
         IMSSubscription subscription = new IMSSubscription();
         subscription.setPrivateID(PsiBO.DEFAULT_PSI_IMPI.getPath());
@@ -356,13 +289,13 @@ public class PullCxOperation extends CxOperation
         
         switch (apsvr.getDefaultHandling()){
         
-        case TDefaultHandling.VALUE_0_TYPE:
-        	applicationServer.setDefaultHandling(TDefaultHandling.VALUE_0);
-        	break;
+        	case TDefaultHandling.VALUE_0_TYPE:
+        		applicationServer.setDefaultHandling(TDefaultHandling.VALUE_0);
+        		break;
 
-        case TDefaultHandling.VALUE_1_TYPE:
-        	applicationServer.setDefaultHandling(TDefaultHandling.VALUE_1);
-        	break;
+        	case TDefaultHandling.VALUE_1_TYPE:
+        		applicationServer.setDefaultHandling(TDefaultHandling.VALUE_1);
+        		break;
         }
         
         //applicationServer.setDefaultHandling((byte) apsvr.getDefaultHandling());
@@ -383,12 +316,10 @@ public class PullCxOperation extends CxOperation
         subscription.addServiceProfile(serviceProfile);
         notificationResponse.setPrivateUserIdentity(PsiBO.DEFAULT_PSI_IMPI);
 
-        ChargingInfoSet chargingInfoSet =
-            new ChargingInfoSet(PsiBO.DEFAULT_PRI_COLL_CHRG_FN);
+        ChargingInfoSet chargingInfoSet = new ChargingInfoSet(PsiBO.DEFAULT_PRI_COLL_CHRG_FN);
         notificationResponse.setUserProfile(subscription, chargingInfoSet);
 
         LOGGER.debug("exiting");
-
         return notificationResponse;
     }
 }

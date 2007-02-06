@@ -80,21 +80,26 @@ public class DeregisterCxOperation extends CxOperation {
      * @param reason deregistartion reason object
      */ 	
 	public DeregisterCxOperation(CxUserProfil _userProfil, DeregistrationReason reason){
+		
 		LOGGER.debug("entering");
 		this.userProfil = _userProfil;
 		this.scscfName = userProfil.getImpi().getScscfName();
 		this.reason = reason;
+		
 		try {
 			this.privateUserIdentity = new URI(_userProfil.getImpi().getImpiString());
-		} catch (URISyntaxException e) {
+		}
+		catch (URISyntaxException e) {
 			LOGGER.error(this, e);
 		}
 		deregistrationSet = new DeregistrationSet(privateUserIdentity);
+		
 		Iterator it = _userProfil.getImpuList().iterator();
 		while(it.hasNext()){
 			Impu impu = (Impu) it.next();
 			deregistrationSet.addPublicId(impu.getSipUrl());
 		}
+		
 		LOGGER.debug("exiting");
 	}
 
@@ -108,7 +113,6 @@ public class DeregisterCxOperation extends CxOperation {
 		CSCFOperations operations = new CSCFOperationsImpl();
 		PublicIdentity publicIdentity = new PublicIdentity();
 		publicIdentity.setIdentity(userProfil.getImpu().getSipUrl());
-		
 		operations.cxDeregister(deregistrationSet, reason, scscfName);
 		LOGGER.debug("exiting");
 		return null;

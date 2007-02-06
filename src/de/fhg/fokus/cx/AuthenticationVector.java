@@ -102,6 +102,9 @@ public class AuthenticationVector {
 		this.sipAuthorization = sipAuthorization;
 	}
 	
+	public AuthenticationVector(){
+	}
+	
 	/**
 	 * constructor 
 	 * @param authenticationScheme 

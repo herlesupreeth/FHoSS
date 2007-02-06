@@ -45,6 +45,7 @@
 package de.fhg.fokus.hss.action;
 
 import de.fhg.fokus.hss.form.ImpuSearchForm;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -67,19 +68,18 @@ public class ImpuSearchAction extends HssAction
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
 			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			throws Exception{
+		
 		LOGGER.debug("entering");
 
 		ImpuSearchForm form = (ImpuSearchForm) actionForm;
 		LOGGER.debug(form);
 
-		try
-		{
+		try{
+			HibernateUtil.beginTransaction();
 			// Prepare Querry
-			Query query = getSession()
-					.createQuery(
-							"select impu from de.fhg.fokus.hss.model.Impu as impu where impu.psi = 0 and impu.sipUrl like ? order by impu.sipUrl");
+			Query query = HibernateUtil.getCurrentSession()
+							.createQuery("select impu from de.fhg.fokus.hss.model.Impu as impu where impu.psi = 0 and impu.sipUrl like ? order by impu.sipUrl");
 			query.setString(0, "%" + form.getSipUrl() + "%");
 
 			// Check page browsing values
@@ -87,8 +87,7 @@ public class ImpuSearchAction extends HssAction
 			int currentPage = Integer.parseInt(form.getPage()) - 1;
 			int maxPages = (int) ((query.list().size() - 1) / rowPerPage) + 1;
 
-			if (currentPage > maxPages)
-			{
+			if (currentPage > maxPages){
 				currentPage = 0;
 			}
 
@@ -100,17 +99,16 @@ public class ImpuSearchAction extends HssAction
 
 			// store attributes in request
 			request.setAttribute("result", query.list());
-
+			HibernateUtil.commitTransaction();
+			
 			request.setAttribute("maxPages", String.valueOf(maxPages));
 			request.setAttribute("currentPage", String.valueOf(currentPage));
 			request.setAttribute("rowPerPage", String.valueOf(rowPerPage));
-		} finally
-		{
-			closeSession();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
-
 		LOGGER.debug("exiting");
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 }

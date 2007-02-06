@@ -49,6 +49,7 @@ import de.fhg.fokus.hss.model.Apsvr;
 import de.fhg.fokus.hss.model.Ifc;
 import de.fhg.fokus.hss.model.IfcBO;
 import de.fhg.fokus.hss.model.Trigpt;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -75,9 +76,7 @@ public class IfcSubmitAction extends HssAction
 			.getLogger(IfcSubmitAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
 		LOGGER.debug("entering");
 
 		ActionForward forward = null;
@@ -88,46 +87,40 @@ public class IfcSubmitAction extends HssAction
 		Ifc ifc = null;
 		IfcBO ifcBO = new IfcBO();
 
-		try
-		{
-			if (primaryKey.intValue() == -1)
-			{
+		try{
+			
+			HibernateUtil.beginTransaction();
+			if (primaryKey.intValue() == -1){
 				ifc = ifcBO.create();
-			} else
-			{
+			}
+			else{
 				ifc = ifcBO.load(primaryKey);
 			}
-
 			ifc.setName(form.getIfcName());
-			ifc.setApsvr((Apsvr) getSession().load(Apsvr.class,
-					Integer.valueOf(form.getApsvrId())));
-			ifc.setTrigpt((Trigpt) getSession().load(Trigpt.class,
-					Integer.valueOf(form.getTriggerPointId())));
-
+			ifc.setApsvr((Apsvr) HibernateUtil.getCurrentSession().load(Apsvr.class, Integer.valueOf(form.getApsvrId())));
+			ifc.setTrigpt((Trigpt) HibernateUtil.getCurrentSession().load(Trigpt.class, Integer.valueOf(form.getTriggerPointId())));
 			ifcBO.saveOrUpdate(ifc);
+			HibernateUtil.commitTransaction();
+			
 			forward = mapping.findForward(FORWARD_SUCCESS);
-			forward = new ActionForward(forward.getPath() + "?ifcId="
-					+ ifc.getIfcId(), true);
-		} catch (ConstraintViolationException e)
-		{
+			forward = new ActionForward(forward.getPath() + "?ifcId=" + ifc.getIfcId(), true);
+		}
+		catch (ConstraintViolationException e){
 			LOGGER.debug(e);
 
 			ActionMessages actionMessages = new ActionMessages();
-			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-					"error.duplicate"));
+			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("error.duplicate"));
 			saveMessages(request, actionMessages);
 			forward = mapping.findForward(FORWARD_FAILURE);
-		} finally
-		{
-			ifcBO.closeSession();
+		}
+		finally{
+			HibernateUtil.closeSession();
 		}
 
-		if (LOGGER.isDebugEnabled())
-		{
+		if (LOGGER.isDebugEnabled()){
 			LOGGER.debug(forward);
 			LOGGER.debug("exiting");
 		}
-
 		return forward;
 	}
 }

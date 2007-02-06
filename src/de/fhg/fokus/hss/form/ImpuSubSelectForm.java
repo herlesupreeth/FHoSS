@@ -64,8 +64,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public abstract class ImpuSubSelectForm extends HssForm
 {
-    private static final Logger LOGGER =
-        Logger.getLogger(ImpuSubSelectForm.class);
+    private static final Logger LOGGER = Logger.getLogger(ImpuSubSelectForm.class);
 
     /**
      * impu lookup selector
@@ -151,52 +150,6 @@ public abstract class ImpuSubSelectForm extends HssForm
     {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    public static void doImpuSelection(
-        Session session, ImpuSubSelectForm form, Set givenImpus)
-    {
-        if (
-            (form.getImpuSelect().equals("true"))
-                && (
-                    (form.getImpuUrl() != null)
-                    && (form.getImpuUrl().length() > 0)
-                ))
-        {
-            List results = null;
-
-            if (form.getImsuId() != null)
-            {
-                // Prepare Querry
-                Query query =
-                    session.createQuery(
-                        "select impu from de.fhg.fokus.hss.model.Impu as impu where impu.psi = 0 and impu.sipUrl like ? and impu.impis.imsu.imsuId = ?");
-                query.setString(0, "%" + form.getImpuUrl() + "%");
-                query.setInteger(1, form.getImsuId());
-                query.setMaxResults(20);
-                results = query.list();
-                query =
-                    session.createQuery(
-                        "select impu from de.fhg.fokus.hss.model.Impu as impu where impu.psi = 0 and impu.sipUrl like ? and impu.impis is empty");
-                query.setString(0, "%" + form.getImpuUrl() + "%");
-                results.addAll(query.list());
-            }
-            else
-            {
-                // Prepare Querry
-                Query query =
-                    session.createQuery(
-                        "select impu from de.fhg.fokus.hss.model.Impu as impu where impu.psi = 0 and impu.sipUrl like ?");
-                query.setString(0, "%" + form.getImpuUrl() + "%");
-                query.setMaxResults(20);
-                results = query.list();
-            }
-
-            results.removeAll(givenImpus);
-            form.setImpusSelected(results);
-
-            LOGGER.debug(form);
-        }
     }
 
     public Integer getImsuId()

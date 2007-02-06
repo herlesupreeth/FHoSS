@@ -47,6 +47,7 @@ package de.fhg.fokus.hss.action;
 import de.fhg.fokus.hss.form.ImpiForm;
 import de.fhg.fokus.hss.model.Impi;
 import de.fhg.fokus.hss.model.Impu;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -75,9 +76,8 @@ public class ImpiDeleteAction extends HssAction
 			.getLogger(ImpiDeleteAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
+		
 		LOGGER.debug("entering");
 
 		ActionForward forward = null;
@@ -86,64 +86,42 @@ public class ImpiDeleteAction extends HssAction
 
 		try
 		{
-			doDeleteBusiness(form);
-			forward = mapping.findForward(FORWARD_SUCCESS);
-		} catch (ConstraintViolationException e)
-		{
+			Integer primaryKey = form.getPrimaryKey();
+			Impi impi = null;
+			
+			HibernateUtil.beginTransaction();
+			impi = (Impi) HibernateUtil.getCurrentSession().load(Impi.class, primaryKey);
+			// Disconnect impus, if necessary unregister impu.
+			Iterator it = impi.getImpus().iterator();
+
+			while (it.hasNext()){
+				Impu impu = (Impu) it.next();
+				impu.getImpis().remove(impi);
+
+				if (impu.getImpis().isEmpty()){
+					impu.setUserStatus(Impu.USER_STATUS_NOT_REGISTERED);
+				}
+				HibernateUtil.getCurrentSession().update(impu);
+			}
+
+			HibernateUtil.getCurrentSession().delete(impi);
+			HibernateUtil.commitTransaction();
+		}
+		catch (ConstraintViolationException e){
 			ActionMessages actionMessages = new ActionMessages();
 			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
 					"error.constraint"));
 			saveMessages(request, actionMessages);
 			forward = mapping.findForward(FORWARD_FAILURE);
 		}
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
+		forward = mapping.findForward(FORWARD_SUCCESS);
 
 		LOGGER.debug("exiting");
-
 		return forward;
 	}
 
-	/**
-	 * Delete a private user identity from database and disconnect impus.
-	 * 
-	 * @param form
-	 */
-	private void doDeleteBusiness(ImpiForm form)
-			throws ConstraintViolationException
-	{
-		try
-		{
-			beginnTx();
-
-			Integer primaryKey = form.getPrimaryKey();
-			Impi impi = null;
-
-			impi = (Impi) getSession().load(Impi.class, primaryKey);
-
-			// Disconnect impus, if necessary unregister impu.
-			Iterator it = impi.getImpus().iterator();
-
-			while (it.hasNext())
-			{
-				Impu impu = (Impu) it.next();
-				impu.getImpis().remove(impi);
-
-				if (impu.getImpis().isEmpty())
-				{
-					impu.setUserStatus(Impu.USER_STATUS_NOT_REGISTERED);
-				}
-
-				getSession().update(impu);
-			}
-
-			getSession().delete(impi);
-			endTx();
-		} catch (ConstraintViolationException e)
-		{
-			LOGGER.warn(this, e);
-			throw e;
-		} finally
-		{
-			closeSession();
-		}
-	}
 }

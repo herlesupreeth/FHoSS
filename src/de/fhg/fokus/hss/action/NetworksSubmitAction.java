@@ -44,8 +44,14 @@
  */
 package de.fhg.fokus.hss.action;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+
 import de.fhg.fokus.hss.form.NetworkForm;
+import de.fhg.fokus.hss.model.Impi;
 import de.fhg.fokus.hss.model.Network;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -67,89 +73,108 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class NetworksSubmitAction extends HssAction
 {
-	private static final Logger LOGGER = Logger
-			.getLogger(NetworksShowAction.class);
+	private static final Logger LOGGER = Logger.getLogger(NetworksShowAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm form,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
+		
 		LOGGER.debug("entering");
 
 		ActionMessages actionMessages = null;
 		ActionForward forward = null;
-
 		Network network = null;
-
-		beginnTx();
 
 		NetworkForm networkForm = (NetworkForm) form;
 		LOGGER.debug(networkForm);
 
-		if (networkForm.getActionString().equals(NetworkForm.ACTION_CREATE))
-		{
-			LOGGER.debug("action type is create");
+		try{
+			HibernateUtil.beginTransaction();
+			if (networkForm.getActionString().equals(NetworkForm.ACTION_CREATE)){
+				LOGGER.debug("Action type is: create");
 
-			if (checkExist(networkForm.getNetworkString()))
-			{
-				actionMessages = new ActionMessages();
-				actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-						"network.error.duplicated"));
-				saveMessages(request, actionMessages);
-			} else
-			{
-				network = new Network();
-				network.setNetworkString(networkForm.getNetworkString());
-				getSession().save(network);
+				if (checkExist(networkForm.getNetworkString())){
+					actionMessages = new ActionMessages();
+					actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("network.error.duplicated"));
+					saveMessages(request, actionMessages);
+				} 
+				else{
+					network = new Network();
+					network.setNetworkString(networkForm.getNetworkString());
+					HibernateUtil.getCurrentSession().save(network);
+				}
+			}	 
+			else if (networkForm.getActionString().equals(NetworkForm.ACTION_RENAME)){
+				LOGGER.debug("Action type is: rename");
+
+				if (checkExist(networkForm.getNetworkString())){
+					actionMessages = new ActionMessages();
+					actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("network.error.duplicated"));
+					saveMessages(request, actionMessages);
+				}
+				else{
+					network = (Network) HibernateUtil.getCurrentSession().load(Network.class, networkForm.getPrimaryKey());
+					network.setNetworkString(networkForm.getNetworkString());
+					HibernateUtil.getCurrentSession().update(network);
+				}
 			}
-		} else if (networkForm.getActionString().equals(
-				NetworkForm.ACTION_RENAME))
-		{
-			LOGGER.debug("action type is rename");
-
-			if (checkExist(networkForm.getNetworkString()))
-			{
-				actionMessages = new ActionMessages();
-				actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-						"network.error.duplicated"));
-				saveMessages(request, actionMessages);
-			} else
-			{
-				network = (Network) getSession().load(Network.class,
-						networkForm.getPrimaryKey());
-				network.setNetworkString(networkForm.getNetworkString());
-				getSession().update(network);
+			else if (networkForm.getActionString().equals(NetworkForm.ACTION_DELETE)){
+				
+	            if(checkAssignedRoams(networkForm.getId()) == true){
+	              	actionMessages = new ActionMessages();
+	                actionMessages.add(Globals.MESSAGE_KEY,new ActionMessage("network.error.roam.assigned"));
+	                saveMessages(request, actionMessages);	
+	            }
+	            else{
+	            	Integer primaryKey = networkForm.getPrimaryKey();
+	            	network = (Network) HibernateUtil.getCurrentSession().load(Network.class, primaryKey);
+	            	HibernateUtil.getCurrentSession().delete(network);
+				}
 			}
-		} else if (networkForm.getActionString().equals(
-				NetworkForm.ACTION_DELETE))
-		{
-			// TODO: check for assigned roams
-			// Delete Network
-			Integer primaryKey = networkForm.getPrimaryKey();
-			network = (Network) getSession().load(Network.class, primaryKey);
-
-			getSession().delete(network);
+			HibernateUtil.commitTransaction();
 		}
-
-		endTx();
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
 		LOGGER.debug("exiting");
 
-		if (actionMessages == null)
-		{
+		if (actionMessages == null){
 			forward = mapping.findForward(FORWARD_SUCCESS);
-		} else
-		{
+		} 
+		else{
 			forward = mapping.findForward(FORWARD_FAILURE);
 		}
 
 		return forward;
 	}
 
-	private boolean checkExist(String name)
-	{
-		return ((Integer) getSession()
-				.createQuery(
-						"select count(network) from de.fhg.fokus.hss.model.Network as network where network.networkString = ?")
+	
+	  private boolean checkAssignedRoams(String net_id){
+		  Network roam = null;
+		  Impi impi = null;
+		  
+		  List impiList = HibernateUtil.getCurrentSession().createQuery("from de.fhg.fokus.hss.model.Impi").list();
+		  Iterator iterator = impiList.iterator();
+		  while(iterator.hasNext()){
+			  impi = (Impi) iterator.next();
+			  Iterator roamIt;
+
+			  if(impi.getRoams() != null){
+				  roamIt = impi.getRoams().iterator();
+				  while(roamIt.hasNext()){
+					  roam = (Network)roamIt.next();
+					  if((roam.getNwId().toString()).equals(net_id)){	
+						  return true;
+					  }
+	        		}
+	        	}                             
+	        } 
+	        return false;
+	  }   	
+	
+	private boolean checkExist(String name){
+		return ((Integer) HibernateUtil.getCurrentSession()
+				.createQuery("select count(network) from de.fhg.fokus.hss.model.Network as network where network.networkString = ?")
 				.setString(0, name).uniqueResult()).intValue() != 0;
 	}
 }

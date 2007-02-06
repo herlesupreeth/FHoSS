@@ -44,8 +44,8 @@
  */
 package de.fhg.fokus.hss.form;
 
+import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.main.HSSProperties;
-import de.fhg.fokus.hss.model.AuthSchemeBO;
 import de.fhg.fokus.hss.util.Converter;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -70,30 +70,22 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class ImpiForm extends ImpuSubSelectForm
 {
+	public static final ArrayList authSchemes;
+	
+	static{
+		authSchemes = new ArrayList();
+		authSchemes.add(new Tupel(Constants.AuthScheme.AUTH_SCHEME_AKAv1, Constants.AuthScheme.AUTH_SCHEME_AKAv1));
+		authSchemes.add(new Tupel(Constants.AuthScheme.AUTH_SCHEME_AKAv2, Constants.AuthScheme.AUTH_SCHEME_AKAv2));
+		authSchemes.add(new Tupel(Constants.AuthScheme.AUTH_SCHEME_MD5, Constants.AuthScheme.AUTH_SCHEME_MD5));
+		authSchemes.add(new Tupel(Constants.AuthScheme.AUTH_SCHEME_EARLY, Constants.AuthScheme.AUTH_SCHEME_EARLY));
+		authSchemes.add(new Tupel(Constants.AuthScheme.AUTH_SCHEME_ANY, Constants.AuthScheme.AUTH_SCHEME_ANY));
+	}
+	
     private static final Logger LOGGER = Logger.getLogger(ImpiForm.class);
-    private static final ArrayList authSchemes;
-    private static final ArrayList authAlgos;
-
-    static
-    {
-        authSchemes = new ArrayList();
-        //authSchemes.add(new Tupel(AuthSchemeBO.AUS_EARLY, AuthSchemeBO.AUS_EARLY));
-        authSchemes.add(new Tupel(AuthSchemeBO.AUTH_SCHEME_AKAv1, AuthSchemeBO.AUTH_SCHEME_AKAv1));
-        authSchemes.add(new Tupel(AuthSchemeBO.AUTH_SCHEME_AKAv2, AuthSchemeBO.AUTH_SCHEME_AKAv2));
-        authSchemes.add(new Tupel(AuthSchemeBO.AUTH_SCHEME_MD5, AuthSchemeBO.AUTH_SCHEME_MD5));
-    }
-
-    static
-    {
-        authAlgos = new ArrayList();
-        //authAlgos.add(new Tupel(AuthSchemeBO));
-        authAlgos.add(new Tupel(AuthSchemeBO.AUTH_ALGORITHM_AKAv1, AuthSchemeBO.AUTH_ALGORITHM_AKAv1));
-        authAlgos.add(new Tupel(AuthSchemeBO.AUTH_ALGORITHM_AKAv2, AuthSchemeBO.AUTH_ALGORITHM_AKAv2));
-        authAlgos.add(new Tupel(AuthSchemeBO.AUTH_ALGORITHM_MD5, AuthSchemeBO.AUTH_ALGORITHM_MD5));
-    }
 
     public static final String SQD_UPDATE_TRUE = "1";
     public static final String SQD_UPDATE_FALSE = "0";
+
     private String impiId;
     private String impiString;
     private String imsi;
@@ -126,45 +118,27 @@ public class ImpiForm extends ImpuSubSelectForm
 
         ActionErrors actionErrors = new ActionErrors();
 
-        if ((getImpiString() == null) || (getImpiString().length() < 1))
-        {
-            actionErrors.add(
-                "impiString", new ActionMessage(
-                    "impi.error.missing.impiString"));
+        if ((getImpiString() == null) || (getImpiString().length() < 1)){
+            actionErrors.add("impiString", new ActionMessage("impi.error.missing.impiString"));
         }
 
-        if (
-            (getAuthScheme() != null)
-                && (getAuthScheme().equals(AuthSchemeBO.AUTH_SCHEME_AKAv1) || getAuthScheme().equals(AuthSchemeBO.AUTH_SCHEME_AKAv2)))
-        {
-            if ((getAmf() == null) || (getAmf().length() != 4))
-            {
-                actionErrors.add(
-                    "amf", new ActionMessage("impi.error.size.amf"));
-            }
+        if ((getAmf() == null) || (getAmf().length() != 4)){
+                actionErrors.add("amf", new ActionMessage("impi.error.size.amf"));
+        }
 
-            if ((getOperatorId() == null) || (getOperatorId().length() != 32))
-            {
-                actionErrors.add(
-                    "operatorId",
-                    new ActionMessage("impi.error.size.operatorId"));
-            }
+        if ((getOperatorId() == null) || (getOperatorId().length() != 32)){
+        	actionErrors.add("operatorId",new ActionMessage("impi.error.size.operatorId"));
+        }
 
-            if ((getSkey() == null) || (getSkey().length() != 32))
-            {
-                actionErrors.add(
-                    "skey", new ActionMessage("impi.error.size.skey"));
-            }
+        if ((getSkey() == null) || (getSkey().length() != 32)){
+        	actionErrors.add("skey", new ActionMessage("impi.error.size.skey"));
+        }
 
-            if ((getSqn() == null) || (getSqn().length() != 12))
-            {
-                actionErrors.add(
-                    "sqn", new ActionMessage("impi.error.size.sqn"));
-            }
+        if ((getSqn() == null) || (getSqn().length() != 12)){
+        	actionErrors.add("sqn", new ActionMessage("impi.error.size.sqn"));
         }
 
         LOGGER.debug("exiting");
-
         return actionErrors;
     }
 
@@ -177,9 +151,8 @@ public class ImpiForm extends ImpuSubSelectForm
         roamNetworkIdentifiers = new TreeSet();
         scscfName = null;
         skey = "00000000000000000000000000000000";
-        authScheme = AuthSchemeBO.AUTH_SCHEME_AKAv1;
+        authScheme = Constants.AuthScheme.AUTH_SCHEME_AKAv1;
         amf = HSSProperties.AMF_ID;
-        algorithm = AuthSchemeBO.AUTH_ALGORITHM_AKAv1;
         operatorId = HSSProperties.OPERATOR_ID;
         sqn = "000000000000";
         sqnUpdate = SQD_UPDATE_FALSE;
@@ -302,15 +275,6 @@ public class ImpiForm extends ImpuSubSelectForm
         skey = Converter.convertStringToByteString(key, 32);
     }
 
-    public ArrayList getAuthSchemes()
-    {
-        return authSchemes;
-    }
-
-    public static void setAuthSchemes(ArrayList authSchemes)
-    {
-        // do Nothing;
-    }
 
     public String getSqn()
     {
@@ -330,11 +294,6 @@ public class ImpiForm extends ImpuSubSelectForm
     public void setAsBytes(String asBytes)
     {
         this.asBytes = asBytes;
-    }
-
-    public ArrayList getAuthAlgos()
-    {
-        return authAlgos;
     }
 
     public String getChrgInfoId()
@@ -365,5 +324,9 @@ public class ImpiForm extends ImpuSubSelectForm
     public void setSqnUpdate(String sqnUpdate)
     {
         this.sqnUpdate = sqnUpdate;
+    }
+    
+    public ArrayList getAuthSchemes(){
+    	return this.authSchemes;
     }
 }

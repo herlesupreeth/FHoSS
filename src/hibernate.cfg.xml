@@ -4,11 +4,21 @@
 
 <hibernate-configuration>
 	<session-factory name="foo">
-	<!--
-		The Chache provider -->
-		<property name="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</property>
 	
+		<!-- Disable the second-level cache -->
+		
+
+		<!-- If uncommented, this will enable the second level cache (ehcache) for hibernate -->
+<!--	<property name="hibernate.cache.provider_class">org.hibernate.cache.EhCacheProvider</property> -->
+		
+		<!-- currently org.hibernate.cache.NoCacheProvider used -->		
+		<property name="cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
+		
+		<property name="connection.autocommit">false</property> 
 		<property name="show_sql">false</property>
+		
+		<!-- Mapping files for the java classes -->
+		
 		<mapping resource="mappings/Network.hbm.xml"/>		
 		<mapping resource="mappings/Imsu.hbm.xml"/>
 		<mapping resource="mappings/Impi.hbm.xml"/>
@@ -29,6 +39,8 @@
 		<mapping resource="mappings/NotifyIfc.hbm.xml"/>
 		<mapping resource="mappings/DiamServer.hbm.xml"/>	
 		<mapping resource="mappings/Uss.hbm.xml"/>
-		<mapping resource="mappings/Svp.hbm.xml"/>	
+		<mapping resource="mappings/Svp.hbm.xml"/>
+		
 	</session-factory>
+	
 </hibernate-configuration>

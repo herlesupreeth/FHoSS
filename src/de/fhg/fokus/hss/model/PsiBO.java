@@ -84,13 +84,9 @@ public class PsiBO extends Psi
      * @param impuPk primary key for public identity
      * @param isLink indicator for link or unlink
      */
-    public static void linkImpu2Psi(
-        Integer psiPk, Integer impuPk, boolean isLink)
-    {
+    public static void linkImpu2Psi(Integer psiPk, Integer impuPk, boolean isLink){
         Session session = null;
-        session = HibernateUtil.currentSession();
-
-        Transaction tx = session.beginTransaction();
+        session = HibernateUtil.getCurrentSession();
 
         Psi psi = (Psi) session.load(Psi.class, psiPk, LockMode.UPGRADE);
         Impu impu = (Impu) session.load(Impu.class, impuPk);
@@ -105,11 +101,6 @@ public class PsiBO extends Psi
             LOGGER.debug("remove impu from psi");
             psi.getImpus().remove(impu);
         }
-
         session.saveOrUpdate(psi);
-        tx.commit();
-        session.flush();
-
-        HibernateUtil.closeSession();
     }
 }

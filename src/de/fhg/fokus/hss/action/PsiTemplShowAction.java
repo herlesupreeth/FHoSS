@@ -47,6 +47,7 @@ package de.fhg.fokus.hss.action;
 import de.fhg.fokus.hss.form.PsiTemplForm;
 import de.fhg.fokus.hss.model.Apsvr;
 import de.fhg.fokus.hss.model.PsiTempl;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -66,9 +67,7 @@ public class PsiTemplShowAction extends HssAction
 			.getLogger(PsiTemplShowAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
 		LOGGER.debug("entering");
 
 		PsiTemplForm form = (PsiTemplForm) actionForm;
@@ -76,15 +75,11 @@ public class PsiTemplShowAction extends HssAction
 
 		Integer primaryKey = form.getPrimaryKey();
 
-		try
-		{
-			/**
-			 * If create (id = -1), dont load the ifc, only the selection values
-			 */
-			if (primaryKey.intValue() != -1)
-			{
-				PsiTempl psiTempl = (PsiTempl) getSession().get(PsiTempl.class,
-						primaryKey);
+		try{
+			 //If create (id = -1), dont load the ifc, only the selection values
+			HibernateUtil.beginTransaction();
+			if (primaryKey.intValue() != -1){
+				PsiTempl psiTempl = (PsiTempl) HibernateUtil.getCurrentSession().get(PsiTempl.class, primaryKey);
 
 				form.setPsiTemplId(convString(psiTempl.getTemplId()));
 				form.setApsvrId(convString(psiTempl.getApsvr().getApsvrId()));
@@ -93,15 +88,14 @@ public class PsiTemplShowAction extends HssAction
 				form.setUsername(psiTempl.getUsername());
 				form.setPsiTemplName(psiTempl.getTemplName());
 			}
-
-			form.setApsvrs(getSession().createCriteria(Apsvr.class).list());
-		} finally
-		{
-			closeSession();
+			form.setApsvrs(HibernateUtil.getCurrentSession().createCriteria(Apsvr.class).list());
+			HibernateUtil.commitTransaction();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
 
-		if (LOGGER.isDebugEnabled())
-		{
+		if (LOGGER.isDebugEnabled()){
 			LOGGER.debug(form);
 			LOGGER.debug("exiting");
 		}

@@ -60,6 +60,7 @@ import de.fhg.fokus.hss.model.Ifc2svp;
 import de.fhg.fokus.hss.model.Ifc2svpPK;
 import de.fhg.fokus.hss.model.Svp;
 import de.fhg.fokus.hss.model.SvpBO;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
@@ -73,9 +74,7 @@ public class Ifc2svpSubmitAction extends HssAction
 	 * Get the roam string list from request and store them to selected impi.
 	 */
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
 		LOGGER.debug("entering");
 
 		// Get assigned ifcs strings list from request
@@ -85,68 +84,61 @@ public class Ifc2svpSubmitAction extends HssAction
 		Iterator it = null;
 		Svp svp;
 
-		try
-		{
+		try{
 			boolean commitSvpChanges = false;
-			beginnTx();
-			svp = (Svp) getSession().get(Svp.class, svpId);
+			
+			HibernateUtil.beginTransaction();
+			svp = (Svp) HibernateUtil.getCurrentSession().get(Svp.class, svpId);
 			Set oldIfcsList = svp.getIfc2svps();
 
-			if (assignedIfcs != null)
-			{
+			if (assignedIfcs != null){
 				// get a list with all roaming network
-				it = getSession()
-						.createQuery(
-								"select ifc from de.fhg.fokus.hss.model.Ifc as ifc where ifc.ifcId in (:ifcsList)")
+				it = HibernateUtil.getCurrentSession()
+						.createQuery("select ifc from de.fhg.fokus.hss.model.Ifc as ifc where ifc.ifcId in (:ifcsList)")
 						.setParameterList("ifcsList", assignedIfcs).list()
 						.iterator();
 
 				// Iterete throw selected Ifcs and add them with priority to
-				while (it.hasNext())
-				{
+				while (it.hasNext()){
 					Ifc ifc = (Ifc) it.next();
 					Ifc2svp ifc2svp = null;
 					Ifc2svpPK pk = new Ifc2svpPK(ifc.getIfcId(), svpId);
 
-					ifc2svp = (Ifc2svp) getSession().get(Ifc2svp.class, pk);
+					ifc2svp = (Ifc2svp) HibernateUtil.getCurrentSession().get(Ifc2svp.class, pk);
 
-					if (ifc2svp == null)
-					{
-						ifc2svp = new Ifc2svp(pk, calculatePriorityId(
-								assignedIfcs, ifc), svp, ifc);
-						getSession().save(ifc2svp);
+					if (ifc2svp == null){
+						ifc2svp = new Ifc2svp(pk, calculatePriorityId(assignedIfcs, ifc), svp, ifc);
+						HibernateUtil.getCurrentSession().save(ifc2svp);
 						commitSvpChanges = true;
-					} else
-					{
+					} 
+					else{
 						// remove from deselection list
 						oldIfcsList.remove(ifc2svp);
 						int oldPriority = ifc2svp.getPriority();
 						int newPriority = calculatePriorityId(assignedIfcs, ifc);
 						ifc2svp.setPriority(newPriority);
-						commitSvpChanges = commitSvpChanges
-								|| (oldPriority != newPriority);
-						getSession().update(ifc2svp);
+						commitSvpChanges = commitSvpChanges || (oldPriority != newPriority);
+						HibernateUtil.getCurrentSession().update(ifc2svp);
 					}
 				}
 			}
 			commitSvpChanges = commitSvpChanges || deselectIfcs(oldIfcsList);
-			endTx();
-			if (commitSvpChanges)
-			{
+			HibernateUtil.commitTransaction();
+			
+			if (commitSvpChanges){
 				SvpBO svpBO = new SvpBO();
 				svpBO.commitCxChanges(svp);
-				svpBO.closeSession();
 			}
-		} finally
-		{
-			closeSession();
 		}
-
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
 		// forward to impiShow with specific svpid
 		ActionForward forward = mapping.findForward(FORWARD_SUCCESS);
 		forward = new ActionForward(forward.getPath() + "?svpId=" + svpId, true);
 		LOGGER.debug("exiting");
-
+		
 		return forward;
 	}
 
@@ -158,10 +150,8 @@ public class Ifc2svpSubmitAction extends HssAction
 	 */
 	private int calculatePriorityId(String[] assignedIfcs, Ifc ifc)
 	{
-		for (int ix = 0; ix < assignedIfcs.length; ix++)
-		{
-			if (ifc.getIfcId().intValue() == Integer.parseInt(assignedIfcs[ix]))
-			{
+		for (int ix = 0; ix < assignedIfcs.length; ix++){
+			if (ifc.getIfcId().intValue() == Integer.parseInt(assignedIfcs[ix])){
 				return ix;
 			}
 		}
@@ -173,14 +163,13 @@ public class Ifc2svpSubmitAction extends HssAction
 	 * Removes the Ifc
 	 * @param oldIfcsList
 	 */
-	private boolean deselectIfcs(Set oldIfcsList)
-	{
+	private boolean deselectIfcs(Set oldIfcsList){
 		Iterator it;
 		it = oldIfcsList.iterator();
 		boolean deleted = false;
-		while (it.hasNext())
-		{
-			getSession().delete((Ifc2svp) it.next());
+
+		while (it.hasNext()){
+			HibernateUtil.getCurrentSession().delete((Ifc2svp) it.next());
 			deleted = true;
 		}
 		return deleted;

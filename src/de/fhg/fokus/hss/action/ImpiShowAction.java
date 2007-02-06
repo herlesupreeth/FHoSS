@@ -62,6 +62,7 @@ import de.fhg.fokus.hss.form.ImpuSubSelectForm;
 import de.fhg.fokus.hss.model.Chrginfo;
 import de.fhg.fokus.hss.model.Impi;
 import de.fhg.fokus.hss.model.Network;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
@@ -78,26 +79,15 @@ public class ImpiShowAction extends HssAction
 
 		ImpiForm form = (ImpiForm) actionForm;
 		LOGGER.debug(form);
-		doLoadBusiness(form);
-		LOGGER.debug("exiting");
-
-		return mapping.findForward(FORWARD_SUCCESS);
-	}
-
-	/**
-	 * Load object and convert them to form
-	 * 
-	 * @param form
-	 */
-	private void doLoadBusiness(ImpiForm form)
-	{
+		
 		try
 		{
 			Integer primaryKey = form.getPrimaryKey();
 
+			HibernateUtil.beginTransaction();
 			if (primaryKey.intValue() != -1)
 			{
-				Impi impi = (Impi) getSession().load(Impi.class,
+				Impi impi = (Impi) HibernateUtil.getCurrentSession().load(Impi.class,
 						form.getPrimaryKey());
 
 				// copy basic values
@@ -110,26 +100,28 @@ public class ImpiShowAction extends HssAction
 				addRoams(form, impi);
 
 				// Add impu selector values
-				ImpuSubSelectForm.doImpuSelection(getSession(), form, impi
-						.getImpus());
+				PsiShowAction.doImpuSelection(HibernateUtil.getCurrentSession(), form, impi.getImpus());
+				
 			}
-
 			// add charging functions
 			addChrgInfos(form);
-		} finally
-		{
-			closeSession();
+			
+			HibernateUtil.commitTransaction();
+			
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
 
-		LOGGER.debug(form);
+		LOGGER.debug("exiting");
+
+		return mapping.findForward(FORWARD_SUCCESS);
 	}
 
-	private void addChrgInfos(ImpiForm form)
-	{
-		LOGGER.debug("entering");
-		form.setChrgInfos(new ArrayList(getSession().createCriteria(
-				Chrginfo.class).list()));
 
+	private void addChrgInfos(ImpiForm form){
+		LOGGER.debug("entering");
+		form.setChrgInfos(new ArrayList(HibernateUtil.getCurrentSession().createCriteria(Chrginfo.class).list()));
 		LOGGER.debug("exiting");
 	}
 
@@ -138,13 +130,11 @@ public class ImpiShowAction extends HssAction
 	 * @param form
 	 * @param impi
 	 */
-	private void addImpus(ImpiForm form, Impi impi)
-	{
-		if (impi.getImpus().size() > 1)
-		{
+	private void addImpus(ImpiForm form, Impi impi){
+		if (impi.getImpus().size() > 1){
 			form.setImpus(impi.getImpus());
-		} else
-		{
+		}
+		else{
 			form.getImpus().addAll(impi.getImpus());
 		}
 	}
@@ -154,22 +144,19 @@ public class ImpiShowAction extends HssAction
 	 * @param form
 	 * @param impi
 	 */
-	private void addRoams(ImpiForm form, Impi impi)
-	{
+	private void addRoams(ImpiForm form, Impi impi){
 		Set roamNIds = impi.getRoams();
 		Iterator it = roamNIds.iterator();
 
-		while (it.hasNext())
-		{
+		while (it.hasNext()){
 			Network roam = (Network) it.next();
 
-			if (form.getRoamNetworkIdentifiers() == null)
-			{
+			if (form.getRoamNetworkIdentifiers() == null){
 				Set roams = new TreeSet();
 				roams.add(roam.getNetworkString());
 				form.setRoamNetworkIdentifiers(roams);
-			} else
-			{
+			} 
+			else{
 				form.getRoamNetworkIdentifiers().add(roam.getNetworkString());
 			}
 		}
@@ -180,8 +167,7 @@ public class ImpiShowAction extends HssAction
 	 * @param form
 	 * @param impi
 	 */
-	private void copyValues(ImpiForm form, Impi impi)
-	{
+	private void copyValues(ImpiForm form, Impi impi){
 		form.setImpiString(impi.getImpiString());
 		form.setImsi(impi.getImsi());
 		form.setScscfName(impi.getScscfName());
@@ -193,9 +179,10 @@ public class ImpiShowAction extends HssAction
 		form.setSqn(impi.getSqn());
 		form.setImsuId(impi.getImsu().getImsuId());
 
-		if (impi.getChrginfo() != null)
-		{
+		if (impi.getChrginfo() != null){
 			form.setChrgInfoId(convString(impi.getChrginfo().getChrgId()));
 		}
 	}
+	
+	
 }

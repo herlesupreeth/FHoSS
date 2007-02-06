@@ -55,11 +55,8 @@ public class ResultCode {
 	public static final int _DIAMETER_MULTI_ROUND_AUTH=0;
 	public static final int _DIAMETER_SUCCESS=2001;
 	public static final int _DIAMETER_SUBSEQUENT_REGISTRATION = 2002;
-	
 	public static final int _DIAMETER_AUTHORIZATION_REJECTED = 5003;
 	public static final int _DIAMETER_ERROR_IDENTITY_NOT_REGISTERED = 5003;
-	
-
 	public static final int _DIAMETER_UNABLE_TO_COMPLY=5012;
 
 

@@ -111,24 +111,29 @@ public class PURCommandListener extends ShCommandListener
                AVP shDataAVP = avpLookUp(requestMessage, Constants.AVPCode.SH_USER_DATA, true, Vendor.V3GPP);
                String shDataString = new String(shDataAVP.data);               
                ShData shData = (ShData) ShData.unmarshal(new StringReader(shDataString));
+               
                operations.shUpdate(publicIdentity, shData, applicationServerIdentity, requestedData);
 
+               // create the responseMessage
                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
+               
+               /* add Vendor-Specific app id */
                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, 
-               		Constants.Vendor.DIAM);
+            		   Constants.Vendor.DIAM);
                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
                vendorID.setData(Constants.Vendor.V3GPP);
                vendorSpecificApplicationID.addChildAVP(vendorID);
-               
                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
                applicationID.setData(Constants.Application.SH);
                vendorSpecificApplicationID.addChildAVP(applicationID);
                responseMessage.addAVP(vendorSpecificApplicationID);
                
+               /* add Auth-Session-State, no state maintained */
                AVP authSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
                authSessionState.setData(1);
                responseMessage.addAVP(authSessionState);
                
+               /* add result code */
                AVP resultCode = new AVP (Constants.AVPCode.RESULT_CODE, true, Constants.Vendor.DIAM);
                resultCode.setData(ResultCode._DIAMETER_SUCCESS);
                responseMessage.addAVP(resultCode);

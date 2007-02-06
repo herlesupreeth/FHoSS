@@ -73,11 +73,8 @@ import de.fhg.fokus.sh.data.ShData;
 public class UDRCommandListener extends ShCommandListener{
     
 	/** logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(UDRCommandListener.class);
-    /**
-     * Counter to count calls.
-     */
+    private static final Logger LOGGER = Logger.getLogger(UDRCommandListener.class);
+    /** Counter to count calls.*/
     public static long counter = 0;
     /** the command id for UDR */
     private static final int COMMAND_ID = Constants.Command.UDR;
@@ -128,22 +125,35 @@ public class UDRCommandListener extends ShCommandListener{
                 }
                 
                 // response generate
-                ShData shData =
-                    operations.shPull(
-                        publicIdentity, requestedData, requestedDomain,
-                        currentLocation, serviceIndication,
-                        applicationServerIdentity, applicationServerName);
+                ShData shData = operations.shPull(publicIdentity, requestedData, requestedDomain,currentLocation, 
+                		serviceIndication, applicationServerIdentity, applicationServerName);
 
-                DiameterMessage responseMessage =
-                    diameterPeer.newResponse(requestMessage);
+                // create the diameter response message 
+                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
 
+                /* add Vendor-Specific app id */
+                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, Constants.Vendor.DIAM);
+                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+                vendorID.setData(Constants.Vendor.V3GPP);
+                vendorSpecificApplicationID.addChildAVP(vendorID);
+                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+                applicationID.setData(Constants.Application.SH);
+                vendorSpecificApplicationID.addChildAVP(applicationID);
+                responseMessage.addAVP(vendorSpecificApplicationID);
+        		
+        		/* add Auth-Session-State, no state maintained */
+                AVP authenticationSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+                authenticationSessionState.setData(1);
+                responseMessage.addAVP(authenticationSessionState);
+
+                /* add User-Data */
                 AVP userDataAVP = new AVP(Constants.AVPCode.SH_USER_DATA, true, Constants.Vendor.V3GPP);
                 StringWriter sw = new StringWriter();
                 shData.marshal(sw);
                 userDataAVP.setData(sw.getBuffer().toString());
-
                 responseMessage.addAVP(userDataAVP);
 
+                /* add result code */
                 AVP responseCode = new AVP(Constants.AVPCode.RESULT_CODE, true, Constants.Vendor.DIAM);
                 responseCode.setData(ResultCode._DIAMETER_SUCCESS);
                 responseMessage.addAVP(responseCode);

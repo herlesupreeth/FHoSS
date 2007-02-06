@@ -79,23 +79,16 @@ public abstract class CommandAction implements EventListener
      * @param serverName
      * @param resolve indicates whether the server name needs to be resolved or not
      */
-    protected void sendMessage(
-        DiameterMessage message, String serverName, boolean resolve)
-    {
-        if (resolve == true)
-        {
+    protected void sendMessage(DiameterMessage message, String serverName, boolean resolve){
+        if (resolve == true){
             serverName = OriginHostResolver.getOriginHost(serverName);
         }
 
-        if (serverName != null)
-        {
+        if (serverName != null){
             HssDiameterStack.diameterPeer.sendMessage(serverName, message);
         }
-        else
-        {
-            LOGGER.error(
-                "HSS has tryed to send PPR to unknown Origin Host: "
-                + serverName);
+        else{
+            LOGGER.error("HSS tryed to send PPR to unknown host: " + serverName);
         }
     }
 

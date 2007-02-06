@@ -57,6 +57,52 @@
 						alt="Save"></p>
 					<% } %>
 				</html:form>
+				
+			</tr>	
+			<tr>
+				<td>
+				  <h1><bean:message key="psiTempl.title" /></h1>
+				</td>
+			</tr>
+			<tr>
+			  <td>	
+			    <table class="as" width="100%" border=0>    
+				     <tr class="header">
+						<td class="header" width="80%">
+							<bean:message key="psiTempl.head.name" />
+						</td>
+						
+						<td class="header" width="20%">
+							<bean:message key="form.head.action" />
+						</td>										            
+					 </tr>	      
+					<logic:iterate name="psiForm" property="psiTempls" id="psiTempl"
+						type="de.fhg.fokus.hss.model.PsiTempl" indexId="ix">
+	
+						<tr class="<%= ix.intValue()%2 == 0 ? "even" : "odd" %>">
+							<td><bean:write name="psiTempl" property="templName" /></td>
+							<td align="center">
+								<table>
+									<tr>
+										<td>
+										<form method="post" action="/hss.web.console/psiTemplShow.do"
+											target="content" style="text-align: center"><input type="hidden"
+											name="psiTemplId"
+											value="<bean:write name="psiTempl" property="templId" />"> <input
+											type="image" src="/hss.web.console/images/edit_small.gif"></form>
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</logic:iterate>
+				</table>
+			  </td>				
+			</tr>	
+			
+			<tr>
+			  <td>				
+				
 				<logic:notEqual value="-1" property="psiId" name="psiForm">
 					<jsp:include page="/pages/tiles/impuSelect.jsp">
 						<jsp:param name="formName" value="psiForm"/>

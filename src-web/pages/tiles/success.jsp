@@ -15,7 +15,7 @@
 <table id="main" height="100%">
 	<tr id="bound_bottom_black">
 		<td valign="top" bgcolor="#FFFFFF">
-		Action ends successful!
+		Your request was completed successfully!
 		</td>
 		<td id="bound_right">&nbsp;</td>
 	</tr>

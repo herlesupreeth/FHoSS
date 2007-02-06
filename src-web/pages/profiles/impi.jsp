@@ -57,7 +57,7 @@
 						</tr>
 						<tr>
 							<td nowrap="nowrap"><bean:message key="impi.head.sCscfName" /></td>
-							<td><html:text styleClass="inputtext" property="scscfName" style="width:325px;"/></td>
+							<td><html:text styleClass="inputtext_readonly" property="scscfName" style="width:325px;" readonly="true"/></td>
 						</tr>
 						<tr>
 							<td colspan="2">
@@ -69,18 +69,9 @@
 							<td valign="top">
 								<html:select property="authScheme"
 									styleClass="inputtext" size="1" style="width:325px;">
-									<html:option value="">Select ...</html:option>
+									<!-- <html:option value="">Select ...</html:option> -->
 									<html:optionsCollection property="authSchemes" label="label" value="value"/>
 								</html:select>							
-							</td>
-						</tr>
-						<tr>
-							<td nowrap="nowrap"><bean:message key="impi.head.algorithm" /></td>
-							<td>
-								<html:select property="algorithm"
-									styleClass="inputtext" size="1" style="width:325px;">
-									<html:optionsCollection property="authAlgos" label="label" value="value"/>
-								</html:select>	
 							</td>
 						</tr>
 						<tr>
@@ -140,23 +131,29 @@
 							</td>
 						</tr>
 					</table>
-					<p style="text-align:right;">
 					
+					<b><bean:message key="impi.head.guss" /> </b>
+					<p style="text-align:left;">
 					<logic:notEqual value="-1" property="impiId" name="impiForm">
 						<a href="gussShow.do?impiId=<bean:write name="impiForm" property="impiId" />">
-							[<bean:message key="impi.head.guss" />]
+							-> Configure 
 						</a>
-						<a href="impiShow.do?impiId=<bean:write name="impiForm" property="impiId" />">
-							[Refresh]
-						</a>
-					</logic:notEqual>
-						<% if(request.isUserInRole(SecurityPermissions.SP_IMPI)) { %>
-						<input type="image"
-							src="/hss.web.console/images/save_edit.gif" width="16" height="16"
-							alt="Save">
-						<% } %>
-						</p>
+					</logic:notEqual></p>
+											
+					<p style="text-align:right;">
+					<% if(request.isUserInRole(SecurityPermissions.SP_IMPI)) { %>
+					<input type="image"
+						src="/hss.web.console/images/save_edit.gif" width="16" height="16"
+						alt="Save">
+					<% } %>
+
+					<a href="impiShow.do?impiId=<bean:write name="impiForm" property="impiId" />">
+						[Refresh]
+					</a>
+					</p>
+						
 				</html:form> 
+				
 				<logic:notEqual value="-1" property="impiId" name="impiForm">			
 				<jsp:include page="/pages/tiles/impuSelect.jsp">
 					<jsp:param name="formName" value="impiForm"/>

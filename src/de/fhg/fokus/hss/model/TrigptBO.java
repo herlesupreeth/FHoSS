@@ -53,13 +53,14 @@ import org.apache.log4j.Logger;
 import org.hibernate.Query;
 
 import de.fhg.fokus.cx.exceptions.DiameterException;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 
 /**
  * This class provides database specific functions for trigger point
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class TrigptBO extends HssBO
+public class TrigptBO
 {
     /** logger */
     private static final Logger LOGGER = Logger.getLogger(Trigpt.class);
@@ -83,7 +84,7 @@ public class TrigptBO extends HssBO
      */    
     public Trigpt load(Serializable primaryKey)
     {
-        Trigpt trigpt = (Trigpt) getSession().load(Trigpt.class, primaryKey);
+        Trigpt trigpt = (Trigpt) HibernateUtil.getCurrentSession().load(Trigpt.class, primaryKey);
         trigpt.addPropertyChangeListener(trigpt);
 
         return trigpt;
@@ -101,14 +102,11 @@ public class TrigptBO extends HssBO
 
         try
         {
-            beginnTx();
-            getSession().saveOrUpdate(trigpt);
-            endTx();
+            HibernateUtil.getCurrentSession().saveOrUpdate(trigpt);
 
             if (trigpt.isChange())
             {
-                Query query =
-                    getSession().createQuery(
+                Query query = HibernateUtil.getCurrentSession().createQuery(
                         "select ifc from de.fhg.fokus.hss.model.Ifc as ifc where ifc.trigpt.trigptId = ?");
                 query.setInteger(0, trigpt.getTrigptId());
 
@@ -128,10 +126,6 @@ public class TrigptBO extends HssBO
         {
             LOGGER.error(TrigptBO.class, e);
         }
-        finally
-        {
-            closeSession();
-        }
 
         LOGGER.debug("exiting");
     }
@@ -149,8 +143,6 @@ public class TrigptBO extends HssBO
 
         Iterator it = ifcList.iterator();
         IfcBO ifcBO = new IfcBO();
-
-        ifcBO.setSession(getSession());
 
         Ifc ifc = null;
 

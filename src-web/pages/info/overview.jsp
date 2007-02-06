@@ -48,7 +48,8 @@
 <%
 	// This jsp access hibernate directly to collect
 	// information about the hss data content.
-	Session hibernateSession = HibernateUtil.currentSession();
+	Session hibernateSession = HibernateUtil.getCurrentSession();
+	HibernateUtil.beginTransaction();
 	
 %>
 <body>

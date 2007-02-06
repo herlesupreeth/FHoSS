@@ -27,7 +27,7 @@
 		<td valign="top" bgcolor="#FFFFFF"><logic:notEmpty name="result">
 			<table class="as" width="500">
 				<tr class="header">
-					<td class="header"><bean:message key="ifc.head.ifcName" /></td>
+					<td class="header"><bean:message key="psiTempl.head.name" /></td>
 					<td class="header"><bean:message key="form.head.action" /></td>
 				</tr>
 				<logic:iterate name="result" id="psiTempl"
@@ -45,12 +45,19 @@
 										value="<bean:write name="psiTempl" property="templId" />"> <input
 										type="image" src="/hss.web.console/images/edit_small.gif"></form>
 									</td>
-									<td><!-- 
-									<form method="post" action="/hss.web.console/psiTemplShow.do"
-										target="content" style="text-align: center"><input type="hidden"
-										name="psiTemplId"
-										value="<bean:write name="psiTempl" property="templId" />"> <input
-										type="image" src="/hss.web.console/images/progress_rem.gif"></form> -->
+									<td>
+									
+									<% if(request.isUserInRole(SecurityPermissions.SP_PSI)) { %>
+										<td>
+										<form method="post" action="/hss.web.console/psiTemplDelete.do"
+											target="content" style="text-align: center">
+											<input type="hidden" name="psiTemplId" 
+											   value="<bean:write name="psiTempl" property="templId" />"> 
+											   <input type="image" src="/hss.web.console/images/progress_rem.gif">
+									    </form>
+										</td>
+									<% } %>
+									
 									</td>
 								</tr>
 							</table>
@@ -84,7 +91,7 @@
 
 				%></td>
 								<td><bean:message key="result.rowsPerPage" /><br>
-								<html:hidden property="ifcName"></html:hidden> <html:hidden
+								<html:hidden property="psiName"></html:hidden> <html:hidden
 									property="page"></html:hidden> <html:select
 									property="rowsPerPage"
 									onchange="javascript:document.psiTemplSearchForm.submit();">

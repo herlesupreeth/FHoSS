@@ -56,6 +56,7 @@ import de.fhg.fokus.hss.form.ImpuForm;
 import de.fhg.fokus.hss.model.Impu;
 import de.fhg.fokus.hss.model.ImpuBO;
 import de.fhg.fokus.hss.model.Svp;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
@@ -66,48 +67,41 @@ public class ImpuShowAction extends HssAction
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
 			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			throws Exception{
+		
 		LOGGER.debug("entering");
 
-		try
-		{
+		try{
 			ImpuForm form = (ImpuForm) actionForm;
 			LOGGER.debug(form);
 
-			if (form.getPrimaryKey().intValue() != -1)
-			{
-				doLoadBusiness(form);
+			HibernateUtil.beginTransaction();
+			if (form.getPrimaryKey().intValue() != -1){
+				ImpuBO impuBO = new ImpuBO();
+				Impu impu = impuBO.load(form.getPrimaryKey());
+		        
+				form.setSipUrl(impu.getSipUrl());
+				form.setTelUrl(impu.getTelUrl());
+				form.setBarred(impu.getBarringIndication().booleanValue());
+				form.setUserStatusId(impu.getUserStatus());
+				
+				if (impu.getSvp() != null){
+					form.setSvpId(convString(impu.getSvp().getSvpId()));
+				}
 			}
+			
 			// Add assginable service profiles
-			form.setSvps(getSession().createCriteria(Svp.class).list());
-
+			form.setSvps(HibernateUtil.getCurrentSession().createCriteria(Svp.class).list());
+			HibernateUtil.commitTransaction();
+			
 			LOGGER.debug(form);
-		} finally
-		{
-			closeSession();
 		}
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
 		LOGGER.debug("exiting");
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 
-	/**
-	 * Load object and convert them to form
-	 * 
-	 * @param form
-	 */
-	private void doLoadBusiness(ImpuForm form)
-	{
-		ImpuBO impuBO = new ImpuBO();
-		Impu impu = impuBO.load(form.getPrimaryKey());
-		form.setSipUrl(impu.getSipUrl());
-		form.setTelUrl(impu.getTelUrl());
-		form.setBarred(impu.getBarringIndication().booleanValue());
-		form.setUserStatusId(impu.getUserStatus());
-		if (impu.getSvp() != null)
-		{
-			form.setSvpId(convString(impu.getSvp().getSvpId()));
-		}
-	}
 }

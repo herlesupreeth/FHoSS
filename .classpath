@@ -39,5 +39,6 @@
 	<classpathentry kind="lib" path="lib/struts.jar"/>
 	<classpathentry kind="lib" path="lib/castor-1.0.5.jar"/>
 	<classpathentry kind="lib" path="lib/jdp.jar"/>
+	<classpathentry kind="lib" path="lib/c3p0-0.9.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

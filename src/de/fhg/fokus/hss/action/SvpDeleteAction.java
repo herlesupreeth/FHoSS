@@ -59,6 +59,7 @@ import de.fhg.fokus.hss.form.SvpForm;
 import de.fhg.fokus.hss.model.Svp;
 import de.fhg.fokus.hss.model.Ifc2svpPK;
 import de.fhg.fokus.hss.model.Ifc2svp;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -70,13 +71,11 @@ import org.hibernate.Query;
  */
 public class SvpDeleteAction extends HssAction
 {
-	private static final Logger LOGGER = Logger
-			.getLogger(SvpDeleteAction.class);
+	private static final Logger LOGGER = Logger.getLogger(SvpDeleteAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
+		
 		LOGGER.debug("entering");
 
 		SvpForm form = (SvpForm) actionForm;
@@ -84,12 +83,13 @@ public class SvpDeleteAction extends HssAction
 		Svp svp = null;
 		ActionForward forward = null;
 
-		try
-		{
+		try{
 			Integer primaryKey = form.getPrimaryKey();
-			svp = (Svp) getSession().get(Svp.class, primaryKey);
-			Query query = getSession().createQuery(
-					"FROM de.fhg.fokus.hss.model.Ifc2svp");
+			
+			HibernateUtil.beginTransaction();
+			svp = (Svp) HibernateUtil.getCurrentSession().get(Svp.class, primaryKey);
+			Query query = HibernateUtil.getCurrentSession().createQuery("from de.fhg.fokus.hss.model.Ifc2svp");
+			
 			ArrayList list = (ArrayList) query.list();
 			Iterator itr = list.iterator();
 			boolean exist = false;
@@ -97,48 +97,40 @@ public class SvpDeleteAction extends HssAction
 			Ifc2svp i2s;
 			Integer b = null;
 
-			while (itr.hasNext())
-			{
+			while (itr.hasNext()){
 				i2s = (Ifc2svp) itr.next();
 				i2sPK = i2s.getComp_id();
 				b = i2sPK.getSvpId();
-				if (b != null)
-				{
-					if (b.intValue() == primaryKey.intValue())
-					{
+				
+				if (b != null){
+					if (b.intValue() == primaryKey.intValue()){
 						exist = true;
 						break;
 					}
 				}
 			}
 
-			if (!exist)
-			{
-				beginnTx();
-				getSession().delete(svp);
-				endTx();
+			if (!exist){
+				HibernateUtil.getCurrentSession().delete(svp);
 				forward = mapping.findForward(FORWARD_SUCCESS);
-			} else
-			{
+			} 
+			else{
 				ActionMessages actionMessages = new ActionMessages();
-
-				if (exist)
-				{
-					actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-							"svp.error.existIfcs"));
+				if (exist){
+					actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("svp.error.existIfcs"));
 				}
-
 				saveMessages(request, actionMessages);
 
 				forward = mapping.findForward(FORWARD_FAILURE);
 			}
 
-		} finally
-		{
-			closeSession();
+			HibernateUtil.commitTransaction();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
+		
 		LOGGER.debug("exiting");
 		return forward;
-
 	}
 }

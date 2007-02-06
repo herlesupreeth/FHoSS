@@ -38,13 +38,13 @@
 						<td>
 							<%
 								de.fhg.fokus.hss.form.ImpuForm form = new de.fhg.fokus.hss.form.ImpuForm();
-							for(java.util.Iterator it = form.getUserStatusList().iterator(); it.hasNext();){
-								de.fhg.fokus.hss.form.Tupel tupel = (de.fhg.fokus.hss.form.Tupel)it.next();
-								if(tupel.getValue().equals(impu.getUserStatus())){
-									out.print(tupel.getLabel());
-									break;
+								for(java.util.Iterator it = form.getUserStatusList().iterator(); it.hasNext();){
+									de.fhg.fokus.hss.form.Tupel tupel = (de.fhg.fokus.hss.form.Tupel)it.next();
+									if(tupel.getValue().equals(impu.getUserStatus())){
+										out.print(tupel.getLabel());
+										break;
+									}
 								}
-							}
 							%>
 						</td>
 						<td align="center">
@@ -58,11 +58,14 @@
 										type="image" src="/hss.web.console/images/edit_small.gif"></form>
 									</td>
 									<td>
+									
+									<% if(request.isUserInRole(SecurityPermissions.SP_IMPU)) { %>									
 									<form method="post" action="/hss.web.console/impuDelete.do"
 										target="content" style="text-align: center"><input type="hidden"
 										name="impuId"
 										value="<bean:write name="impu" property="impuId" />"> <input
 										type="image" src="/hss.web.console/images/progress_rem.gif"></form>
+									<% } %>
 									</td>
 								</tr>
 							</table>

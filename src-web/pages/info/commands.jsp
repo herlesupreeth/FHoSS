@@ -40,7 +40,7 @@
 			</tr>
 			<tr class="formular">
 				<td>Server running time (in sec)</td>
-				<% long diff = (int)((System.currentTimeMillis() - de.fhg.fokus.hss.main.HssServer.STARTUP)/1000); %>
+				<% long diff = (int)((System.currentTimeMillis() - de.fhg.fokus.hss.main.HssServer.STARTUP_TIME)/1000); %>
 				<td><%=diff %></td>
 			</tr>
 			<tr class="header">

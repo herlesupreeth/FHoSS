@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright (C) 2004-2006 FhG Fokus
  *
  * This file is part of Open IMS Core - an open source IMS CSCFs & HSS
@@ -42,95 +40,28 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
  * 
  */
-package de.fhg.fokus.hss.model;
+package de.fhg.fokus.hss.util;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-
-import de.fhg.fokus.hss.util.HibernateUtil;
+import org.hibernate.HibernateException;
 
 /**
- * Abstract Bussiness Object that support hibernate connectivity.
- *
- * @author Andre Charton (dev -at- open-ims dot org)
+ * This Exception is throwed by the application only when a hibernate operation: commit-transaction or close-session fails.
+ * 
+ * @author adp dot fokus dot fraunhofer dot de 
+ * Adrian Popescu / FOKUS Fraunhofer Institute
  */
-public abstract class HssBO {
+
+public class InfrastructureException extends HibernateException{
 	
-
-	/**
-	 * Current hibernate session.
-	 */
-	 private Session session = null;
-	 /** 
-	  * Current transaction.
-	  */
-   private Transaction tx = null;
-
-   /**
-    * provides hibernate session
-    * @return the session
-    */
-   protected Session getSession()
-   {
-       if ((session != null)&&(session.isOpen()))
-       {
-           return session;
-       }
-       else
-       {
-           openSession();
-
-           return session;
-       }
-   }
-
-  /**
-   * It opens the hibernate session
-   */
-   protected void openSession()
-   {
-       session = HibernateUtil.currentSession();
-   }
-
-  /**
-   * It closes the hibernate session
-   */
-   public void closeSession()
-   {
-       session = null;
-       HibernateUtil.closeSession();
-   }
-
-  /**
-   * It flushes the hibernate session
-   */
-   protected void flushSession()
-   {
-       session.flush();
-   }
-
-  /**
-   * It starts the hibernate session transaction
-   */
-   protected void beginnTx()
-   {
-       tx = getSession().beginTransaction();
-   }
-
-  /**
-   * It ends the hibernate session transaction
-   */
-   protected void endTx()
-   {
-       tx.commit();
-       session.flush();
-   }
-
-  /**
-   * It sets the hibernate session 
-   * @param session the hibernate session
-   */
-	public void setSession(Session session) {
-		this.session = session;
+	public InfrastructureException(String message){
+		super(message);
+	}
+	
+	public InfrastructureException(Throwable root){
+		super(root);
+	}
+	
+	public InfrastructureException(String string, Throwable root){
+		super(string, root);
 	}
 }

@@ -74,44 +74,38 @@ public class ImpuDeleteAction extends HssAction
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
 			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			throws Exception{
+		
 		LOGGER.debug("entering");
 
-		try
-		{
-			beginnTx();
+		try{
+		
+			HibernateUtil.beginTransaction();
 
-			Impu impu = (Impu) getSession().load(Impu.class,
-					new Integer(request.getParameter("impuId")));
-
-			Iterator it = getSession()
-					.createQuery(
+			Impu impu = (Impu) HibernateUtil.getCurrentSession().load(Impu.class, new Integer(request.getParameter("impuId")));
+			Iterator it = HibernateUtil.getCurrentSession().createQuery(
 							"select impi from de.fhg.fokus.hss.model.Impi impi where impi.impus.impuId = ?")
-					.setInteger(0, impu.getImpuId()).list().iterator();
+							.setInteger(0, impu.getImpuId()).list().iterator();
 
-			while (it.hasNext())
-			{
+			while (it.hasNext()){
 				Impi impi = (Impi) it.next();
 				impi.getImpus().remove(impu);
 			}
 
-			it = getSession()
-					.createQuery(
-							"select psi from de.fhg.fokus.hss.model.Psi psi where psi.impus.impuId = ?")
-					.setInteger(0, impu.getImpuId()).list().iterator();
+			it = HibernateUtil.getCurrentSession()
+						.createQuery("select psi from de.fhg.fokus.hss.model.Psi psi where psi.impus.impuId = ?")
+						.setInteger(0, impu.getImpuId()).list().iterator();
 
-			while (it.hasNext())
-			{
+			while (it.hasNext()){
 				Psi psi = (Psi) it.next();
 				psi.getImpus().remove(impu);
 			}
 
-			getSession().delete(impu);
-			endTx();
-		} finally
-		{
-			closeSession();
+			HibernateUtil.getCurrentSession().delete(impu);
+			HibernateUtil.commitTransaction();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");

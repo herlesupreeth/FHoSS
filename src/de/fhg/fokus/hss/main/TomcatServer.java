@@ -109,7 +109,6 @@ public class TomcatServer
 
         // Create an embedded server
         embedded = new Embedded();
-
         // Add a realm
         MemoryRealm memRealm = new MemoryRealm();
         embedded.setRealm(memRealm);

@@ -58,6 +58,7 @@ import de.fhg.fokus.hss.form.GussForm;
 import de.fhg.fokus.hss.form.UssForm;
 import de.fhg.fokus.hss.model.Impi;
 import de.fhg.fokus.hss.model.UserSecSettings;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
@@ -68,80 +69,63 @@ public class GussSubmitAction extends HssAction
 			.getLogger(GussSubmitAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
 		LOGGER.debug("entering");
 
 		GussForm form = (GussForm) actionForm;
 
 		Impi impi;
-		try
-		{
-			beginnTx();
-
-			impi = (Impi) getSession().load(Impi.class, form.getPrimaryKey());
-
+		try{
+			HibernateUtil.beginTransaction();
+			impi = (Impi) HibernateUtil.getCurrentSession().load(Impi.class, form.getPrimaryKey());
 			impi.setUiccType(new Integer(form.getUiccType()));
 			impi.setKeyLifeTime(new Integer(form.getKeyLifeTime()));
 
 			Iterator it = form.getUssList().iterator();
-
 			while (it.hasNext())
 			{
 				UssForm ussForm = (UssForm) it.next();
 				UserSecSettings userSecSettings = null;
 				Integer primaryKey = ussForm.getPrimaryKey();
 
-				if (primaryKey.intValue() != -1)
-				{
+				if (primaryKey.intValue() != -1){
 					// Load USS
-					userSecSettings = (UserSecSettings) getSession().load(
-							UserSecSettings.class, primaryKey);
-				} else
-				{
-					if (ussForm.isDelete() == false)
-					{
+					userSecSettings = (UserSecSettings) HibernateUtil.getCurrentSession().load(UserSecSettings.class, primaryKey);
+				} 
+				else{
+					if (ussForm.isDelete() == false){
 						// Create new if no delete
 						userSecSettings = new UserSecSettings();
 						userSecSettings.setImpiId(impi.getImpiId());
 					}
 				}
 
-				if (ussForm.isDelete())
-				{
-					if (primaryKey.intValue() != -1)
-					{
+				if (ussForm.isDelete()){
+					if (primaryKey.intValue() != -1){
 						// Delete if delete seleceted and id is known
-						getSession().delete(userSecSettings);
+						HibernateUtil.getCurrentSession().delete(userSecSettings);
 					}
-				} else
-				{
+				} 
+				else{
 					// Save or update if no delete selected
 					userSecSettings.setFlag(ussForm.getFlag());
 					userSecSettings.setNafGroup(ussForm.getNafGroup());
-					userSecSettings
-							.setUssType(new Integer(ussForm.getUssType()));
-					getSession().saveOrUpdate(userSecSettings);
+					userSecSettings.setUssType(new Integer(ussForm.getUssType()));
+					HibernateUtil.getCurrentSession().saveOrUpdate(userSecSettings);
 				}
 			}
 
-			getSession().update(impi);
-			endTx();
-		} catch (Exception e)
-		{
-			throw e;
-		} finally
-		{
-			closeSession();
+			HibernateUtil.getCurrentSession().update(impi);
+			HibernateUtil.commitTransaction();
+		}
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		ActionForward forward = mapping.findForward(FORWARD_SUCCESS);
-		forward = new ActionForward(forward.getPath() + "?impiId="
-				+ impi.getImpiId(), true);
+		forward = new ActionForward(forward.getPath() + "?impiId=" + impi.getImpiId(), true);
 
 		LOGGER.debug("exiting");
-
 		return forward;
 	}
 }

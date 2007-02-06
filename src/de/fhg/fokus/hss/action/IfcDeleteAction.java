@@ -59,6 +59,7 @@ import org.hibernate.exception.ConstraintViolationException;
 
 import de.fhg.fokus.hss.form.IfcForm;
 import de.fhg.fokus.hss.model.Ifc;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * Delete a IFC.
@@ -71,9 +72,8 @@ public class IfcDeleteAction extends HssAction
 			.getLogger(IfcDeleteAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
+		
 		LOGGER.debug("entering");
 
 		ActionForward forward = null;
@@ -82,16 +82,16 @@ public class IfcDeleteAction extends HssAction
 
 		try
 		{
-			beginnTx();
-
 			Integer primaryKey = form.getPrimaryKey();
-			Ifc ifc = (Ifc) getSession().load(Ifc.class, primaryKey,
-					LockMode.READ);
-			getSession().delete(ifc);
-			endTx();
+
+			HibernateUtil.beginTransaction();
+			Ifc ifc = (Ifc) HibernateUtil.getCurrentSession().load(Ifc.class, primaryKey, LockMode.READ);
+			HibernateUtil.getCurrentSession().delete(ifc);
+			HibernateUtil.commitTransaction();
+			
 			forward = mapping.findForward(FORWARD_SUCCESS);
-		} catch (ConstraintViolationException e)
-		{
+		}
+		catch (ConstraintViolationException e){
 			LOGGER.debug(this, e);
 
 			ActionMessages actionMessages = new ActionMessages();
@@ -99,9 +99,9 @@ public class IfcDeleteAction extends HssAction
 					"error.constraint"));
 			saveMessages(request, actionMessages);
 			forward = mapping.findForward(FORWARD_FAILURE);
-		} finally
-		{
-			closeSession();
+		}
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		if (LOGGER.isDebugEnabled())
@@ -109,7 +109,6 @@ public class IfcDeleteAction extends HssAction
 			LOGGER.debug(forward);
 			LOGGER.debug("exiting");
 		}
-
 		return forward;
 	}
 }

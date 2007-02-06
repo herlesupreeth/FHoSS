@@ -77,8 +77,7 @@ import de.fhg.fokus.sh.data.ShData;
 public class HSSshOperationsImpl implements HSSOperations
 {
     /** Logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(HSSshOperationsImpl.class);
+    private static final Logger LOGGER = Logger.getLogger(HSSshOperationsImpl.class);
 
 	/**
 	 * this methods represents the implementation of UDR command
@@ -94,25 +93,18 @@ public class HSSshOperationsImpl implements HSSOperations
 	 * @throws UserUnknown
 	 * @throws UserDataCannotBeRead
 	 */    
-    public ShData shPull(
-        URI userIdentity, RequestedData requestedData,
-        RequestedDomain requestedDomain, CurrentLocation currentLocation,
-        byte[] serviceIndication, String applicationServerIdentity,
-        URI applicationServerName)
-        throws DiameterException, OperationNotAllowed, UserUnknown, 
-            UserDataCannotBeRead
-    {
+    public ShData shPull(URI userIdentity, RequestedData requestedData, RequestedDomain requestedDomain, 
+    		CurrentLocation currentLocation, byte[] serviceIndication, String applicationServerIdentity, URI applicationServerName)
+        throws DiameterException, OperationNotAllowed, UserUnknown, UserDataCannotBeRead{
        
         LOGGER.debug("entering");
 
         PullShOperation pullShOperation =
-            new PullShOperation(
-                userIdentity, requestedData, requestedDomain, currentLocation,
-                serviceIndication, applicationServerIdentity,
+            new PullShOperation(userIdentity, requestedData, requestedDomain, currentLocation,serviceIndication, applicationServerIdentity,
                 applicationServerName);
         ShData shData = (ShData) pullShOperation.execute();
-        LOGGER.debug("exiting");
 
+        LOGGER.debug("exiting");
         return shData;
     }
 
@@ -131,19 +123,13 @@ public class HSSshOperationsImpl implements HSSOperations
 	 * @throws TooMuchData
 	 * 
 	 */   
-    public void shUpdate(
-        URI userIdentity, ShData shData, String applicationServerIdentity,
-        RequestedData requestedData)
-        throws DiameterException, OperationNotAllowed, UserUnknown, 
-            UserDataCannotBeModified, PriorUpdateInProgress, 
-            TransparentDataOutOfSync, TooMuchData
-    {
+    public void shUpdate(URI userIdentity, ShData shData, String applicationServerIdentity, RequestedData requestedData)
+        throws DiameterException, OperationNotAllowed, UserUnknown, UserDataCannotBeModified, PriorUpdateInProgress, 
+        TransparentDataOutOfSync, TooMuchData{
         
         LOGGER.debug("entering");
-
         UpdateShOperation updateShOperation =
-            new UpdateShOperation(
-                userIdentity, shData, applicationServerIdentity, requestedData);
+            new UpdateShOperation(userIdentity, shData, applicationServerIdentity, requestedData);
         updateShOperation.execute();
         LOGGER.debug("exiting");
     }
@@ -159,14 +145,10 @@ public class HSSshOperationsImpl implements HSSOperations
 	 * @param applicationServerName uri of application server
 	 * @throws DiameterException
 	 */ 
-    public void shSubsNotif(
-        URI userIdentity, RequestedData requestedData,
-        SubscriptionRequestType subscriptionRequestType,
-        byte[] serviceIndication, String applicationServerIdentity,
-        URI applicationServerName) throws DiameterException
-    {
-        LOGGER.debug("entering");
-
+    public void shSubsNotif(URI userIdentity, RequestedData requestedData, SubscriptionRequestType subscriptionRequestType,
+        byte[] serviceIndication, String applicationServerIdentity, URI applicationServerName) throws DiameterException{
+        
+    	LOGGER.debug("entering");
         SubsShOperation subsShOperation =
             new SubsShOperation(
                 userIdentity, requestedData, subscriptionRequestType,

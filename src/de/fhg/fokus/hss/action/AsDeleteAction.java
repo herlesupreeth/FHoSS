@@ -54,10 +54,13 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.ActionMessage;
 import org.apache.struts.action.ActionMessages;
+import org.hibernate.Session;
 
 import de.fhg.fokus.hss.form.AsForm;
 import de.fhg.fokus.hss.model.Apsvr;
 import de.fhg.fokus.hss.model.AsPermList;
+import de.fhg.fokus.hss.util.HibernateUtil;
+import de.fhg.fokus.hss.util.InfrastructureException;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
@@ -68,10 +71,9 @@ public class AsDeleteAction extends HssAction
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
 			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			throws Exception{
+		
 		LOGGER.debug("entering");
-
 		ActionForward forward = null;
 		AsForm form = (AsForm) actionForm;
 		LOGGER.debug(form);
@@ -79,26 +81,22 @@ public class AsDeleteAction extends HssAction
 
 		try
 		{
-			int assignendIfcs = ((Integer) getSession()
-					.createQuery(
-							"select count(ifc) from de.fhg.fokus.hss.model.Ifc ifc where ifc.apsvr.apsvrId = ?")
+			HibernateUtil.beginTransaction();
+			Session session = HibernateUtil.getCurrentSession();
+			int assignendIfcs = ((Integer) session
+					.createQuery("select count(ifc) from de.fhg.fokus.hss.model.Ifc ifc where ifc.apsvr.apsvrId = ?")
 					.setInteger(0, primaryKey).uniqueResult()).intValue();
 
-			int assignendPsis = ((Integer) getSession()
-					.createQuery(
-							"select count(psiTempl) from de.fhg.fokus.hss.model.PsiTempl psiTempl where psiTempl.apsvr.apsvrId = ?")
+			int assignendPsis = ((Integer) session
+					.createQuery("select count(psiTempl) from de.fhg.fokus.hss.model.PsiTempl psiTempl where psiTempl.apsvr.apsvrId = ?")
 					.setInteger(0, primaryKey).uniqueResult()).intValue();
 
 			if ((assignendIfcs == 0) && (assignendPsis == 0))
 			{
-				beginnTx();
-				Apsvr apsvr = (Apsvr) getSession()
-						.load(Apsvr.class, primaryKey);
-				AsPermList asPermList = (AsPermList) getSession().load(
-						AsPermList.class, primaryKey);
-				getSession().delete(asPermList);
-				getSession().delete(apsvr);
-				endTx();
+				Apsvr apsvr = (Apsvr) session.load(Apsvr.class, primaryKey);
+				AsPermList asPermList = (AsPermList) session.load(AsPermList.class, primaryKey);
+				session.delete(asPermList);
+				session.delete(apsvr);
 				forward = mapping.findForward(FORWARD_SUCCESS);
 			} else
 			{
@@ -117,12 +115,12 @@ public class AsDeleteAction extends HssAction
 				}
 
 				saveMessages(request, actionMessages);
-
 				forward = mapping.findForward(FORWARD_FAILURE);
 			}
-		} finally
-		{
-			closeSession();
+			HibernateUtil.commitTransaction();
+		}
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");

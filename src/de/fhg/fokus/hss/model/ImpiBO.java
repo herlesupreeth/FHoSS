@@ -51,9 +51,10 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 
 import de.fhg.fokus.hss.server.sh.ASshOperationsImpl;
+import de.fhg.fokus.hss.util.HibernateUtil;
 import de.fhg.fokus.sh.data.ShData;
 import de.fhg.fokus.sh.data.ShIMSData;
-
+import de.fhg.fokus.hss.util.*;
 
 /**
  * This a helping class which assists loading, updating or saving
@@ -61,7 +62,7 @@ import de.fhg.fokus.sh.data.ShIMSData;
  * other Sh specific functions.
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class ImpiBO extends HssBO
+public class ImpiBO
 {
     /** logger */
     private static final Logger LOGGER = Logger.getLogger(ImpiBO.class);
@@ -73,7 +74,7 @@ public class ImpiBO extends HssBO
      */
     public Impi load(Serializable primaryKey)
     {
-        Impi impi = (Impi) getSession().get(Impi.class, primaryKey);
+        Impi impi = (Impi) HibernateUtil.getCurrentSession().get(Impi.class, primaryKey);
         impi.addPropertyChangeListener(impi);
 
         return impi;
@@ -88,20 +89,10 @@ public class ImpiBO extends HssBO
     {
         LOGGER.debug("entering");
 
-        try
-        {
-            beginnTx();
-            getSession().saveOrUpdate(impi);
-            endTx();
+        HibernateUtil.getCurrentSession().saveOrUpdate(impi);
 
-            if (impi.isChangeScscfName())
-            {
+        if (impi.isChangeScscfName()){
                 commitShChanges(impi);
-            }
-        }
-        finally
-        {
-            closeSession();
         }
 
         LOGGER.debug("exiting");
@@ -115,8 +106,7 @@ public class ImpiBO extends HssBO
     {
         LOGGER.debug("entering");
 
-        if (impi.getImpus().isEmpty() == false)
-        {
+        if (impi.getImpus().isEmpty() == false){
             ASshOperationsImpl operationsImpl = new ASshOperationsImpl();
             ShData shData = new ShData();
             ShIMSData shIMSData = new ShIMSData();
@@ -124,37 +114,19 @@ public class ImpiBO extends HssBO
             shData.setShIMSData(shIMSData);
 
             Iterator impuIt = impi.getImpus().iterator();
-
-            while (impuIt.hasNext())
-            {
+            while (impuIt.hasNext()){
                 Impu impu = (Impu) impuIt.next();
+                if (impu.getNotifyScscfnames().isEmpty() == false){
+                    Iterator it = impu.getNotifyScscfnames().iterator();
 
-                if (impu.getNotifyImsUserStates().isEmpty() == false)
-                {
-                    Iterator it = impu.getNotifyImsUserStates().iterator();
-
-                    while (it.hasNext())
-                    {
-                        NotifyImsUserState notifyImsUserState =
-                            (NotifyImsUserState) it.next();
-                        Apsvr notifApsvr =
-                            (Apsvr) getSession().get(
-                                Apsvr.class,
-                                notifyImsUserState.getComp_id().getApsvrId());
-
-                        try
-                        {
-                        // XLB 
-                    	/*                            operationsImpl.shNotif(
-                    	                                new URI(impu.getSipUrl()), shData,
-                    	                                notifApsvr.getAddress());*/
-                        // Use FQDN name instead of SIP 
-                            operationsImpl.shNotif(
-                                    new URI(impu.getSipUrl()), shData,
-                                    notifApsvr.getName());
+                    while (it.hasNext()){
+                    	NotifyScscfname notifyScscfName = (NotifyScscfname) it.next();
+                        Apsvr notifApsvr = (Apsvr) HibernateUtil.getCurrentSession().get(Apsvr.class,
+                        		notifyScscfName.getComp_id().getApsvrId());                    	
+                        try{
+                        	operationsImpl.shNotif(new URI(impu.getSipUrl()), shData, Util.getHost(notifApsvr.getAddress()));
                         }
-                        catch (Exception e)
-                        {
+                        catch (Exception e){
                             LOGGER.warn(this, e);
                         }
                     }

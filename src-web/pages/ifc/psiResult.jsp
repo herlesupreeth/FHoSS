@@ -27,7 +27,7 @@
 		<td valign="top" bgcolor="#FFFFFF"><logic:notEmpty name="result">
 			<table class="as" width="500">
 				<tr class="header">
-					<td class="header"><bean:message key="ifc.head.ifcName" /></td>
+					<td class="header"><bean:message key="psi.head.name" /></td>
 					<td class="header"><bean:message key="form.head.action" /></td>
 				</tr>
 				<logic:iterate name="result" id="psi"

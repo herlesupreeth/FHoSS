@@ -46,6 +46,7 @@ package de.fhg.fokus.hss.action;
 
 import de.fhg.fokus.hss.form.PsiForm;
 import de.fhg.fokus.hss.model.Psi;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -65,27 +66,23 @@ public class PsiDeleteAction extends HssAction
 			.getLogger(PsiDeleteAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
 		LOGGER.debug("entering");
 
 		PsiForm form = (PsiForm) actionForm;
 		LOGGER.debug(form);
 
-		try
-		{
-			beginnTx();
-
+		try{
 			Integer primaryKey = form.getPrimaryKey();
-
+			
+			HibernateUtil.beginTransaction();
 			Psi psi = null;
-			psi = (Psi) getSession().load(Psi.class, primaryKey);
-			getSession().delete(psi);
-			endTx();
-		} finally
-		{
-			closeSession();
+			psi = (Psi) HibernateUtil.getCurrentSession().load(Psi.class, primaryKey);
+			HibernateUtil.getCurrentSession().delete(psi);
+			HibernateUtil.commitTransaction();
+		}
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		if (LOGGER.isDebugEnabled())
@@ -93,7 +90,6 @@ public class PsiDeleteAction extends HssAction
 			LOGGER.debug(form);
 			LOGGER.debug("exiting");
 		}
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 }

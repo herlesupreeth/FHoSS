@@ -105,7 +105,7 @@ public class ShUserProfil
     {
         LOGGER.debug("entering");
         this.uri = publicUserIdentity;
-        session = HibernateUtil.currentSession();
+        session = HibernateUtil.getCurrentSession();
         loadByPublicIdentity(publicUserIdentity);
         LOGGER.debug("exiting");
     }
@@ -229,8 +229,6 @@ public class ShUserProfil
     {
         LOGGER.debug("entering");
 
-        Transaction tx = session.beginTransaction();
-
         if (impi != null)
         {
             session.update(impi);
@@ -241,9 +239,6 @@ public class ShUserProfil
             session.update(impu);
         }
 
-        tx.commit();
-        session.flush();
-        HibernateUtil.closeSession();
         LOGGER.debug("exiting");
     }
 

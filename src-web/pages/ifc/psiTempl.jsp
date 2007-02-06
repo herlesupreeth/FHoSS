@@ -58,11 +58,55 @@
 				</html:form> 
 				</td>
 			</tr>
-		</table>
-
+			
+    <tr bgcolor="white"> 
+		<td>
+		 <h1><bean:message key="as.list" /></h1>
 		</td>
-		<td id="bound_right"></td>
-	</tr>
+	</tr>	
+			
+	<tr bgcolor="white">	
+        <td>
+		    <table class="as" width="100%" border="0">    
+				 <tr class="header">
+					<td class="header" width="80%">
+						<bean:message key="psiTempl.head.apsvr" />
+					</td>
+							
+					<td class="header" width="20%">
+						<bean:message key="form.head.action" />				
+					</td>
+																		            
+				 </tr>		      
+				 <logic:iterate name="psiTemplForm" property="apsvrs"
+					id="apsvr" type="de.fhg.fokus.hss.model.Apsvr" indexId="ix">
+				 <tr class="<%= ix.intValue()%2 == 0 ? "even" : "odd" %>">
+					<td><bean:write name="apsvr" property="name"/></td>
+					<td align="center">
+						<table>
+							<tr>
+								<td>
+								<form method="post" action="/hss.web.console/asShow.do"
+									target="content" style="text-align: center">
+								    <input type="hidden" name="asId"
+									value="<bean:write name="apsvr" property="apsvrId"/>"><input
+									type="image" src="/hss.web.console/images/edit_small.gif">
+								</form>
+								</td>	
+							</tr>
+						</table>
+					</td>
+				 </tr>	
+				 </logic:iterate>
+	        </table>
+        </td>  
+    </tr>  	
+			
+			
+	</table>
+
+	</td>
+	</tr>	
 </table>
 
 </body>

@@ -84,9 +84,8 @@ public class OriginHostResolver
         int size = 0;
         hosts = new TreeMap();
 
-        Session session = HibernateUtil.currentSession();
-        Iterator it =
-            session.createCriteria(DiamServer.class).list().iterator();
+        Session session = HibernateUtil.getCurrentSession();
+        Iterator it = session.createCriteria(DiamServer.class).list().iterator();
         
         while (it.hasNext())
         {
@@ -128,7 +127,7 @@ public class OriginHostResolver
         {
             // Create a new resolver entry
             hosts.put(serverName, originHost);
-            Session session = HibernateUtil.currentSession();
+            Session session = HibernateUtil.getCurrentSession();
             Transaction tx = session.beginTransaction();
             DiamServer diamServer = new DiamServer();
             diamServer.setServer(serverName);
@@ -147,7 +146,7 @@ public class OriginHostResolver
                 // Update a resolver entry
                 hosts.put(serverName, originHost);
 
-                Session session = HibernateUtil.currentSession();
+                Session session = HibernateUtil.getCurrentSession();
                 Transaction tx = session.beginTransaction();
                 DiamServer diamServer =
                     (DiamServer) session.load(DiamServer.class, serverName);

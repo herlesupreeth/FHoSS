@@ -9,16 +9,26 @@
 <%
 	// This jsp access hibernate directly to collect
 	// information about the hss data content.
+	String loglevel = "";
 	if(request.getParameter("clear") != null){
 		LoggerHelper.clear();
 	}
 	if(request.getParameter("off") != null){
 		LoggerHelper.off();
 	}
-	if(request.getParameter("start") != null){
-		LoggerHelper.init("debug");
+	loglevel= request.getParameter("start");
+	if (loglevel != null){
+		if(loglevel.equals("info"))
+		{
+	    	LoggerHelper.STATUS=true;
+		    LoggerHelper.loglevel="info";
+		    LoggerHelper.init();
+		}else{
+		    LoggerHelper.STATUS=true;
+		    LoggerHelper.loglevel="debug";
+		    LoggerHelper.init();
+		}
 	}
-	
 %>
 <html>
 <head>
@@ -34,19 +44,21 @@
 		<table class="as" width="100%" height="100%" border="0">
 			<tr class="header">
 				<td height="10px">
-					Logging - Current Buffer
+					Logging
 					<a href="logging.jsp" target="content">[REFRESH]</a>
 					<a href="logging.jsp?clear=true" target="content">[CLEAR]</a>
 					<% if(LoggerHelper.STATUS == true) { %>
 						<a href="logging.jsp?off=true" target="content">[TURN OFF]</a>
 					<% } else { %>
-						<a href="logging.jsp?start=true" target="content">[TURN ON]</a>
+						<a href="logging.jsp?start=debug" target="content">[TURN ON - DEBUG]</a>
+						<a href="logging.jsp?start=info" target="content">[TURN ON - INFO]</a>
+						
 					<% } %>
 					
 				</td>
 			</tr>
 			<tr class="formular">
-				<td><textarea style="width:100%;height:100%;"><%=LoggerHelper.BUFFER.getBuffer().toString()%></textarea></td>
+			    <td><textarea style="width:100%;height:100%;wrap:hard"><%=LoggerHelper.BUFFER.getBuffer().toString()%></textarea></td>
 			</tr>
 		</table>
 		</td>

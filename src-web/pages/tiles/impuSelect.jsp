@@ -4,6 +4,7 @@
 	prefix="html"%>
 <%@ taglib uri="http://jakarta.apache.org/struts/tags-logic"
 	prefix="logic"%>
+<%@ page import="de.fhg.fokus.hss.util.SecurityPermissions" %>	
 <h1><bean:message key="impu.title" /></h1>
 <table class="as" width="100%" border=0>
 	<tr class="header">
@@ -17,10 +18,15 @@
 			<td><a
 				href="/hss.web.console/impuShow.do?impuId=<%=impu.getImpuId()%>"> <img
 				src="/hss.web.console/images/edit_small.gif" width="16" height="16">
-			</a> <a
+			</a> 
+
+			<% if(request.isUserInRole(SecurityPermissions.SP_IMPU)) { %>
+			<a
 				href="/hss.web.console<%= request.getParameter("connectTarget")%>?impuSelectId=<%=impu.getImpuId()%>&<%= request.getParameter("parentId")%>=<bean:write name="<%= request.getParameter("formName")%>" property="<%= request.getParameter("parentId")%>" />&impuSelect=remove">
 			<img src="/hss.web.console/images/progress_rem.gif" width="16"
-				height="16" alt="Delete"> </a></td>
+				height="16" alt="Delete"> </a>
+			<% } %>
+			</td>
 		</tr>
 	</logic:iterate>
 	<% if(request.getParameter("addAllow").equals("true")) { %>

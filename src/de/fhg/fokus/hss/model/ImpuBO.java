@@ -61,8 +61,10 @@ import de.fhg.fokus.hss.server.cx.op.DeregisterCxOperation;
 import de.fhg.fokus.hss.server.cx.op.UpdateCxOperation;
 import de.fhg.fokus.hss.server.sh.ASshOperationsImpl;
 import de.fhg.fokus.hss.util.HibernateUtil;
+import de.fhg.fokus.hss.util.Util;
 import de.fhg.fokus.sh.data.ShData;
 import de.fhg.fokus.sh.data.ShIMSData;
+import de.fhg.fokus.sh.data.types.TCSUserState;
 import de.fhg.fokus.sh.data.types.TIMSUserState;
 
 /**
@@ -70,7 +72,7 @@ import de.fhg.fokus.sh.data.types.TIMSUserState;
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class ImpuBO extends HssBO
+public class ImpuBO
 {
     /** logger */
     private static final Logger LOGGER = Logger.getLogger(ImpuBO.class);
@@ -94,11 +96,9 @@ public class ImpuBO extends HssBO
     public Impu load(Serializable primaryKey)
     {
         LOGGER.debug("entering");
-        openSession();
 
-        Impu impu = (Impu) getSession().load(Impu.class, primaryKey);
+        Impu impu = (Impu) HibernateUtil.getCurrentSession().load(Impu.class, primaryKey);
         impu.addPropertyChangeListener(impu);
-        closeSession();
         LOGGER.debug("exiting");
 
         return impu;
@@ -113,17 +113,12 @@ public class ImpuBO extends HssBO
     {
         LOGGER.debug("entering");
 
-        beginnTx();
-        getSession().saveOrUpdate(impu);
-        endTx();
+        HibernateUtil.getCurrentSession().saveOrUpdate(impu);
 
-        if (
-            (impu.isChange())
+        if ((impu.isChange())
                 && (
                     impu.getUserStatus().equals(
-                        Impu.USER_STATUS_NOT_REGISTERED) == false
-                ))
-        {
+                        Impu.USER_STATUS_NOT_REGISTERED) == false)){
             commitCxChanges(impu);
         }
         else if (impu.isDeregistered())
@@ -135,7 +130,6 @@ public class ImpuBO extends HssBO
         	commitShChanges(impu);
         }
         
-        closeSession();
         LOGGER.debug("exiting");
     }
 
@@ -171,22 +165,21 @@ public class ImpuBO extends HssBO
 	            	break;
 	            }
 	            
-	            //shIMSData.setIMSUserState((byte)Integer.parseInt(impu.getUserStatus()));
 	            shData.setShIMSData(shIMSData);
-	            
-				// XLB
 				//shData.setCSUserState((byte)Integer.parseInt(impu.getUserStatus()));
 				while(it.hasNext()){
 					NotifyImsUserState notifyImsUserState = (NotifyImsUserState) it.next();
-					Apsvr notifApsvr = (Apsvr) getSession().get(Apsvr.class, notifyImsUserState.getComp_id().getApsvrId());
+					Apsvr notifApsvr = (Apsvr) HibernateUtil.getCurrentSession()
+						.get(Apsvr.class, notifyImsUserState.getComp_id().getApsvrId());
+					
 					try {
-	                    // Use FQDN name instead of SIP     XLB
-						operationsImpl.shNotif(new URI(impu.getSipUrl()), shData, notifApsvr.getName());
-						// operationsImpl.shNotif(new URI(impu.getSipUrl()), shData, notifApsvr.getAddress());
-					} catch (Exception e) {
+						operationsImpl.shNotif(new URI(impu.getSipUrl()), shData, Util.getHost(notifApsvr.getAddress()));
+					} 
+					catch (Exception e) {
 						LOGGER.warn(this, e);
 					}					
 				}
+				
 			}
 			LOGGER.debug("exiting");
 			
@@ -234,22 +227,18 @@ public class ImpuBO extends HssBO
      */
     private void commitCxDeregister(Impu impu)
     {
-        try
-        {
+        try{
             DeregistrationReason reason = new DeregistrationReason(0);
             reason.setDeregistrationInfo("Registration was canceled by HSS.");
 
-            if (impu.getImpis().iterator().hasNext())
-            {
+            if (impu.getImpis().iterator().hasNext()){
                 Impi impi = (Impi) impu.getImpis().iterator().next();
                 CxUserProfil cxUserProfil = new CxUserProfil(impi);
-                DeregisterCxOperation cxOperation =
-                    new DeregisterCxOperation(cxUserProfil, reason);
+                DeregisterCxOperation cxOperation = new DeregisterCxOperation(cxUserProfil, reason);
                 cxOperation.execute();
             }
         }
-        catch (DiameterException e)
-        {
+        catch (DiameterException e){
             LOGGER.error(this, e);
         }
     }
@@ -262,30 +251,21 @@ public class ImpuBO extends HssBO
      */
     public void linkImpu2Impi(Integer impiPk, Integer impuPk, boolean isLink)
     {
-        Session session = null;
-        session = HibernateUtil.currentSession();
-
-        Transaction tx = session.beginTransaction();
+        Session session = HibernateUtil.getCurrentSession();
 
         Impi impi = (Impi) session.load(Impi.class, impiPk, LockMode.UPGRADE);
         Impu impu = (Impu) session.load(Impu.class, impuPk);
 
-        if (isLink)
-        {
+        if (isLink){
             LOGGER.debug("add impu to impi");
             impi.getImpus().add(impu);
         }
-        else
-        {
+        else{
             LOGGER.debug("remove impu from impi");
             impi.getImpus().remove(impu);
             impu.getImpis().remove(impi);
         }
 
-        //session.saveOrUpdate(impi);
-        tx.commit();
-        session.flush();
-
-        HibernateUtil.closeSession();
+        session.saveOrUpdate(impi);
     }
 }

@@ -96,12 +96,9 @@ public class SubsShOperation extends ShOperation
 	 * @param applicationServerIdentity identity of application server
 	 * @param applicationServerName uri of application server
 	 */
-    public SubsShOperation(
-        URI userIdentity, RequestedData requestedData,
-        SubscriptionRequestType subscriptionRequestType,
-        byte[] serviceIndication, String applicationServerIdentity,
-        URI applicationServerName)
-    {
+    public SubsShOperation(URI userIdentity, RequestedData requestedData, SubscriptionRequestType subscriptionRequestType,
+        byte[] serviceIndication, String applicationServerIdentity, URI applicationServerName){
+    	
         LOGGER.debug("entering");
         this.requestedData = requestedData;
         this.applicationServerIdentity = applicationServerIdentity;
@@ -119,77 +116,68 @@ public class SubsShOperation extends ShOperation
      * @return null 
      * @throws DiameterException
      */
-    public Object execute() throws DiameterException
-    {
-        if (LOGGER.isDebugEnabled())
-        {
+    public Object execute() throws DiameterException{
+    	
+        if (LOGGER.isDebugEnabled()){
             LOGGER.debug("entering");
             LOGGER.debug(this);
         }
 
-        loadApsvr();
-        loadUserProfile();
+        try{
+        	HibernateUtil.beginTransaction();
+        	loadApsvr();
+        	loadUserProfile();
 
-        switch (requestedData.getValue())
-        {
-        case RequestedData._REPOSITORYDATA:
+        	switch (requestedData.getValue()){
 
-            if (asPermList.isSubRepData())
-            {
-                subRepositoryData();
-            }
-            else
-            {
-                throw new UserDataCannotBeNotified();
-            }
+        		case RequestedData._REPOSITORYDATA:
+        			if (asPermList.isSubRepData()){
+        				subRepositoryData();
+        			}
+        			else{
+        				throw new UserDataCannotBeNotified();
+        			}
+        			break;
 
-            break;
+        		case RequestedData._IMSUSERSTATE:
+        			if (asPermList.isSubImpuUserState()){
+        				subImsUserState();
+        			}
+        			else{
+        				throw new UserDataCannotBeNotified();
+        			}
+        			break;
 
-        case RequestedData._IMSUSERSTATE:
+        		case RequestedData._SCSCFNAME:
 
-            if (asPermList.isSubImpuUserState())
-            {
-                subImsUserState();
-            }
-            else
-            {
-                throw new UserDataCannotBeNotified();
-            }
+        			if (asPermList.isSubImpuUserState()){
+        				subScscfName();
+        			}
+        			else{
+        				throw new UserDataCannotBeNotified();
+        			}
+        			break;
 
-            break;
-
-        case RequestedData._SCSCFNAME:
-
-            if (asPermList.isSubImpuUserState())
-            {
-                subScscfName();
-            }
-            else
-            {
-                throw new UserDataCannotBeNotified();
-            }
-
-            break;
-
-        case RequestedData._INITIALFILTERCRITERIA:
-
-            if (asPermList.isSubIfc())
-            {
-                subIfc();
-            }
-            else
-            {
-                throw new UserDataCannotBeNotified();
-            }
-
-            break;
-
-        default:
-            throw new InvalidAvpValue();
+        		case RequestedData._INITIALFILTERCRITERIA:
+        			if (asPermList.isSubIfc()){
+        				subIfc();
+        			}
+        			else{
+        				throw new UserDataCannotBeNotified();
+        			}
+        			break;
+        			
+        			// to do: not all values are supported here...
+        		default:
+        			throw new InvalidAvpValue();
+        	}
+        }
+        finally{
+        	HibernateUtil.commitTransaction();
+        	HibernateUtil.closeSession();
         }
 
         LOGGER.debug("exiting");
-
         return null;
     }
 
@@ -202,20 +190,13 @@ public class SubsShOperation extends ShOperation
     {
         LOGGER.debug("entering");
 
-        Session session = HibernateUtil.currentSession();
+        Apsvr ifcApsvr = (Apsvr) HibernateUtil.getCurrentSession()
+        	.createQuery("select apsvr from de.fhg.fokus.hss.model.Apsvr as apsvr where apsvr.name = ?")
+        	.setString(0, applicationServerName.getPath())
+            .uniqueResult();
 
-        Apsvr ifcApsvr =
-            (Apsvr) session.createQuery(
-                "select apsvr from de.fhg.fokus.hss.model.Apsvr as apsvr where apsvr.name = ?")
-                           .setString(0, applicationServerName.getPath())
-                           .uniqueResult();
-
-        if (ifcApsvr == null)
-        {
-            LOGGER.warn(
-                this,
-                new NullPointerException(
-                    "Unknown application server requested for Ifc-AppSrv-Notif."));
+        if (ifcApsvr == null){
+            LOGGER.warn(this, new NullPointerException("Unknown application server requested for Ifc-AppSrv-Notif."));
             throw new UnableToComply();
         }
 
@@ -224,36 +205,21 @@ public class SubsShOperation extends ShOperation
         primaryKey.setImpuId(userProfil.getImpu().getImpuId());
         primaryKey.setIfcApsvrId(ifcApsvr.getApsvrId());
 
-        NotifyIfc notifyIfc =
-            (NotifyIfc) session.get(NotifyIfc.class, primaryKey);
+        NotifyIfc notifyIfc = (NotifyIfc) HibernateUtil.getCurrentSession().get(NotifyIfc.class, primaryKey);
 
-        if (
-            subscriptionRequestType.getValue() == SubscriptionRequestType._SUBSCRIBE)
-        {
+        if (subscriptionRequestType.getValue() == SubscriptionRequestType._SUBSCRIBE){
             // Subscribe
-            if (notifyIfc == null)
-            {
+            if (notifyIfc == null){
                 notifyIfc = new NotifyIfc(primaryKey);
-                Transaction tx = session.beginTransaction();
-                session.save(notifyIfc);
-                tx.commit();
-                session.flush();
-                HibernateUtil.closeSession();
+                HibernateUtil.getCurrentSession().save(notifyIfc);
             }
         }
-        else
-        {
+        else{
             // Un-Subscribe
-            if (notifyIfc != null)
-            {
-                Transaction tx = session.beginTransaction();
-                session.delete(notifyIfc);
-                tx.commit();
-                session.flush();
-                HibernateUtil.closeSession();
+            if (notifyIfc != null){
+                HibernateUtil.getCurrentSession().delete(notifyIfc);
             }
         }
-
         LOGGER.debug("exiting");
     }
 
@@ -261,46 +227,29 @@ public class SubsShOperation extends ShOperation
      * It subscribes or unsubscribes the SCSCF notification depending on the value
      * of subscriptionRequestType
      */
-    private void subScscfName()
-    {
+    private void subScscfName(){
         LOGGER.debug("entering");
 
-        Session session = HibernateUtil.currentSession();
+        Session session = HibernateUtil.getCurrentSession();
         NotifyScscfnamePK primaryKey = new NotifyScscfnamePK();
         primaryKey.setApsvrId(apsvr.getApsvrId());
         primaryKey.setImpuId(userProfil.getImpu().getImpuId());
 
-        NotifyScscfname notifyScscfname =
-            (NotifyScscfname) session.get(NotifyScscfname.class, primaryKey);
+        NotifyScscfname notifyScscfname = (NotifyScscfname) session.get(NotifyScscfname.class, primaryKey);
 
-        if (
-            subscriptionRequestType.getValue() == SubscriptionRequestType._SUBSCRIBE)
-        {
+        if (subscriptionRequestType.getValue() == SubscriptionRequestType._SUBSCRIBE){
             // Subscribe
-            if (notifyScscfname == null)
-            {
+            if (notifyScscfname == null){
                 notifyScscfname = new NotifyScscfname(primaryKey);
-
-                Transaction tx = session.beginTransaction();
-                session.save(notifyScscfname);
-                tx.commit();
-                session.flush();
-                HibernateUtil.closeSession();
+                HibernateUtil.getCurrentSession().save(notifyScscfname);
             }
         }
-        else
-        {
+        else{
             // Un-Subscribe
-            if (notifyScscfname != null)
-            {
-                Transaction tx = session.beginTransaction();
-                session.delete(notifyScscfname);
-                tx.commit();
-                session.flush();
-                HibernateUtil.closeSession();
+            if (notifyScscfname != null){
+                HibernateUtil.getCurrentSession().delete(notifyScscfname);
             }
         }
-
         LOGGER.debug("exiting");
     }
 
@@ -308,44 +257,27 @@ public class SubsShOperation extends ShOperation
      * It subscribes or unsubscribes the ims user state notification depending 
      * on the value of subscriptionRequestType
      */
-    private void subImsUserState()
-    {
+    private void subImsUserState(){
         LOGGER.debug("entering");
 
-        Session session = HibernateUtil.currentSession();
+        Session session = HibernateUtil.getCurrentSession();
         NotifyImsUserStatePK primaryKey = new NotifyImsUserStatePK();
         primaryKey.setApsvrId(apsvr.getApsvrId());
         primaryKey.setImpuId(userProfil.getImpu().getImpuId());
 
-        NotifyImsUserState notifyImsUserState =
-            (NotifyImsUserState) session.get(
-                NotifyImsUserState.class, primaryKey);
+        NotifyImsUserState notifyImsUserState = (NotifyImsUserState) session.get(NotifyImsUserState.class, primaryKey);
 
-        if (
-            subscriptionRequestType.getValue() == SubscriptionRequestType._SUBSCRIBE)
-        {
+        if (subscriptionRequestType.getValue() == SubscriptionRequestType._SUBSCRIBE){
             // Subscribe
-            if (notifyImsUserState == null)
-            {
+            if (notifyImsUserState == null){
                 notifyImsUserState = new NotifyImsUserState(primaryKey);
-
-                Transaction tx = session.beginTransaction();
-                session.save(notifyImsUserState);
-                tx.commit();
-                session.flush();
-                HibernateUtil.closeSession();
+                HibernateUtil.getCurrentSession().save(notifyImsUserState);
             }
         }
-        else
-        {
+        else{
             // Un-Subscribe
-            if (notifyImsUserState != null)
-            {
-                Transaction tx = session.beginTransaction();
-                session.delete(notifyImsUserState);
-                tx.commit();
-                session.flush();
-                HibernateUtil.closeSession();
+            if (notifyImsUserState != null){
+                HibernateUtil.getCurrentSession().delete(notifyImsUserState);
             }
         }
 
@@ -356,11 +288,9 @@ public class SubsShOperation extends ShOperation
      * It subscribes or unsubscribes the repository data notification 
      * depending on the value of subscriptionRequestType
      */
-    private void subRepositoryData()
-    {
+    private void subRepositoryData(){
         LOGGER.debug("entering");
-
-        Session session = HibernateUtil.currentSession();
+        Session session = HibernateUtil.getCurrentSession();
 
         //	Check for exiting Notify
         NotifyRepDataPK primaryKey = new NotifyRepDataPK();
@@ -368,34 +298,19 @@ public class SubsShOperation extends ShOperation
         primaryKey.setSvcInd(new String(serviceIndication));
         primaryKey.setApsvrId(apsvr.getApsvrId());
 
-        NotifyRepData notifyRepData =
-            (NotifyRepData) session.get(NotifyRepData.class, primaryKey);
+        NotifyRepData notifyRepData = (NotifyRepData) session.get(NotifyRepData.class, primaryKey);
 
-        if (
-            subscriptionRequestType.getValue() == SubscriptionRequestType._SUBSCRIBE)
-        {
+        if (subscriptionRequestType.getValue() == SubscriptionRequestType._SUBSCRIBE){
             // Subscribe
-            if (notifyRepData == null)
-            {
+            if (notifyRepData == null){
                 notifyRepData = new NotifyRepData(primaryKey);
-
-                Transaction tx = session.beginTransaction();
-                session.save(notifyRepData);
-                tx.commit();
-                session.flush();
-                HibernateUtil.closeSession();
+                HibernateUtil.getCurrentSession().save(notifyRepData);
             }
         }
-        else
-        {
+        else{
             // Un-Subscribe
-            if (notifyRepData != null)
-            {
-                Transaction tx = session.beginTransaction();
-                session.delete(notifyRepData);
-                tx.commit();
-                session.flush();
-                HibernateUtil.closeSession();
+            if (notifyRepData != null){
+                HibernateUtil.getCurrentSession().delete(notifyRepData);
             }
         }
 

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright (C) 2004-2006 FhG Fokus
  *
  * This file is part of Open IMS Core - an open source IMS CSCFs & HSS
@@ -42,25 +40,62 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
  * 
  */
-package de.fhg.fokus.hss.model;
 
+ package de.fhg.fokus.hss.action;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.struts.Globals;
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+import org.apache.struts.action.ActionMessage;
+import org.apache.struts.action.ActionMessages;
+import org.hibernate.exception.ConstraintViolationException;
+
+import de.fhg.fokus.hss.form.PsiTemplForm;
+import de.fhg.fokus.hss.model.PsiTempl;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
- * This class contains the static values of the defined authentication schemes 
- * @author Andre Charton (dev -at- open-ims dot org)
+ * This class contains the execute method for HssAction, when a delete operation for a PSI Template was called by
+ * struts container.
+ * 
+ * @author adp dot fokus dot fraunhofer dot de 
+ * Adrian Popescu / FOKUS Fraunhofer Institute
  */
-public class AuthSchemeBO {
-	/** Early IMS authentication Scheme */
-	public static final String AUS_EARLY = "Early IMS";		
+public class PsiTemplDeleteAction extends HssAction{
 
-	// AKA and MD5
-	public static final String AUTH_SCHEME_AKAv1 = "Digest-AKAv1-MD5";
-	public static final String AUTH_SCHEME_AKAv2 = "Digest-AKAv2-MD5";
-	public static final String AUTH_SCHEME_MD5 = "Digest-MD5";
-	
-	public static final String AUTH_ALGORITHM_AKAv1 = "AKAv1-MD5";
-	public static final String AUTH_ALGORITHM_AKAv2 = "AKAv2-MD5";
-	public static final String AUTH_ALGORITHM_MD5 = "MD5";
-	
-	
+	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response) throws Exception {
+		
+		ActionForward forward = null;
+		PsiTemplForm form = (PsiTemplForm) actionForm;
+
+		try{
+			Integer primaryKey = form.getPrimaryKey();
+			PsiTempl psiTempl = null;
+			
+			HibernateUtil.beginTransaction();
+			psiTempl = (PsiTempl) HibernateUtil.getCurrentSession().load(PsiTempl.class, primaryKey);
+
+			// to do - actions performed when a template is erased (if needed)
+			
+			HibernateUtil.getCurrentSession().delete(psiTempl);
+			HibernateUtil.commitTransaction();
+		}
+		catch (ConstraintViolationException e){
+			ActionMessages actionMessages = new ActionMessages();
+			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("error.constraint"));
+			saveMessages(request, actionMessages);
+			forward = mapping.findForward(FORWARD_FAILURE);
+		}
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
+		forward = mapping.findForward(FORWARD_SUCCESS);
+		return forward;
+	}
 }

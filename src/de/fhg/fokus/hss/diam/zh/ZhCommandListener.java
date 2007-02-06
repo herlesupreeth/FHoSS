@@ -167,7 +167,7 @@ public abstract class ZhCommandListener extends CommandListener{
         try{
             if ((diameterPeer != null) && (FQDN != null) && (requestMessage != null)){
                 DiameterMessage msg = diameterPeer.newResponse(requestMessage);
-                AVP resultAVP = saveResultCode(diameterException.getCode(), (diameterException instanceof DiameterBaseException));
+                AVP resultAVP = getResultCodeAVP(diameterException.getCode(), (diameterException instanceof DiameterBaseException));
                 msg.addAVP(resultAVP);
                 diameterPeer.sendMessage(FQDN, msg);
             }

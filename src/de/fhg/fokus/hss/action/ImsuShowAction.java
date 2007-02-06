@@ -54,7 +54,7 @@ import org.apache.struts.action.ActionMapping;
 
 import de.fhg.fokus.hss.form.ImsuForm;
 import de.fhg.fokus.hss.model.Imsu;
-
+import de.fhg.fokus.hss.util.HibernateUtil;
 /**
  * Select profiles from database and prepate viewable objects.
  * 
@@ -62,54 +62,37 @@ import de.fhg.fokus.hss.model.Imsu;
  */
 public class ImsuShowAction extends HssAction
 {
-	protected static final Logger LOGGER = Logger
-			.getLogger(ImsuShowAction.class);
+	protected static final Logger LOGGER = Logger.getLogger(ImsuShowAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
 			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			throws Exception{
+		
 		LOGGER.debug("entering");
-
 		ImsuForm form = (ImsuForm) actionForm;
 
-		doLoadBusiness(form);
-
-		if (LOGGER.isDebugEnabled())
-		{
+		try{
+			HibernateUtil.beginTransaction();
+			Imsu imsu = (Imsu) HibernateUtil.getCurrentSession().load(Imsu.class, form.getPrimaryKey());
+			
+			form.setName(imsu.getName());
+			form.setImsuId(imsu.getImsuId().toString());
+			form.setImpis(imsu.getImpis());
+			HibernateUtil.commitTransaction();
+			
+			if (LOGGER.isDebugEnabled()){
+				LOGGER.debug(form);
+			}
+		}
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
+		if (LOGGER.isDebugEnabled()){
 			LOGGER.debug("exiting");
 		}
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 
-	protected void doLoadBusiness(ImsuForm form)
-	{
-		try
-		{
-			Imsu imsu = (Imsu) getSession().load(Imsu.class,
-					form.getPrimaryKey());
-			copyValues(form, imsu);
-			if (LOGGER.isDebugEnabled())
-			{
-				LOGGER.debug(form);
-			}
-		} finally
-		{
-			closeSession();
-		}
-	}
 
-	/**
-	 * Copy values from bo to form
-	 * 
-	 * @param form
-	 * @param imsu
-	 */
-	private void copyValues(ImsuForm form, Imsu imsu)
-	{
-		form.setName(imsu.getName());
-		form.setImsuId(imsu.getImsuId().toString());
-		form.setImpis(imsu.getImpis());
-	}
 }

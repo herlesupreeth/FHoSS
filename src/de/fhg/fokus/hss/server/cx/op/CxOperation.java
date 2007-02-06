@@ -85,21 +85,16 @@ public abstract class CxOperation implements PropertyChangeListener
      * @param evt property change event
      */
     
-    public void propertyChange(PropertyChangeEvent evt)
-    {
+    public void propertyChange(PropertyChangeEvent evt){
         LOGGER.debug("entering");
 
-        try
-        {
-            UpdateCxOperation cxOperation =
-                new UpdateCxOperation(getUserProfil(), privateUserIdentity);
+        try{
+            UpdateCxOperation cxOperation = new UpdateCxOperation(getUserProfil(), privateUserIdentity);
             cxOperation.execute();
         }
-        catch (DiameterException e)
-        {
+        catch (DiameterException e){
             LOGGER.error(this, e);
         }
-
         LOGGER.debug("exiting");
     }
 
@@ -107,8 +102,7 @@ public abstract class CxOperation implements PropertyChangeListener
      * It adds property change listener
      * @param l property change listener
      */
-    public void addPropertyChangeListener(PropertyChangeListener l)
-    {
+    public void addPropertyChangeListener(PropertyChangeListener l){
         changeSupport.addPropertyChangeListener(l);
     }
 
@@ -116,8 +110,7 @@ public abstract class CxOperation implements PropertyChangeListener
      * It removes property change listener
      * @param l property change listener
      */
-    public void removePropertyChangeListener(PropertyChangeListener l)
-    {
+    public void removePropertyChangeListener(PropertyChangeListener l){
         changeSupport.removePropertyChangeListener(l);
     }
 
@@ -125,10 +118,8 @@ public abstract class CxOperation implements PropertyChangeListener
      * It is string converter
      * @return converted string
      */
-    public String toString()
-    {
-        return ToStringBuilder.reflectionToString(
-            this, ToStringStyle.MULTI_LINE_STYLE);
+    public String toString(){
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
     /**
@@ -143,26 +134,21 @@ public abstract class CxOperation implements PropertyChangeListener
      * @throws IdentitiesDontMatch
      * @throws DiameterException
      */
-    protected void loadUserProfile()
-        throws IdentitiesDontMatch, DiameterException
-    {
-        if ((privateUserIdentity != null) && (publicIdentity != null))
-        {
+    protected void loadUserProfile()throws IdentitiesDontMatch, DiameterException{
+    	
+        if ((privateUserIdentity != null) && (publicIdentity != null)){
             userProfil = new CxUserProfil(privateUserIdentity, publicIdentity);
         }
-        else if (publicIdentity != null)
-        {
+        else if (publicIdentity != null){
             userProfil = new CxUserProfil(publicIdentity);
         }
-        else
-        {
+        else{
             throw new MissingUserId();
         }
 
         // Check whether the public identity received in the request 
         // is barred for the establishment of multimedia sessions.
-        if (getUserProfil().isBarred() == true)
-        {
+        if (getUserProfil().isBarred() == true){
             throw new BaseAuthorizationRejected();
         }
     }
@@ -171,8 +157,7 @@ public abstract class CxOperation implements PropertyChangeListener
      * Markup user profil update flag.
      *
      */
-    protected void markUpdateUserProfile()
-    {
+    protected void markUpdateUserProfile(){
         needUpdate = true;
     }
 
@@ -180,10 +165,8 @@ public abstract class CxOperation implements PropertyChangeListener
      * Update user profil if flag is set to true.
      *
      */
-    protected void updateUserProfile()
-    {
-        if (needUpdate == true)
-        {
+    protected void updateUserProfile(){
+        if (needUpdate == true){
             userProfil.update();
         }
     }
@@ -192,8 +175,7 @@ public abstract class CxOperation implements PropertyChangeListener
     * Getter method for user profile
     * @return the user profile
     */
-    public CxUserProfil getUserProfil()
-    {
+    public CxUserProfil getUserProfil(){
         return userProfil;
     }
 
@@ -201,8 +183,7 @@ public abstract class CxOperation implements PropertyChangeListener
     * Setter method for user profile
     * @param userProfil the user profile
     */
-    public void setUserProfil(CxUserProfil userProfil)
-    {
+    public void setUserProfil(CxUserProfil userProfil){
         this.userProfil = userProfil;
     }
 }

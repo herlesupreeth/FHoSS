@@ -58,6 +58,7 @@ import org.hibernate.exception.ConstraintViolationException;
 
 import de.fhg.fokus.hss.form.ImsuForm;
 import de.fhg.fokus.hss.model.Imsu;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * Select profiles from database.
@@ -71,50 +72,45 @@ public class ImsuSubmitAction extends HssAction
 			.getLogger(ImsuSubmitAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception{
+		
 		LOGGER.debug("entering");
 
-		ActionForward forward;
+		ActionForward forward = null;
 		ImsuForm form = (ImsuForm) actionForm;
 		LOGGER.debug("Storing: " + form);
 
 		Integer primaryKey = form.getPrimaryKey();
 		Imsu imsu = null;
 
-		try
-		{
-			if (primaryKey.intValue() != -1)
-			{
-				imsu = (Imsu) getSession().load(Imsu.class, primaryKey);
-			} else
-			{
+		try{
+			HibernateUtil.beginTransaction();
+			if (primaryKey.intValue() != -1){
+				imsu = (Imsu) HibernateUtil.getCurrentSession().load(Imsu.class, primaryKey);
+			}
+			else{
 				imsu = new Imsu();
 			}
 
 			imsu.setName(form.getName());
-			beginnTx();
-			getSession().saveOrUpdate(imsu);
-			endTx();
+			HibernateUtil.getCurrentSession().saveOrUpdate(imsu);
+			HibernateUtil.commitTransaction();
+			
 			forward = mapping.findForward(FORWARD_SUCCESS);
-			forward = new ActionForward(forward.getPath() + "?imsuId="
-					+ imsu.getImsuId().intValue(), true);
-		} catch (ConstraintViolationException e)
-		{
+			forward = new ActionForward(forward.getPath() + "?imsuId=" + imsu.getImsuId().intValue(), true);
+		} 
+		catch (ConstraintViolationException e){
 			LOGGER.warn(this, e);
 			ActionMessages actionMessages = new ActionMessages();
-			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-					"error.duplicate"));
+			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("error.duplicate"));
 			saveMessages(request, actionMessages);
 			forward = mapping.findForward(FORWARD_FAILURE);
-		} finally
-		{
-			closeSession();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");
-
 		return forward;
 	}
 }

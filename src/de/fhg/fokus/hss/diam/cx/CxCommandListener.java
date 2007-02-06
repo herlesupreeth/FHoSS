@@ -182,11 +182,9 @@ public abstract class CxCommandListener extends CommandListener
         DiameterException diameterException){
     	
         try{
-            if ((diameterPeer != null) && (FQDN != null)
-                    && (requestMessage != null)){
-            	
+            if ((diameterPeer != null) && (FQDN != null) && (requestMessage != null)){
                 DiameterMessage msg = diameterPeer.newResponse(requestMessage);
-                AVP resultAVP = saveResultCode( diameterException.getCode(),(diameterException instanceof DiameterBaseException));
+                AVP resultAVP = getResultCodeAVP( diameterException.getCode(),(diameterException instanceof DiameterBaseException));
                 msg.addAVP(resultAVP);
                 diameterPeer.sendMessage(FQDN, msg);
             }

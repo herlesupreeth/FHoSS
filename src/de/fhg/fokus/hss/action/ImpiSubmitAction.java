@@ -57,11 +57,11 @@ import org.apache.struts.action.ActionMessages;
 import org.hibernate.LockMode;
 
 import de.fhg.fokus.hss.form.ImpiForm;
-import de.fhg.fokus.hss.model.AuthSchemeBO;
 import de.fhg.fokus.hss.model.Chrginfo;
 import de.fhg.fokus.hss.model.Impi;
 import de.fhg.fokus.hss.model.ImpiBO;
 import de.fhg.fokus.hss.model.Imsu;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton(dev -at- open-ims dot org)
@@ -73,8 +73,8 @@ public class ImpiSubmitAction extends HssAction
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
 			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			throws Exception{
+		
 		LOGGER.debug("entering");
 
 		ImpiForm form = (ImpiForm) actionForm;
@@ -82,61 +82,53 @@ public class ImpiSubmitAction extends HssAction
 
 		ActionMessages actionMessages = null;
 		ActionForward forward = null;
+		
 		Impi impi = null;
 		ImpiBO impiBO = new ImpiBO();
-		try
-		{
-			openSession();
-
+		try{
 			Integer primaryKey = form.getPrimaryKey();
-
+			HibernateUtil.beginTransaction();
 			// if pk id = -1 create a new impi and concat them to current imsu
-			if (primaryKey.intValue() == -1)
-			{
+			if (primaryKey.intValue() == -1){
 				// check for existing impi with the same impi string
-				if (((Integer) getSession()
-						.createQuery(
-								"select count(impi) from de.fhg.fokus.hss.model.Impi as impi where impi.impiString = ?")
+				if (((Integer) HibernateUtil.getCurrentSession()
+						.createQuery("select count(impi) from de.fhg.fokus.hss.model.Impi as impi where impi.impiString = ?")
 						.setString(0, form.getImpiString()).uniqueResult())
-						.intValue() == 0)
-				{
+						.intValue() == 0){
+					
 					impi = new Impi();
 
 					// store assigned imsu if exists
-					if (form.getImsuId() != null)
-					{
-						Integer assignedSubscriptionId = new Integer(form
-								.getImsuId());
-						impi.setImsu((Imsu) getSession().load(Imsu.class,
-								assignedSubscriptionId, LockMode.READ));
+					if (form.getImsuId() != null){
+						Integer assignedSubscriptionId = new Integer(form.getImsuId());
+						impi.setImsu((Imsu) HibernateUtil.getCurrentSession().load(Imsu.class, assignedSubscriptionId, LockMode.READ));
 					}
-				} else
-				{
+				}
+				else{
 					actionMessages = new ActionMessages();
-					actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-							"impi.error.duplicated"));
+					actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("impi.error.duplicated"));
 					saveMessages(request, actionMessages);
 					forward = mapping.findForward(FORWARD_FAILURE);
 				}
-			} else
-			{
+			} 
+			else{
 				impi = impiBO.load(primaryKey);
 			}
-		} finally
-		{
-			closeSession();
-			impiBO.closeSession();
+
+			// on errors dont store anything, forward to error page.
+			if (forward == null){
+				copyValues(form, impi);
+				impiBO.saveOrUpdate(impi);
+				forward = mapping.findForward(FORWARD_SUCCESS);
+				forward = new ActionForward(forward.getPath() + "?impiId="+ impi.getImpiId(), true);
+			}
+			
+			HibernateUtil.commitTransaction();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
 
-		// on errors dont store anything, forward to error page.
-		if (forward == null)
-		{
-			copyValues(form, impi);
-			impiBO.saveOrUpdate(impi);
-			forward = mapping.findForward(FORWARD_SUCCESS);
-			forward = new ActionForward(forward.getPath() + "?impiId="
-					+ impi.getImpiId(), true);
-		}
 
 		LOGGER.debug("exiting");
 
@@ -148,52 +140,23 @@ public class ImpiSubmitAction extends HssAction
 	 * @param form
 	 * @param impi
 	 */
-	private void copyValues(ImpiForm form, Impi impi)
-	{
+	private void copyValues(ImpiForm form, Impi impi){
+		
 		impi.setImsi(form.getImsi());
 		impi.setImpiString(form.getImpiString());
 		impi.setScscfName(form.getScscfName());
 
-		if (form.getAuthScheme().equals(AuthSchemeBO.AUTH_SCHEME_AKAv1))
-		{
-			System.out.println("\n\nAUTH_SCHEME: 1");
-			impi.setAlgorithm(form.getAlgorithm());
-			impi.setAuthScheme(form.getAuthScheme());
-			impi.setSkey(form.getSkey());
-			impi.setOperatorId(form.getOperatorId());
-			impi.setAmf(form.getAmf());
-		} 
-		else if (form.getAuthScheme().equals(AuthSchemeBO.AUTH_SCHEME_AKAv2))
-		{
-			impi.setAlgorithm(form.getAlgorithm());
-			impi.setAuthScheme(form.getAuthScheme());
-			impi.setSkey(form.getSkey());
-			impi.setOperatorId(form.getOperatorId());
-			impi.setAmf(form.getAmf());
-		} 
-		else if (form.getAuthScheme().equals(AuthSchemeBO.AUTH_SCHEME_MD5)){
-			impi.setAlgorithm(form.getAlgorithm());
-			impi.setAuthScheme(form.getAuthScheme());
-			impi.setSkey(form.getSkey());
-			impi.setOperatorId(form.getOperatorId());
-			impi.setAmf(form.getAmf());
-		}
-		else
-		{
-			impi.setAlgorithm(null);
-			impi.setAuthScheme(null);
-			impi.setSkey(null);
-			impi.setOperatorId(null);
-			impi.setAmf(null);
-		}
-
-		if (form.getSqnUpdate().equals(ImpiForm.SQD_UPDATE_TRUE))
-		{
+		impi.setAuthScheme(form.getAuthScheme());
+		impi.setSkey(form.getSkey());
+		impi.setOperatorId(form.getOperatorId());
+		impi.setAmf(form.getAmf());
+		
+		if (form.getSqnUpdate().equals(ImpiForm.SQD_UPDATE_TRUE)){
 			impi.setSqn(form.getSqn());
 		}
 
-		impi.setChrginfo((Chrginfo) getSession().get(Chrginfo.class,
-				Integer.valueOf(form.getChrgInfoId())));
+		impi.setChrginfo((Chrginfo) HibernateUtil.getCurrentSession().get(Chrginfo.class, Integer.valueOf(form.getChrgInfoId())));
+
 		// TODO: Read this values
 		impi.setUiccType(new Integer(1));
 		impi.setKeyLifeTime(new Integer(3600));

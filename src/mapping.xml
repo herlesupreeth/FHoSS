@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<!DOCTYPE mapping PUBLIC "-//EXOLAB/Castor Object Mapping DTD Version 1.0//EN"
-                         "http://castor.exolab.org/mapping.dtd">
-
-<mapping>
-        <class name="de.fhg.fokus.sh.data.ShData" auto-complete="true">
-	        <map-to xml="Sh-Data"/>
-        </class>
-</mapping>

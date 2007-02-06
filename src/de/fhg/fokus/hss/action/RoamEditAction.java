@@ -47,6 +47,7 @@ package de.fhg.fokus.hss.action;
 import de.fhg.fokus.hss.form.RoamingForm;
 import de.fhg.fokus.hss.model.Impi;
 import de.fhg.fokus.hss.model.Network;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -70,37 +71,32 @@ public class RoamEditAction extends HssAction
 	private static final Logger LOGGER = Logger.getLogger(RoamEditAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
+		
 		LOGGER.debug("entering");
-
 		RoamingForm roamingForm = (RoamingForm) actionForm;
 
-		try
-		{
-			Query query = getSession()
-					.createQuery(
-							"select impi from de.fhg.fokus.hss.model.Impi as impi where impi.impiId = ?");
-
+		try{
+			HibernateUtil.beginTransaction();
+			Query query = HibernateUtil.getCurrentSession()
+				.createQuery("select impi from de.fhg.fokus.hss.model.Impi as impi where impi.impiId = ?");
 			query.setString(0, roamingForm.getImpiId());
 
 			Impi impi = (Impi) query.uniqueResult();
 			Set roams = impi.getRoams();
 			roamingForm.setRoams(roams);
 
-			List networks = getSession().createCriteria(Network.class).list();
-
+			List networks = HibernateUtil.getCurrentSession().createCriteria(Network.class).list();
 			networks.removeAll(roams);
-
 			roamingForm.setNetworks(networks);
-		} finally
-		{
-			closeSession();
+			HibernateUtil.commitTransaction();
+			
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
 
-		if (LOGGER.isDebugEnabled())
-		{
+		if (LOGGER.isDebugEnabled()){
 			LOGGER.debug(actionForm);
 			LOGGER.debug("exiting");
 		}

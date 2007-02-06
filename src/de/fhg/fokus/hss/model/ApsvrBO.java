@@ -56,6 +56,7 @@ import org.hibernate.Query;
 import de.fhg.fokus.cx.datatypes.PublicIdentity;
 import de.fhg.fokus.cx.exceptions.DiameterException;
 import de.fhg.fokus.hss.server.cx.op.UpdateCxOperation;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 
 /**
@@ -63,8 +64,11 @@ import de.fhg.fokus.hss.server.cx.op.UpdateCxOperation;
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class ApsvrBO extends HssBO
+
+public class ApsvrBO
 {
+	public ApsvrBO(){
+	}
     /** logger */
     private static final Logger LOGGER = Logger.getLogger(ApsvrBO.class);
 
@@ -78,6 +82,8 @@ public class ApsvrBO extends HssBO
      */
     public static final int DH_SESSION_TERMINATED = 1;
 
+    
+    
     /**
      * loads application server with the help of provided primary key
      * @param primaryKey
@@ -86,7 +92,7 @@ public class ApsvrBO extends HssBO
      */
     public Apsvr load(Serializable primaryKey)
     {
-        Apsvr apsvr = (Apsvr) getSession().load(Apsvr.class, primaryKey);
+        Apsvr apsvr = (Apsvr) HibernateUtil.getCurrentSession().load(Apsvr.class, primaryKey);
         apsvr.addPropertyChangeListener(apsvr);
 
         return apsvr;
@@ -102,10 +108,7 @@ public class ApsvrBO extends HssBO
      */
     public AsPermList loadAsPermList(Serializable primaryKey)
     {
-        AsPermList asPermList = (AsPermList) getSession()
-                                                 .load(AsPermList.class,
-                primaryKey);
-
+        AsPermList asPermList = (AsPermList) HibernateUtil.getCurrentSession().load(AsPermList.class, primaryKey);
         return asPermList;
     }
 
@@ -120,18 +123,15 @@ public class ApsvrBO extends HssBO
     {
         LOGGER.debug("entering");
 
-        beginnTx();
-        getSession().saveOrUpdate(apsvr);
+        HibernateUtil.getCurrentSession().saveOrUpdate(apsvr);
         asPermList.setApsvrId(apsvr.getApsvrId());
-        getSession().saveOrUpdate(asPermList);
-        endTx();
+        HibernateUtil.getCurrentSession().saveOrUpdate(asPermList);
 
         if (apsvr.isChange() == true)
         {
             commitCxChanges(apsvr);
         }
 
-        closeSession();
         LOGGER.debug("exiting");
     }
 
@@ -145,16 +145,14 @@ public class ApsvrBO extends HssBO
 
         try
         {
-            Query query = getSession()
-                              .createQuery("select ifc from de.fhg.fokus.hss.model.Ifc as ifc where ifc.apsvr.apsvrId = ?");
+            Query query = HibernateUtil.getCurrentSession()
+            	.createQuery("select ifc from de.fhg.fokus.hss.model.Ifc as ifc where ifc.apsvr.apsvrId = ?");
             query.setInteger(0, apsvr.getApsvrId());
 
             Iterator itIfc = query.list().iterator();
-
             ArrayList impuIds = new ArrayList();
 
-            while (itIfc.hasNext())
-            {
+            while (itIfc.hasNext()){
                 Ifc ifc = (Ifc) itIfc.next();
 
                 if (ifc.getSvp() != null)

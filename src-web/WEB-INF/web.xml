@@ -2,7 +2,30 @@
 <!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN" "http://java.sun.com/j2ee/dtds/web-app_2_2.dtd">
 <web-app>
 	<display-name>HSS Management Console</display-name>
+	
 	<!-- Standard Action Servlet Configuration (with debugging) -->
+	
+	<filter id="respFilterId">
+        <filter-name>respFilter</filter-name>
+        <filter-class>de.fhg.fokus.hss.servlet.ResponseFilter</filter-class>
+    </filter>
+	
+    <filter-mapping>
+        <filter-name>respFilter</filter-name>
+<!--	    <servlet-name>action</servlet-name> -->
+	        <url-pattern>/pages/info/overview.jsp</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>respFilter</filter-name>
+	    <url-pattern>/pages/profiles/dStruct.jsp</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>respFilter</filter-name>
+	    <url-pattern>/pages/info/data.jsp</url-pattern>
+    </filter-mapping>
+
 	<servlet id="actionId">
 		<servlet-name>action</servlet-name>
 		<servlet-class>
@@ -62,7 +85,7 @@
 	</welcome-file-list>
 	
 
-	
+
 	<!-- Struts Tag Library Descriptors -->
 	<taglib>
 		<taglib-uri>/tags/struts-bean</taglib-uri>
@@ -115,40 +138,18 @@
     </auth-constraint>
   </security-constraint>
   
-  <!-- 
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>hss.web.console</web-resource-name>
-      <url-pattern>*.do</url-pattern>
-      <url-pattern>/pages/info/*</url-pattern>
-    </web-resource-collection>
-    <auth-constraint>
-       <role-name>hss_admin</role-name>
-    </auth-constraint>
-  </security-constraint>
- 	-->
- 	
   <!-- Define the Login Configuration for this Application -->
   <login-config>
     <auth-method>BASIC</auth-method>
-    <realm-name>FSoSS open-ims.org</realm-name>
+    <realm-name>open-ims.org</realm-name>
   </login-config>
 
   <!-- Security roles referenced by this web application -->
   <security-role>
     <description>
-      The role that is required to log in to the HSS Application
+      The role that is required to log into the HSS
     </description>
     <role-name>hss</role-name>
   </security-role>
-  <!-- Security roles referenced by this web application -->
-  <!--  
-  <security-role>
-    <description>
-      The role that is required to log in to the HSS2 Application
-    </description>
-    <role-name>hss_admin</role-name>
-  </security-role>  
- -->
-	
+
 </web-app>

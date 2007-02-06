@@ -98,11 +98,7 @@ public class HssServer
             
             HssDiameterStack diameterStack = new HssDiameterStack();
             diameterStack.startup();
-            
-            LOGGER.info("FHoSS was started and is ready for use !");
-            LOGGER.debug("Testing");
-            LOGGER.warn("Testing");
-            
+            LOGGER.info("FHoSS was started and is ready for use!");
             waitForExit();
             
             // stoping FHoSS

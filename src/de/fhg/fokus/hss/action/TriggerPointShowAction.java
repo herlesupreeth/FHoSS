@@ -49,6 +49,7 @@ import de.fhg.fokus.hss.form.TriggerPointForm;
 import de.fhg.fokus.hss.model.Spt;
 import de.fhg.fokus.hss.model.Trigpt;
 import de.fhg.fokus.hss.model.TrigptBO;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -74,74 +75,68 @@ public class TriggerPointShowAction extends HssAction
 			.getLogger(TriggerPointShowAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception{
+		
 		LOGGER.debug("entering");
-
 		TriggerPointForm form = (TriggerPointForm) actionForm;
 		LOGGER.debug(form);
 
-		if (form.getPrimaryKey().intValue() != -1)
-		{
-			// Load the Trigger Point
-			Trigpt trigpt = (Trigpt) getSession().load(Trigpt.class,
-					form.getPrimaryKey(), LockMode.READ);
+		if (form.getPrimaryKey().intValue() != -1){
+			try{
+				HibernateUtil.beginTransaction();
+				// 	Load the Trigger Point
+				Trigpt trigpt = (Trigpt) HibernateUtil.getCurrentSession().load(Trigpt.class, form.getPrimaryKey(), LockMode.READ);
 
-			// Save current Trigger Point Values
-			form.setTrigPtName(trigpt.getName());
-			form.setTrigPtId(String.valueOf(trigpt.getTrigptId().intValue()));
-			form.setCnf(trigpt.getCnf());
+				// Save current Trigger Point Values
+				form.setTrigPtName(trigpt.getName());
+				form.setTrigPtId(String.valueOf(trigpt.getTrigptId().intValue()));
+				form.setCnf(trigpt.getCnf());
 
-			// Save all SPT's
-			form.setSpts(getSpts(trigpt));
-
-			closeSession();
+				// Save all SPT's
+				form.setSpts(getSpts(trigpt));
+				HibernateUtil.commitTransaction();
+			}
+			finally{
+				HibernateUtil.closeSession();
+			}
 		}
 
 		LOGGER.debug("exiting");
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 
-	private List getSpts(Trigpt trigpt)
-	{
+	private List getSpts(Trigpt trigpt){
+		
 		ArrayList sptList = new ArrayList();
 		Iterator it = trigpt.getSpts().iterator();
 
-		while (it.hasNext())
-		{
+		while (it.hasNext()){
+			
 			Spt spt = (Spt) it.next();
 			SptForm sptForm = new SptForm();
 
-			switch (spt.getType())
-			{
-			case TrigptBO.TYPE_URI:
-				sptForm.setRequestUri(spt.getReqUri());
+			switch (spt.getType()){
+				case TrigptBO.TYPE_URI:
+					sptForm.setRequestUri(spt.getReqUri());
+					break;
 
-				break;
+				case TrigptBO.TYPE_SIP_METHOD:
+					sptForm.setSipMethod(spt.getSipMethod());
+					break;
 
-			case TrigptBO.TYPE_SIP_METHOD:
-				sptForm.setSipMethod(spt.getSipMethod());
+				case TrigptBO.TYPE_SIP_HEADER:
+					sptForm.setSipHeader(spt.getSipHeader());
+					sptForm.setSipHeaderContent(spt.getSipHeaderContent());
+					break;
 
-				break;
+				case TrigptBO.TYPE_SESSION_CASE:
+					sptForm.setSessionCase(String.valueOf(spt.getSessionCase()));
+					break;
 
-			case TrigptBO.TYPE_SIP_HEADER:
-				sptForm.setSipHeader(spt.getSipHeader());
-				sptForm.setSipHeaderContent(spt.getSipHeaderContent());
-
-				break;
-
-			case TrigptBO.TYPE_SESSION_CASE:
-				sptForm.setSessionCase(String.valueOf(spt.getSessionCase()));
-
-				break;
-
-			case TrigptBO.TYPE_SESSION_DESC:
-				sptForm.setSessionDescContent(spt.getSessionDescContent());
-				sptForm.setSessionDescLine(spt.getSessionDescLine());
-
-				break;
+				case TrigptBO.TYPE_SESSION_DESC:
+					sptForm.setSessionDescContent(spt.getSessionDescContent());
+					sptForm.setSessionDescLine(spt.getSessionDescLine());
+					break;
 			}
 
 			sptForm.setSptId(String.valueOf(spt.getSptId().intValue()));

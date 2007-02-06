@@ -56,6 +56,7 @@ import de.fhg.fokus.hss.form.IfcForm;
 import de.fhg.fokus.hss.model.Apsvr;
 import de.fhg.fokus.hss.model.Ifc;
 import de.fhg.fokus.hss.model.Trigpt;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
@@ -73,33 +74,30 @@ public class IfcShowAction extends HssAction
 		LOGGER.debug(form);
 		Integer primaryKey = form.getPrimaryKey();
 
-		try
-		{
-			/**
-			 * If create (id = -1), dont load the ifc, only the selection values
-			 */
-			if (primaryKey.intValue() != -1)
-			{
-				Ifc ifc = (Ifc) getSession().get(Ifc.class, primaryKey);
+		try{
+			//If create (id = -1), dont load the ifc, only the selection values
+			
+			HibernateUtil.beginTransaction();
+			if (primaryKey.intValue() != -1){
+				Ifc ifc = (Ifc) HibernateUtil.getCurrentSession().get(Ifc.class, primaryKey);
 
 				form.setIfcId(convString(ifc.getIfcId()));
 				form.setIfcName(ifc.getName());
 
 				form.setTriggerPointName(ifc.getTrigpt().getName());
-				form
-						.setTriggerPointId(convString(ifc.getTrigpt()
-								.getTrigptId()));
+				form.setTriggerPointId(convString(ifc.getTrigpt().getTrigptId()));
 
 				form.setApsvrId(convString(ifc.getApsvr().getApsvrId()));
 				form.setApsvrName(ifc.getApsvr().getName());
 			}
 
-			form.setApsvrs(getSession().createCriteria(Apsvr.class).list());
-			form.setTriggerPoints(getSession().createCriteria(Trigpt.class)
-					.list());
-		} finally
-		{
-			closeSession();
+			form.setApsvrs(HibernateUtil.getCurrentSession().createCriteria(Apsvr.class).list());
+			form.setTriggerPoints(HibernateUtil.getCurrentSession().createCriteria(Trigpt.class).list());
+			HibernateUtil.commitTransaction();
+			
+		}
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		if (LOGGER.isDebugEnabled())
@@ -107,7 +105,6 @@ public class IfcShowAction extends HssAction
 			LOGGER.debug(form);
 			LOGGER.debug("exiting");
 		}
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 }

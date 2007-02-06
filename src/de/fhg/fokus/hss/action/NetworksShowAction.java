@@ -45,6 +45,7 @@
 package de.fhg.fokus.hss.action;
 
 import de.fhg.fokus.hss.model.Network;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -63,22 +64,24 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class NetworksShowAction extends HssAction
-{
-	private static final Logger LOGGER = Logger
-			.getLogger(NetworksShowAction.class);
+public class NetworksShowAction extends HssAction{
+	private static final Logger LOGGER = Logger.getLogger(NetworksShowAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm form,
-			HttpServletRequest request, HttpServletResponse response)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse response) throws Exception{
 		LOGGER.debug("entering");
 
-		List networks = getSession().createCriteria(Network.class).list();
-		request.setAttribute("networks", networks);
-		closeSession();
+		try{
+			HibernateUtil.beginTransaction();
+			List networks = HibernateUtil.getCurrentSession().createCriteria(Network.class).list();
+			request.setAttribute("networks", networks);
+			HibernateUtil.commitTransaction();
+		}
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
 		LOGGER.debug("exiting");
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 }

@@ -60,6 +60,7 @@ import de.fhg.fokus.hss.form.Ifc2svpForm;
 import de.fhg.fokus.hss.model.Ifc;
 import de.fhg.fokus.hss.model.Ifc2svp;
 import de.fhg.fokus.hss.model.Svp;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
@@ -70,43 +71,40 @@ public class Ifc2svpEditAction extends HssAction
 			.getLogger(Ifc2svpEditAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
+		
 		LOGGER.debug("entering");
 
 		Ifc2svpForm form = (Ifc2svpForm) actionForm;
 
-		Query query = getSession()
-				.createQuery(
-						"select ifc2svp from de.fhg.fokus.hss.model.Ifc2svp as ifc2svp where ifc2svp.comp_id.svpId = ? order by ifc2svp.priority asc");
+		try{
+			HibernateUtil.beginTransaction();
+			Query query = HibernateUtil.getCurrentSession().createQuery("select ifc2svp from de.fhg.fokus.hss.model.Ifc2svp as ifc2svp where ifc2svp.comp_id.svpId = ? order by ifc2svp.priority asc");
+			query.setString(0, form.getSvpId());
 
-		query.setString(0, form.getSvpId());
+			ArrayList assignedIfcs = new ArrayList();
+			Iterator ifcs2impiIt = query.list().iterator();
 
-		ArrayList assignedIfcs = new ArrayList();
-		Iterator ifcs2impiIt = query.list().iterator();
+			while (ifcs2impiIt.hasNext()){
+				Ifc2svp ifc2svp = (Ifc2svp) ifcs2impiIt.next();
+				assignedIfcs.add(ifc2svp.getIfc());
+			}
 
-		while (ifcs2impiIt.hasNext())
-		{
-			Ifc2svp ifc2svp = (Ifc2svp) ifcs2impiIt.next();
-			assignedIfcs.add(ifc2svp.getIfc());
+			ArrayList ifcs = new ArrayList(HibernateUtil.getCurrentSession().createCriteria(Ifc.class).list());
+			ifcs.removeAll(assignedIfcs);
+
+			form.setAssignedIfcs(assignedIfcs);
+			form.setIfcs(ifcs);
+
+			Svp svp = (Svp) HibernateUtil.getCurrentSession().load(Svp.class, form.getPrimaryKey());
+			form.setSvpId(convString(svp.getSvpId()));
+			form.setName(svp.getName());
+			HibernateUtil.commitTransaction();
 		}
-
-		ArrayList ifcs = new ArrayList(getSession().createCriteria(Ifc.class)
-				.list());
-		ifcs.removeAll(assignedIfcs);
-
-		form.setAssignedIfcs(assignedIfcs);
-		form.setIfcs(ifcs);
-
-		Svp svp = (Svp) getSession().load(Svp.class, form.getPrimaryKey());
-		form.setSvpId(convString(svp.getSvpId()));
-		form.setName(svp.getName());
-
+		finally{
+			HibernateUtil.closeSession();
+		}
 		LOGGER.debug(actionForm);
-
-		closeSession();
-
 		LOGGER.debug("exiting");
 
 		return mapping.findForward(FORWARD_SUCCESS);

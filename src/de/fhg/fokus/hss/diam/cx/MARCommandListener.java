@@ -108,18 +108,14 @@ public class MARCommandListener extends CxCommandListener{
                 AVP resultCode = null;
                 PublicIdentity publicIdentity = loadPublicIdentity(requestMessage);
                     
-                LOGGER.info("MAR of User: "+ publicIdentity.getIdentity() + 
-                           " is being processed");      
+                LOGGER.info("MAR of User: "+ publicIdentity.getIdentity() + " is being processed");      
                     
                 URI privateUserIdentity = loadPrivateUserIdentity(requestMessage);
                 Long numberOfAuthVectors = loadNumberOfAuthVectors(requestMessage);
                 AuthenticationVector authenticationVector = loadAuthVector(requestMessage);
 
-                String scscfName =
-                    new String(avpLookUp(requestMessage, Constants.AVPCode.CX_SERVER_NAME, true, Constants.Vendor.V3GPP).data);
-
+                String scscfName = new String(avpLookUp(requestMessage, Constants.AVPCode.CX_SERVER_NAME, true, Constants.Vendor.V3GPP).data);
                 CxAuthDataResponse authDataResponse = null;
-                
                 authDataResponse = operations.cxAuthData(publicIdentity, privateUserIdentity, numberOfAuthVectors, authenticationVector, scscfName);
                 
                 if (authDataResponse == null){
@@ -127,14 +123,30 @@ public class MARCommandListener extends CxCommandListener{
                 }
 
                 DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
+                
+        		/* vendor-specific app id */
+                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, Constants.Vendor.DIAM);
+                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+                vendorID.setData(Constants.Vendor.V3GPP);
+                vendorSpecificApplicationID.addChildAVP(vendorID);
+                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+                applicationID.setData(Constants.Application.CX);
+                vendorSpecificApplicationID.addChildAVP(applicationID);
+                responseMessage.addAVP(vendorSpecificApplicationID);
+        		
+        		/* auth-session-state, no state maintained */
+                AVP authenticationSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+                authenticationSessionState.setData(1);
+                responseMessage.addAVP(authenticationSessionState);
+                
+                /* add authentication data items */
                 saveAuthData(authDataResponse, responseMessage);
 
-                // Add result code
-                resultCode = saveResultCode(authDataResponse.getResultCode(), authDataResponse.resultCodeIsBase());
-
+                /* Add the result code */
+                resultCode = getResultCodeAVP(authDataResponse.getResultCode(), authDataResponse.resultCodeIsBase());
                 responseMessage.addAVP(resultCode);
+                
                 diameterPeer.sendMessage(FQDN, responseMessage);
-                System.out.println("MAR finished!");
             }
             catch (DiameterException e){
                 LOGGER.warn(this, e);
@@ -247,11 +259,16 @@ public class MARCommandListener extends CxCommandListener{
 		}
 
         AVP sipAuthorization = authVectorAVP.findChildAVP(Constants.AVPCode.SIP_AUTHORIZATION, true, Vendor.V3GPP);
+        AVP sipAuthScheme = authVectorAVP.findChildAVP(Constants.AVPCode.SIP_AUTHENTICATION_SCHEME, true, Vendor.V3GPP);
 
+        authenticationVector = new AuthenticationVector();
         if (sipAuthorization != null){
-            authenticationVector = new AuthenticationVector(sipAuthorization.data);
+            authenticationVector.sipAuthorization = sipAuthorization.data;
         }
-
+        if (sipAuthScheme != null){
+        	authenticationVector.authenticationScheme = new String(sipAuthScheme.getData());
+        }
+        	
         return authenticationVector;
     }
 }

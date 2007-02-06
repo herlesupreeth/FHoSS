@@ -128,8 +128,7 @@ public class SNRCommandListener extends ShCommandListener{
 
                 if (asNameAVP != null){
                     applicationServerName = new URI(new String(asNameAVP.data));
-	                OriginHostResolver.setOriginHost(
-	                    applicationServerName.getPath(), applicationServerIdentity);
+	                OriginHostResolver.setOriginHost(applicationServerName.getPath(), applicationServerIdentity);
                 }
                 
                 byte[] serviceIndication = null;
@@ -140,15 +139,32 @@ public class SNRCommandListener extends ShCommandListener{
                     serviceIndication = svcIndAVP.data;
                 }
 
-                // Do HSS Bussiness
-                operations.shSubsNotif(publicIdentity, requestedData, subscriptionRequestType,
-                    serviceIndication, applicationServerIdentity, applicationServerName);
+                
+                operations.shSubsNotif(publicIdentity, requestedData, subscriptionRequestType, 
+                		serviceIndication, applicationServerIdentity, applicationServerName);
 
-                // Answer with a DIAMETER_SUCCESS, error cases will be handled
-                // by the exception handlers.
-                DiameterMessage responseMessage =
-                    diameterPeer.newResponse(requestMessage);
+                // Answer with a DIAMETER_SUCCESS, error cases will be handled by the exception handlers
 
+                // create the responseMessage
+                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
+
+                /* add Vendor-Specific app id */
+                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, 
+             		   Constants.Vendor.DIAM);
+                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+                vendorID.setData(Constants.Vendor.V3GPP);
+                vendorSpecificApplicationID.addChildAVP(vendorID);
+                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+                applicationID.setData(Constants.Application.SH);
+                vendorSpecificApplicationID.addChildAVP(applicationID);
+                responseMessage.addAVP(vendorSpecificApplicationID);
+                
+                /* add Auth-Session-State, no state maintained */
+                AVP authSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+                authSessionState.setData(1);
+                responseMessage.addAVP(authSessionState);
+                
+                /* add Result Code */
                 AVP responseCode = new AVP(Constants.AVPCode.RESULT_CODE, true, Constants.Vendor.DIAM);
                 responseCode.setData(ResultCode._DIAMETER_SUCCESS);
                 responseMessage.addAVP(responseCode);

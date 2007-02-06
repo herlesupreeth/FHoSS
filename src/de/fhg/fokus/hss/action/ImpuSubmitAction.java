@@ -48,6 +48,7 @@ import de.fhg.fokus.hss.form.ImpuForm;
 import de.fhg.fokus.hss.model.Impu;
 import de.fhg.fokus.hss.model.ImpuBO;
 import de.fhg.fokus.hss.model.Svp;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -77,58 +78,51 @@ public class ImpuSubmitAction extends HssAction
 	{
 		LOGGER.debug("entering");
 
-		ActionForward forward;
-		Impu impu;
+		ActionForward forward = null;
+		Impu impu = null;
 		ImpuBO impuBO = new ImpuBO();
 
 		try
 		{
 			ImpuForm form = (ImpuForm) actionForm;
 			LOGGER.debug(form);
-
-			impu = null;
-
 			Integer primaryKey = form.getPrimaryKey();
-
-			if (primaryKey.intValue() == -1)
-			{
+			
+			HibernateUtil.beginTransaction();
+			if (primaryKey.intValue() == -1){
 				impu = impuBO.create();
-			} else
-			{
+			} 
+			else{
 				impu = impuBO.load(primaryKey);
 			}
-
 			impu.setSipUrl(form.getSipUrl());
 			impu.setTelUrl(form.getTelUrl());
 			impu.setUserStatus(form.getUserStatusId());
 			impu.setBarringIndication(form.isBarred());
 
 			Integer svpKey = Integer.valueOf(form.getSvpId());
-
-			if (svpKey.intValue() != -1)
-			{
-				impu.setSvp((Svp) getSession().get(Svp.class, svpKey));
+			if (svpKey.intValue() != -1){
+				impu.setSvp((Svp) HibernateUtil.getCurrentSession().get(Svp.class, svpKey));
 			}
 
 			impuBO.saveOrUpdate(impu);
+			HibernateUtil.commitTransaction();
+			
 			forward = mapping.findForward(FORWARD_SUCCESS);
-			forward = new ActionForward(forward.getPath() + "?impuId="
-					+ impu.getImpuId(), true);
-
+			forward = new ActionForward(forward.getPath() + "?impuId=" + impu.getImpuId(), true);
 			LOGGER.debug(form);
-		} catch (ConstraintViolationException e)
-		{
+		} 
+		catch (ConstraintViolationException e){
 			LOGGER.warn(this, e);
 
 			ActionMessages actionMessages = new ActionMessages();
-			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-					"error.duplicate"));
+			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("error.duplicate"));
 			saveMessages(request, actionMessages);
 			forward = mapping.findForward(FORWARD_FAILURE);
-		} finally
+		} 
+		finally
 		{
-			impuBO.closeSession();
-			closeSession();
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");

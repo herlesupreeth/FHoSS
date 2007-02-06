@@ -81,14 +81,14 @@ public abstract class CommandListener implements EventListener {
 
    
     /**
-     * Extract result code from repsonse and generate resultcode AVP as an base
-     * or grouped experimental avp.
+     * Generates Result Code AVP for the specified resultCode. If the boolean flag is true a final response is generated, otherwise
+     * an Experimental Result is created.
      * 
      * @param resultCode expected result codecontained in response 
      * @param isBase it indicates either a base or grouped experimental avp
      * @return result code avp.
      */
-    protected AVP saveResultCode(int resultCode, boolean isBase){
+    protected AVP getResultCodeAVP(int resultCode, boolean isBase){
         AVP resultCodeAVP;
 
         if (isBase){

@@ -136,25 +136,32 @@ public class UARCommandListener extends CxCommandListener
 
                 DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
 
-                if (resultCode == null){
-                	//add  Session Id from Request
-                	AVP sessionIdAVP = requestMessage.getAVP(0);
-                	responseMessage.addAVP(sessionIdAVP);
-                	
-                	AVP vsAVP = null;
-                	
-                    // Add assigned Server Name
-                    if ( (response.getAssignedSCSCFName() != null) && (response.getAssignedSCSCFName().length() > 0)){
-                        AVP assginedSCSCFName = new AVP(Constants.AVPCode.CX_SERVER_NAME, true, Constants.Vendor.V3GPP);
-                        assginedSCSCFName.setData(response.getAssignedSCSCFName());
-                        responseMessage.addAVP(assginedSCSCFName);
-                    }
-
-                    // Add result code
-                    resultCode = saveResultCode(response.getResultCode(), response.resultCodeIsBase());
+        		/* vendor-specific app id */
+                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, Constants.Vendor.DIAM);
+                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+                vendorID.setData(Constants.Vendor.V3GPP);
+                vendorSpecificApplicationID.addChildAVP(vendorID);
+                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+                applicationID.setData(Constants.Application.CX);
+                vendorSpecificApplicationID.addChildAVP(applicationID);
+                responseMessage.addAVP(vendorSpecificApplicationID);
+        		
+        		/* auth-session-state, no state maintained */
+                AVP authenticationSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
+                authenticationSessionState.setData(1);
+                responseMessage.addAVP(authenticationSessionState);
+                
+                // Add assigned Server Name
+                if ( (response.getAssignedSCSCFName() != null) && (response.getAssignedSCSCFName().length() > 0)){
+                	AVP assginedSCSCFName = new AVP(Constants.AVPCode.CX_SERVER_NAME, true, Constants.Vendor.V3GPP);
+                    assginedSCSCFName.setData(response.getAssignedSCSCFName());
+                    responseMessage.addAVP(assginedSCSCFName);
                 }
 
+                // Add result code
+                resultCode = getResultCodeAVP(response.getResultCode(), response.resultCodeIsBase());
                 responseMessage.addAVP(resultCode);
+                
                 diameterPeer.sendMessage(FQDN, responseMessage);
                 LOGGER.debug("exiting");
             }

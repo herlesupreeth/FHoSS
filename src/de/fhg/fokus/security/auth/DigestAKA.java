@@ -248,7 +248,7 @@ public class DigestAKA
     }
     
     
-    public static AuthenticationVector getAuthenticationVector(String authenticationScheme, Inet4Address ip, 
+    public static de.fhg.fokus.cx.AuthenticationVector getAuthenticationVector(String authenticationScheme, Inet4Address ip, 
     		byte[] secretKey, byte [] opC, byte [] amf, byte [] sqn) throws NoSuchAlgorithmException, InvalidKeyException{
     
         // random bytes
@@ -317,4 +317,77 @@ public class DigestAKA
     	
     	return authenticationVector;
     }
+    
+    
+    public static de.fhg.fokus.zh.AuthenticationVector getAuthenticationVector(String authenticationScheme, 
+    		byte[] secretKey, byte [] opC, byte [] amf, byte [] sqn) throws NoSuchAlgorithmException, InvalidKeyException{
+    
+        // random bytes
+        SecureRandom randomAccess = SecureRandom.getInstance("SHA1PRNG");
+        byte[] randBytes = new byte[16];
+    	randomAccess.setSeed(System.currentTimeMillis());
+        randomAccess.nextBytes(randBytes);
+    	
+    	byte[] mac = Milenage.f1(secretKey,randBytes, opC, sqn, amf);
+        byte[] xres = Milenage.f2(secretKey, randBytes, opC);
+        byte[] ck = Milenage.f3(secretKey, randBytes, opC);
+        byte[] ik = Milenage.f4(secretKey, randBytes, opC); 
+        
+        byte[] autn = new byte[16];
+        if (HSSProperties.USE_AK){
+        	byte[] ak = Milenage.f5(secretKey, randBytes, opC);
+        	for (int i = 0; i < 6; i++){
+            	sqn[i] = (byte) (sqn[i] ^ ak[i]);
+            }	
+        }
+
+            // compute autn
+            int k = 0;
+            for (int i = 0; i < 6; i++, k++)
+            	autn[k] = sqn[i];
+            for (int i = 0; i < 2; i++, k++)
+            	autn[k] = amf[i];
+            for (int i = 0; i < 8; i++, k++)
+            	autn[k] = mac[i];
+
+            // compute nonce
+            byte [] nonce = new byte[32];
+            k = 0;
+            for (int i = 0; i < 16; i++, k++)
+            	nonce[k] = randBytes[i];
+            for (int i = 0; i < 16; i++, k++)
+            	nonce[k] = autn[i];
+
+            de.fhg.fokus.zh.AuthenticationVector authenticationVector;
+            if (authenticationScheme.equalsIgnoreCase(DigestAKA.AKAv1)){
+            	//AKAv1
+            	LOGGER.debug("Authentication-Scheme: AKAv1!");
+            	authenticationVector = new de.fhg.fokus.zh.AuthenticationVector(
+            		authenticationScheme, nonce, xres, ck, ik);
+            }
+            else if (authenticationScheme.equalsIgnoreCase(DigestAKA.AKAv2)){
+            	// AKAv2
+            	LOGGER.debug("Authentication-Scheme: AKAv2!");
+            	byte xresV2[] =  new byte[xres.length + ck.length + ik.length];
+            	k = 0;
+            	for (int i = 0; i < xres.length; i++, k++)
+            		xresV2[k] = xres[i];
+            	for (int i = 0; i < ik.length; i++, k++)
+            		xresV2[k] = ik[i];
+
+            	for (int i = 0; i < ck.length; i++, k++)
+            		xresV2[k] = ck[i];
+            	
+            	authenticationVector = new de.fhg.fokus.zh.AuthenticationVector(
+                		authenticationScheme, nonce, xresV2, ck, ik);
+            }
+            else{ 
+            	LOGGER.error("Authentication-Scheme not supported!");
+            	authenticationVector = null;
+            }
+    	
+    	return authenticationVector;
+    }
+    
+    
 }

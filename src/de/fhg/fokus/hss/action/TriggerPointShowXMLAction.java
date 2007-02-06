@@ -48,6 +48,7 @@ import de.fhg.fokus.cx.datatypes.TriggerPoint;
 import de.fhg.fokus.hss.form.TriggerPointForm;
 import de.fhg.fokus.hss.model.CxUserProfil;
 import de.fhg.fokus.hss.model.Trigpt;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -68,50 +69,55 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class TriggerPointShowXMLAction extends HssAction
-{
-	private static final Logger LOGGER = Logger
-			.getLogger(TriggerPointShowXMLAction.class);
+public class TriggerPointShowXMLAction extends HssAction{
+	
+	private static final Logger LOGGER = Logger.getLogger(TriggerPointShowXMLAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception{
+		
 		LOGGER.debug("entering");
-
 		ActionForward forward = null;
 		TriggerPointForm form = (TriggerPointForm) actionForm;
 		LOGGER.debug(form);
 
-		// Load the Trigger Point
-		Trigpt trigpt = (Trigpt) getSession().load(Trigpt.class,
-				form.getPrimaryKey(), LockMode.READ);
+		TriggerPoint triggerPoint = null;
+		try{
+			HibernateUtil.beginTransaction();
+			// Load the Trigger Point
+			Trigpt trigpt = (Trigpt) HibernateUtil.getCurrentSession().load(Trigpt.class, form.getPrimaryKey(), LockMode.READ);
+			triggerPoint = CxUserProfil.getTriggerPoint(trigpt);
+			HibernateUtil.commitTransaction();
+		}
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
+		if (triggerPoint != null){
+			StringWriter sw = new StringWriter();
+			try{
+				triggerPoint.marshal(sw);
+				forward = mapping.findForward(FORWARD_SUCCESS);
+			}
+			catch (Exception e){
+				LOGGER.warn(this, e);
+				ActionMessages actionMessages = new ActionMessages();
+				actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("triggerPoint.error.xml"));
+				saveMessages(request, actionMessages);
+				forward = mapping.findForward(FORWARD_FAILURE);
+			}
 
-		TriggerPoint triggerPoint = CxUserProfil.getTriggerPoint(trigpt);
-		StringWriter sw = new StringWriter();
-
-		try
-		{
-			triggerPoint.marshal(sw);
-			forward = mapping.findForward(FORWARD_SUCCESS);
-		} catch (Exception e)
-		{
-			LOGGER.warn(this, e);
-
+			String xml = sw.getBuffer().toString();
+			request.setAttribute("triggerPointXML", xml);
+		}
+		else{
 			ActionMessages actionMessages = new ActionMessages();
-			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-					"triggerPoint.error.xml"));
+			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("triggerPoint.error.xml"));
 			saveMessages(request, actionMessages);
 			forward = mapping.findForward(FORWARD_FAILURE);
-			forward = mapping.findForward(FORWARD_FAILURE);
 		}
-
-		String xml = sw.getBuffer().toString();
-		request.setAttribute("triggerPointXML", xml);
-		closeSession();
-
-		if (LOGGER.isDebugEnabled())
-		{
+		
+		if (LOGGER.isDebugEnabled()){
 			LOGGER.debug(forward);
 			LOGGER.debug("exiting");
 		}

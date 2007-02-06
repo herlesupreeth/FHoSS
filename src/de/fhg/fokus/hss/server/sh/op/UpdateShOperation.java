@@ -49,6 +49,7 @@ import java.net.URI;
 import org.apache.log4j.Logger;
 
 import de.fhg.fokus.hss.model.RepDataBO;
+import de.fhg.fokus.hss.util.HibernateUtil;
 import de.fhg.fokus.sh.DiameterException;
 import de.fhg.fokus.sh.InvalidAvpValue;
 import de.fhg.fokus.sh.RequestedData;
@@ -63,8 +64,7 @@ import de.fhg.fokus.sh.data.ShData;
 public class UpdateShOperation extends ShOperation
 {
     /** logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(UpdateShOperation.class);
+    private static final Logger LOGGER = Logger.getLogger(UpdateShOperation.class);
     /** requested data */    
     private RequestedData requestedData;
     /** an object representing sh specific data */
@@ -80,10 +80,7 @@ public class UpdateShOperation extends ShOperation
 	 * @param applicationServerIdentity identity of application server
 	 * @param requestedData requested data 
 	 */ 
-    public UpdateShOperation(
-        URI userIdentity, ShData shData, String applicationServerIdentity,
-        RequestedData requestedData)
-    {
+    public UpdateShOperation(URI userIdentity, ShData shData, String applicationServerIdentity, RequestedData requestedData){
         LOGGER.debug("entering");
         this.requestedData = requestedData;
         this.applicationServerIdentity = applicationServerIdentity;
@@ -99,36 +96,35 @@ public class UpdateShOperation extends ShOperation
      * @return null 
      * @throws DiameterException
      */
-    public Object execute() throws DiameterException
-    {
-        if (LOGGER.isDebugEnabled())
-        {
+    public Object execute() throws DiameterException{
+        
+    	if (LOGGER.isDebugEnabled()){
             LOGGER.debug("entering");
             LOGGER.debug(this);
         }
 
-        loadApsvr();
-        loadUserProfile();
+        try{
+        	HibernateUtil.beginTransaction();
+        	loadApsvr();
+        	loadUserProfile();
+        	switch (requestedData.getValue()){
+        		case RequestedData._REPOSITORYDATA:
+        			if (asPermList.isUpdRepData()){
+        				updateRepData();
+        			}
+        			else{
+        				throw new UserDataCannotBeModified();
+        			}
+        			break;
 
-        switch (requestedData.getValue())
-        {
-        case RequestedData._REPOSITORYDATA:
-
-            if (asPermList.isUpdRepData())
-            {
-                updateRepData();
-            }
-            else
-            {
-                throw new UserDataCannotBeModified();
-            }
-
-            break;
-
-        default:
-            throw new InvalidAvpValue();
+        		default:
+        			throw new InvalidAvpValue();
+        	}
         }
-
+        finally{
+        	HibernateUtil.commitTransaction();
+        	HibernateUtil.closeSession();
+        }
         LOGGER.debug("exiting");
 
         return null;
@@ -138,10 +134,8 @@ public class UpdateShOperation extends ShOperation
      * Update Repository Data
      * @throws DiameterException
      */
-    private void updateRepData() throws DiameterException
-    {
+    private void updateRepData() throws DiameterException{
         LOGGER.debug("entering");
-
         RepDataBO repDataBO = new RepDataBO(shData, apsvr, userProfil);
         repDataBO.updateRepData();
         LOGGER.debug("exiting");

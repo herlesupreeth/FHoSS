@@ -26,6 +26,11 @@ folder from the base directory).
 4.2. Deploy the application to the specified path.
 ant deploy
 
+4.3 IMPORTANT NOTE: regarding reinstallation and updates
+If you just updated FHoSS sources and you make only a reinstallation, please make a clean with "ant cleanall" or remove the old
+deploy/ folder before you make the new deployment! If you do not want to remove your old deployment, please chose another 
+directory for the new installation. Otherwise, conflicts between versions could occur.
+
 5. Configuration after deploy
 ------------------------------
 Default configuration is made for all the needed files to run FHoSS on the 

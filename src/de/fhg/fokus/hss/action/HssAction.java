@@ -66,55 +66,11 @@ public abstract class HssAction extends Action
 
 	public static final String FORWARD_FAILURE = "failure";
 
-	private Session session = null;
 
-	private Transaction tx = null;
-
-	protected Session getSession()
-	{
-		if (session != null)
-		{
-			return session;
-		} else
-		{
-			openSession();
-
-			return session;
-		}
-	}
 
 	protected static String convString(Integer integerObj)
 	{
 		return String.valueOf(integerObj.intValue());
 	}
 
-	protected void openSession()
-	{
-		session = HibernateUtil.currentSession();
-	}
-
-	public void closeSession()
-	{
-		session = null;
-		HibernateUtil.closeSession();
-	}
-
-	protected void flushSession()
-	{
-		session.flush();
-	}
-
-	protected void beginnTx()
-	{
-		tx = getSession().beginTransaction();
-	}
-
-	protected void endTx()
-	{
-		if ((tx != null) && (session.isOpen()))
-		{
-			tx.commit();
-			session.flush();
-		}
-	}
 }

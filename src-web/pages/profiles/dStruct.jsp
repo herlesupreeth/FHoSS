@@ -14,10 +14,11 @@
 <%
 	// This jsp access hibernate directly to collect
 	// information about the hss data content.
-	Session hibernateSession = HibernateUtil.currentSession();
 	String imsuString = request.getParameter("imsuString");
 	String impiString = request.getParameter("impiString");
-	
+
+	Session hibernateSession = HibernateUtil.getCurrentSession();
+	HibernateUtil.beginTransaction();	
 %>
 <html>
 <head>

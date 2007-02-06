@@ -60,6 +60,8 @@ import org.hibernate.exception.ConstraintViolationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import de.fhg.fokus.hss.util.HibernateUtil;
+import de.fhg.fokus.hss.util.InfrastructureException;
 /**
  * Select profiles from database and prepate viewable objects.
  * 
@@ -72,36 +74,55 @@ public class ImsuRemoveAction extends HssAction
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
 			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			throws Exception{
+		
 		LOGGER.debug("entering");
 
 		ActionForward forward = null;
-
-		try
-		{
-			Imsu imsu = (Imsu) getSession().load(Imsu.class,
-					new Integer(request.getParameter("imsuId")));
-			beginnTx();
-			getSession().delete(imsu);
-			endTx();
+		try{
+			
+			HibernateUtil.beginTransaction();
+			Imsu imsu = (Imsu) HibernateUtil.getCurrentSession().load(Imsu.class, new Integer(request.getParameter("imsuId")));
+			
+            if(checkIfImpiAssigned(imsu) == true){
+                ActionMessages actionMessages = new ActionMessages();
+                actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("imsu.error.impi.assigned"));
+                saveMessages(request, actionMessages);
+                forward = mapping.findForward(FORWARD_FAILURE);     
+    			HibernateUtil.commitTransaction();
+    			HibernateUtil.closeSession();
+                return forward;
+            } 			
+			
+			HibernateUtil.getCurrentSession().delete(imsu);
+			HibernateUtil.commitTransaction();
+			
 			forward = mapping.findForward(FORWARD_SUCCESS);
-		} catch (ConstraintViolationException e)
-		{
+		} 
+		catch (ConstraintViolationException e){
 			LOGGER.warn(this, e);
-
 			ActionMessages actionMessages = new ActionMessages();
-			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-					"error.constraint"));
+			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("error.constraint"));
 			saveMessages(request, actionMessages);
 			forward = mapping.findForward(FORWARD_FAILURE);
-		} finally
-		{
-			closeSession();
+		} 
+		catch(InfrastructureException e){
+			if (e.getCause() instanceof org.hibernate.exception.GenericJDBCException){
+				
+			}
+		}
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");
-
 		return forward;
 	}
+	
+	
+    private boolean checkIfImpiAssigned(Imsu imsu){
+         return ((Integer) HibernateUtil.getCurrentSession()
+                 .createQuery("select count(impi) from de.fhg.fokus.hss.model.Impi as impi where impi.imsu = ?")
+                 .setParameter(0, imsu).uniqueResult()).intValue() > 0;  	
+     }  	
 }

@@ -176,8 +176,7 @@ public abstract class ShCommandListener extends CommandListener{
                 authSessionState.setData(1);
                 responseMessage.addAVP(authSessionState);
                 
-                AVP resultAVP = saveResultCode((int) diameterException.getCode(),
-                        (diameterException instanceof DiameterBaseException));
+                AVP resultAVP = getResultCodeAVP((int) diameterException.getCode(), (diameterException instanceof DiameterBaseException));
                 
                 responseMessage.addAVP(resultAVP);
                 diameterPeer.sendMessage(FQDN, responseMessage);

@@ -47,6 +47,7 @@ package de.fhg.fokus.hss.action;
 import de.fhg.fokus.hss.form.SvpForm;
 import de.fhg.fokus.hss.model.Svp;
 import de.fhg.fokus.hss.model.SvpBO;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -71,9 +72,8 @@ public class SvpSubmitAction extends HssAction
 			.getLogger(SvpSubmitAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception{
+		
 		LOGGER.debug("entering");
 
 		SvpForm form = (SvpForm) actionForm;
@@ -83,43 +83,40 @@ public class SvpSubmitAction extends HssAction
 		SvpBO svpBO = new SvpBO();
 		ActionForward forward = null;
 
-		try
-		{
+		try{
 
+			HibernateUtil.beginTransaction();
 			Integer primaryKey = form.getPrimaryKey();
-
-			if (primaryKey.intValue() == -1)
-			{
+			if (primaryKey.intValue() == -1){
 				svp = svpBO.create();
-			} else
-			{
+			}
+			else{
 				svp = svpBO.load(primaryKey);
 			}
-
 			svp.setName(form.getName());
 			svpBO.saveOrUpdate(svp);
-			LOGGER.info("SERVICE PROFILE named " + form.getName()
-					+ " added successfully!");
+			HibernateUtil.commitTransaction();
+			
+			LOGGER.info("SERVICE PROFILE name " + form.getName() + " added successfully!");
 
 			// forward to impiShow with specific impiId
 			forward = mapping.findForward(FORWARD_SUCCESS);
 			forward = new ActionForward(forward.getPath() + "?svpId="
 					+ svp.getSvpId(), true);
-		} catch (ConstraintViolationException e)
-		{
+		} 
+		catch (ConstraintViolationException e){
 			LOGGER.debug(this, e);
+			
 			ActionMessages actionMessages = new ActionMessages();
-			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-					"error.duplicate"));
+			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("error.duplicate"));
 			saveMessages(request, actionMessages);
 			forward = mapping.findForward(FORWARD_FAILURE);
-		} finally
-		{
-			svpBO.closeSession();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");
-
 		return forward;
 	}
 }

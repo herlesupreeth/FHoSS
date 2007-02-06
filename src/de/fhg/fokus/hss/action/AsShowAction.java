@@ -55,6 +55,8 @@ import org.apache.struts.action.ActionMapping;
 import de.fhg.fokus.hss.form.AsForm;
 import de.fhg.fokus.hss.model.Apsvr;
 import de.fhg.fokus.hss.model.AsPermList;
+import de.fhg.fokus.hss.util.HibernateUtil;
+import de.fhg.fokus.hss.util.InfrastructureException;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
@@ -64,50 +66,54 @@ public class AsShowAction extends HssAction
 	private static final Logger LOGGER = Logger.getLogger(AsShowAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception{
+		
 		LOGGER.debug("entering");
 
 		AsForm form = (AsForm) actionForm;
-		// LOGGER.debug(form);
-
-		Apsvr apsvr = (Apsvr) getSession().load(Apsvr.class,
+		ActionForward action = null; 
+			
+		try{
+			HibernateUtil.beginTransaction();
+			Apsvr apsvr = (Apsvr) HibernateUtil.getCurrentSession().load(Apsvr.class,
 				form.getPrimaryKey());
-		form.setAsAddress(apsvr.getAddress());
-		form.setAsName(apsvr.getName());
-		form.setAsId(String.valueOf(apsvr.getApsvrId().intValue()));
-		form.setDefaultHandling(String.valueOf(apsvr.getDefaultHandling()));
+			form.setAsAddress(apsvr.getAddress());
+			form.setAsName(apsvr.getName());
+			form.setAsId(String.valueOf(apsvr.getApsvrId().intValue()));
+			form.setDefaultHandling(String.valueOf(apsvr.getDefaultHandling()));
 
-		AsPermList asPermList = (AsPermList) getSession().get(AsPermList.class,
-				form.getPrimaryKey());
-		if (asPermList != null)
-		{
-			form.setPullRepData(asPermList.isPullRepData());
-			form.setPull(asPermList.isPull());
-			form.setPullCharging(asPermList.isPullCharging());
-			form.setPullIfc(asPermList.isPullIfc());
-			form.setPullImpu(asPermList.isPullImpu());
-			form.setPullImpuUserState(asPermList.isPullImpuUserState());
-			form.setPullUserState(asPermList.isPullUserState());
-			form.setPullScscfName(asPermList.isPullScscfName());
-			form.setPullMsisdn(asPermList.isPullMsisdn());
-			form.setPullPsi(asPermList.isPullPsi());
-			form.setPullLocInfo(asPermList.isPullLocInfo());
-			form.setUpdPsi(asPermList.isUpdPsi());
-			form.setUpdRepData(asPermList.isUpdRepData());
-			form.setSubIfc(asPermList.isSubIfc());
-			form.setSubImpuUserState(asPermList.isSubImpuUserState());
-			form.setSubRepData(asPermList.isSubRepData());
-			form.setSubScscfname(asPermList.isSubScscfname());
-			form.setSubPsi(asPermList.isSubPsi());
+			AsPermList asPermList = (AsPermList) HibernateUtil.getCurrentSession().get(AsPermList.class, form.getPrimaryKey());
+			if (asPermList != null)
+			{
+				form.setPullRepData(asPermList.isPullRepData());
+				form.setPull(asPermList.isPull());
+				form.setPullCharging(asPermList.isPullCharging());
+				form.setPullIfc(asPermList.isPullIfc());
+				form.setPullImpu(asPermList.isPullImpu());
+				form.setPullImpuUserState(asPermList.isPullImpuUserState());
+				form.setPullUserState(asPermList.isPullUserState());
+				form.setPullScscfName(asPermList.isPullScscfName());
+				form.setPullMsisdn(asPermList.isPullMsisdn());
+				form.setPullPsi(asPermList.isPullPsi());
+				form.setPullLocInfo(asPermList.isPullLocInfo());
+				form.setUpdPsi(asPermList.isUpdPsi());
+				form.setUpdRepData(asPermList.isUpdRepData());
+				form.setSubIfc(asPermList.isSubIfc());
+				form.setSubImpuUserState(asPermList.isSubImpuUserState());
+				form.setSubRepData(asPermList.isSubRepData());
+				form.setSubScscfname(asPermList.isSubScscfname());
+				form.setSubPsi(asPermList.isSubPsi());
+			}			
+			HibernateUtil.commitTransaction();
+			action = mapping.findForward(FORWARD_SUCCESS); 
 		}
-
-		closeSession();
-
+		finally{
+			HibernateUtil.closeSession();
+		}
+		
 		LOGGER.debug("exiting");
 
-		return mapping.findForward(FORWARD_SUCCESS);
+		return action;
 	}
 
 }

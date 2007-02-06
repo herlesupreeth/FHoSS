@@ -71,10 +71,8 @@ import de.fhg.fokus.hss.server.cx.op.QueryCxOperation;
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class HSScxOperationsImpl implements HSScxOperations
-{
-    private static final Logger LOGGER =
-        Logger.getLogger(HSScxOperationsImpl.class);
+public class HSScxOperationsImpl implements HSScxOperations{
+    private static final Logger LOGGER = Logger.getLogger(HSScxOperationsImpl.class);
 
     /**
      * Implementation of the UAR/UAA.
@@ -85,21 +83,14 @@ public class HSScxOperationsImpl implements HSScxOperations
      * @return response object contains all UAA values
      * @throws DiameterException
      */
-    public CxUserRegistrationStatusResponse cxQuery(
-        PublicIdentity publicIdentity, String visitedNetworkIdentifier,
-        int typeOfAuthorization, URI privateUserIdentity)
-        throws DiameterException
-    {
-        LOGGER.debug("entering");
+    public CxUserRegistrationStatusResponse cxQuery(PublicIdentity publicIdentity, String visitedNetworkIdentifier,
+        int typeOfAuthorization, URI privateUserIdentity) throws DiameterException {
 
-        QueryCxOperation query =
-            new QueryCxOperation(
-                publicIdentity, visitedNetworkIdentifier, typeOfAuthorization,
+    	LOGGER.debug("entering");
+        QueryCxOperation query = new QueryCxOperation(publicIdentity, visitedNetworkIdentifier, typeOfAuthorization,
                 privateUserIdentity);
-        CxUserRegistrationStatusResponse response =
-            (CxUserRegistrationStatusResponse) query.execute();
+        CxUserRegistrationStatusResponse response = (CxUserRegistrationStatusResponse) query.execute();
         LOGGER.debug("exiting");
-
         return response;
     }
 
@@ -115,23 +106,16 @@ public class HSScxOperationsImpl implements HSScxOperations
      * @return response object contains all SAA values
      * @throws DiameterException
      */
-    public CxSCSCFNotificationResponse cxPull(
-        PublicIdentity publicIdentity, String serverName,
-        URI privateUserIdentity, int serverAssignmentType,
-        int userDataRequestType, int userDataAlreadyAvailable)
-        throws DiameterException
-    {
+    public CxSCSCFNotificationResponse cxPull(PublicIdentity publicIdentity, String serverName, 
+    		URI privateUserIdentity, int serverAssignmentType, int userDataRequestType, int userDataAlreadyAvailable)
+        throws DiameterException{
+    	
         LOGGER.debug("entering");
+        PullCxOperation pullCxOperation = new PullCxOperation(publicIdentity, serverName, privateUserIdentity,
+        		serverAssignmentType, userDataRequestType,userDataAlreadyAvailable);
+        CxSCSCFNotificationResponse response = (CxSCSCFNotificationResponse) pullCxOperation.execute();
 
-        PullCxOperation pullCxOperation =
-            new PullCxOperation(
-                publicIdentity, serverName, privateUserIdentity,
-                serverAssignmentType, userDataRequestType,
-                userDataAlreadyAvailable);
-        CxSCSCFNotificationResponse response =
-            (CxSCSCFNotificationResponse) pullCxOperation.execute();
         LOGGER.debug("exiting");
-
         return response;
     }
 
@@ -141,17 +125,12 @@ public class HSScxOperationsImpl implements HSScxOperations
      * @return response object contains all LIA values
      * @throws DiameterException
      */
-    public CxLocationQueryResponse cxLocationQuery(
-        PublicIdentity publicIdentity) throws DiameterException
-    {
-        LOGGER.debug("entering");
+    public CxLocationQueryResponse cxLocationQuery(PublicIdentity publicIdentity) throws DiameterException{
 
-        LocationCxOperation locationCxOperation =
-            new LocationCxOperation(publicIdentity);
-        CxLocationQueryResponse response =
-            (CxLocationQueryResponse) locationCxOperation.execute();
+    	LOGGER.debug("entering");
+        LocationCxOperation locationCxOperation = new LocationCxOperation(publicIdentity);
+        CxLocationQueryResponse response = (CxLocationQueryResponse) locationCxOperation.execute();
         LOGGER.debug("exiting");
-
         return response;
     }
 
@@ -165,21 +144,14 @@ public class HSScxOperationsImpl implements HSScxOperations
      * @return response object contains all MAA values
      * @throws DiameterException
      */
-    public CxAuthDataResponse cxAuthData(
-        PublicIdentity publicIdentity, URI privateUserIdentity,
-        Long numberOfAuthVectors, AuthenticationVector authenticationVector,
-        String scscfName) throws DiameterException
-    {
-        LOGGER.debug("entering");
-
+    public CxAuthDataResponse cxAuthData(PublicIdentity publicIdentity, URI privateUserIdentity,
+        Long numberOfAuthVectors, AuthenticationVector authenticationVector, String scscfName) throws DiameterException{
+        
+    	LOGGER.debug("entering");
         AuthCxOperation authCxOperation =
-            new AuthCxOperation(
-                publicIdentity, privateUserIdentity, numberOfAuthVectors,
-                authenticationVector, scscfName);
-        CxAuthDataResponse response =
-            (CxAuthDataResponse) authCxOperation.execute();
+            new AuthCxOperation(publicIdentity, privateUserIdentity, numberOfAuthVectors, authenticationVector, scscfName);
+        CxAuthDataResponse response = (CxAuthDataResponse) authCxOperation.execute();
         LOGGER.debug("exiting");
-
         return response;
     }
 }

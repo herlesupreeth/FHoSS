@@ -319,7 +319,7 @@ public class Impu extends NotifySupport implements Serializable
 
    /**
     * Getter method for impis
-    * @return public indentities
+    * @return private indentities
     */
     public Set getImpis()
     {

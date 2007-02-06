@@ -57,7 +57,7 @@ import de.fhg.fokus.diameter.DiameterPeer.data.AVP;
 import de.fhg.fokus.diameter.DiameterPeer.data.DiameterMessage;
 import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.diam.ResultCode;
-import de.fhg.fokus.hss.model.AuthSchemeBO;
+import de.fhg.fokus.hss.model.Impi;
 import de.fhg.fokus.zh.AuthenticationVector;
 import de.fhg.fokus.zh.ZhAuthDataResponse;
 import de.fhg.fokus.zh.ZhOperations;
@@ -88,9 +88,7 @@ public class MARzhCommandListener extends ZhCommandListener
      * @param zhImpl Zh Opeations
      * @param _diameterPeer diameterPeer
      */ 
-    public MARzhCommandListener(
-        ZhOperations zhImpl, DiameterPeer _diameterPeer)
-    {
+    public MARzhCommandListener(ZhOperations zhImpl, DiameterPeer _diameterPeer){
         super(_diameterPeer);
         this.zhOperations = zhImpl;
     }
@@ -100,10 +98,9 @@ public class MARzhCommandListener extends ZhCommandListener
      * @param FQDN fully qualified domain name
      * @param requestMessage the diameter message   
      */ 
-    public void recvMessage(String FQDN, DiameterMessage requestMessage)
-    {
-        if (requestMessage.commandCode == COMMAND_ID)
-        {
+    public void recvMessage(String FQDN, DiameterMessage requestMessage){
+        
+    	if (requestMessage.commandCode == COMMAND_ID){
             counter++;
             if(LOGGER.isDebugEnabled()){
             	LOGGER.debug("entering");
@@ -111,92 +108,62 @@ public class MARzhCommandListener extends ZhCommandListener
             	LOGGER.debug(requestMessage);
             }
 
-            try
-            {
+            try{
                 AVP resultCode = null;
-
-                URI privateUserIdentity =
-                    loadPrivateUserIdentity(requestMessage);
-                Long numberOfAuthVectors =
-                    loadNumberOfAuthVectors(requestMessage);
+                URI privateUserIdentity = loadPrivateUserIdentity(requestMessage);
+                Long numberOfAuthVectors = loadNumberOfAuthVectors(requestMessage);
                 AuthenticationVector authenticationVector = null;
-
                 ZhAuthDataResponse authDataResponse = null;
 
-                authDataResponse =
-                    zhOperations.zhAuthData(
-                        privateUserIdentity, numberOfAuthVectors,
-                        authenticationVector, null);
+                authDataResponse = zhOperations.zhAuthData(privateUserIdentity, numberOfAuthVectors, authenticationVector, null);
 
-                DiameterMessage responseMessage =
-                    diameterPeer.newResponse(requestMessage);
+                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
 
                 final int SESSION_ID_AVP = 263;
-                AVP sessionId =
-                    requestMessage.findAVP(
-                        SESSION_ID_AVP, true, Constants.Vendor.DIAM);
+                AVP sessionId = requestMessage.findAVP(SESSION_ID_AVP, true, Constants.Vendor.DIAM);
 
-                if (sessionId != null)
-                {
+                if (sessionId != null){
                     responseMessage.addAVP(sessionId);
                 }
-                else
-                {
-                    LOGGER.debug(
-                        this, new NullPointerException("Session ID missed."));
+                else{
+                    LOGGER.warn(this, new NullPointerException("Session ID missing!"));
                 }
 
                 final int VENDOR_APP_ID_AVP = 260;
-                AVP vendorId =
-                    requestMessage.findAVP(
-                        VENDOR_APP_ID_AVP, true, Constants.Vendor.DIAM);
+                AVP vendorId = requestMessage.findAVP(VENDOR_APP_ID_AVP, true, Constants.Vendor.DIAM);
 
-                if (vendorId != null)
-                {
+                if (vendorId != null){
                     responseMessage.addAVP(vendorId);
                 }
-                else
-                {
-                    LOGGER.warn(
-                        this, new NullPointerException("Vendor ID missed."));
+                else{
+                    LOGGER.warn(this, new NullPointerException("Vendor ID missed."));
                 }
 
                 final int AUTH_STATE_AVP = 277;
-                AVP authStateId =
-                    requestMessage.findAVP(
-                        AUTH_STATE_AVP, true, Constants.Vendor.DIAM);
+                AVP authStateId = requestMessage.findAVP(AUTH_STATE_AVP, true, Constants.Vendor.DIAM);
 
-                if (authStateId != null)
-                {
+                if (authStateId != null){
                     responseMessage.addAVP(authStateId);
                 }
-                else
-                {
-                    LOGGER.warn(
-                        this, new NullPointerException("Auth State ID missed."));
+                else{
+                    LOGGER.warn(this, new NullPointerException("Auth State ID missed."));
                 }
 
                 saveAuthData(authDataResponse, responseMessage);
                 saveGussData(authDataResponse, responseMessage);
 
                 // Add result code
-                resultCode =
-                    saveResultCode(
-                        authDataResponse.getResultCode(),
-                        authDataResponse.resultCodeIsBase());
-
+                resultCode = getResultCodeAVP(authDataResponse.getResultCode(), authDataResponse.resultCodeIsBase());
                 responseMessage.addAVP(resultCode);
                 
                 diameterPeer.sendMessage(FQDN, responseMessage);
                 LOGGER.debug("exiting");
             }
-            catch (DiameterException e)
-            {
+            catch (DiameterException e){
                 LOGGER.warn(this, e);
                 sendDiameterException(FQDN, requestMessage, e);
             }
-            catch (Exception e)
-            {
+            catch (Exception e){
                 LOGGER.error(this, e);
                 sendUnableToComply(FQDN, requestMessage);
             }
@@ -212,11 +179,10 @@ public class MARzhCommandListener extends ZhCommandListener
      * @throws MarshalException On marshal the Guss to the AVP failure
      * @throws ValidationException On marshal the Guss to the AVP failure
      */
-    private void saveGussData(
-        ZhAuthDataResponse authDataResponse, DiameterMessage responseMessage)
-        throws MarshalException, ValidationException{
+    private void saveGussData(ZhAuthDataResponse authDataResponse, DiameterMessage responseMessage)
+    	throws MarshalException, ValidationException{
+    	
         Guss guss = authDataResponse.getGuss();
-
         if (guss != null){
             AVP gussAVP = new AVP (Constants.AVPCode.ZH_GUSS, true, Constants.Vendor.V3GPP);
             StringWriter sw = new StringWriter();
@@ -232,8 +198,7 @@ public class MARzhCommandListener extends ZhCommandListener
      * @param authDataResponse 
      * @param responseMessage
      */
-    private void saveAuthData(
-        ZhAuthDataResponse authDataResponse, DiameterMessage responseMessage){
+    private void saveAuthData(ZhAuthDataResponse authDataResponse, DiameterMessage responseMessage){
         // Iterete and add vectors to response message
         Iterator it = authDataResponse.getAuthenticationVectors().iterator();
         int ix = 0;
@@ -286,8 +251,8 @@ public class MARzhCommandListener extends ZhCommandListener
      * @throws DiameterException
      */
     private Long loadNumberOfAuthVectors(DiameterMessage requestMessage)
-        throws DiameterException
-    {
+        throws DiameterException{
+    	
         //        Long numberOfAuthVectors = null;
         //
         //        try
@@ -315,8 +280,8 @@ public class MARzhCommandListener extends ZhCommandListener
      * @throws DiameterException
      */
     private AuthenticationVector loadAuthVector(DiameterMessage requestMessage)
-        throws DiameterException
-    {
+        throws DiameterException{
+    	
         //        AuthenticationVector authenticationVector = null;
         //        AVP authVectorAVP =
         //            avpLookUp(
@@ -333,7 +298,7 @@ public class MARzhCommandListener extends ZhCommandListener
         //        }
         //
         //        return authenticationVector;
-        return new AuthenticationVector(AuthSchemeBO.AUTH_ALGORITHM_AKAv1.getBytes());
+        return new AuthenticationVector(Constants.AuthScheme.AUTH_SCHEME_AKAv1.getBytes());
     }
     
     /**

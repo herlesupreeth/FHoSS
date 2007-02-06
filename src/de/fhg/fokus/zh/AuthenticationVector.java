@@ -69,6 +69,7 @@ public class AuthenticationVector {
 	 * 
 	 * @param sipAuthorization
 	 */
+
 	public AuthenticationVector(byte [] sipAuthorization) {
 		this.sipAuthorization = sipAuthorization;
 	}
@@ -78,8 +79,22 @@ public class AuthenticationVector {
 	 * @param authenticationScheme
 	 * @param sipAuthenticate
 	 * @param sipAuthorization
+	 */
+
+	public AuthenticationVector(String authenticationScheme, byte [] sipAuthenticate, byte [] sipAuthorization) {
+		this.authenticationScheme = authenticationScheme;
+		this.sipAuthenticate = sipAuthenticate;
+		this.sipAuthorization = sipAuthorization;
+	}
+
+	/**
+	 * Creates a new AuthenticationVector 
+	 * @param authenticationScheme
+	 * @param sipAuthenticate
+	 * @param sipAuthorization
 	 * @param integrityKey
 	 */
+	
 	public AuthenticationVector(String authenticationScheme, byte [] sipAuthenticate, byte [] sipAuthorization, byte [] integrityKey) {
 		this.authenticationScheme = authenticationScheme;
 		this.sipAuthenticate = sipAuthenticate;

@@ -54,6 +54,7 @@ import de.fhg.fokus.cx.exceptions.DiameterException;
 import de.fhg.fokus.cx.exceptions.ims.RoamingNotAllowed;
 import de.fhg.fokus.hss.diam.ResultCode;
 import de.fhg.fokus.hss.diam.UserAuthorizationTypeAVP;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 
 /**
@@ -63,8 +64,7 @@ import de.fhg.fokus.hss.diam.UserAuthorizationTypeAVP;
 public class QueryCxOperation extends CxOperation
 {
     /** logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(QueryCxOperation.class);
+    private static final Logger LOGGER = Logger.getLogger(QueryCxOperation.class);
 
     /**
      * The default scscf name
@@ -83,11 +83,10 @@ public class QueryCxOperation extends CxOperation
      * @param _typeOfAuthorization type of authorization
      * @param _privateUserIdentity private user identity
      */ 
-    public QueryCxOperation(
-        PublicIdentity _publicIdentity, String _visitedNetworkIdentifier,
-        int _typeOfAuthorization, URI _privateUserIdentity)
-    {
-        LOGGER.debug("entering");
+    public QueryCxOperation(PublicIdentity _publicIdentity, String _visitedNetworkIdentifier, 
+    		int _typeOfAuthorization, URI _privateUserIdentity){
+        
+    	LOGGER.debug("entering");
         this.publicIdentity = _publicIdentity;
         this.privateUserIdentity = _privateUserIdentity;
         this.visitedNetworkIdentifier = _visitedNetworkIdentifier;
@@ -101,10 +100,8 @@ public class QueryCxOperation extends CxOperation
      * @return an object providing UAA specific information 
      * @throws DiameterException
      */   
-    public Object execute() throws DiameterException
-    {
-        if (LOGGER.isDebugEnabled())
-        {
+    public Object execute() throws DiameterException{
+        if (LOGGER.isDebugEnabled()){
             LOGGER.debug("entering");
             LOGGER.debug(this);
         }
@@ -113,55 +110,40 @@ public class QueryCxOperation extends CxOperation
 
         try
         {
+        	HibernateUtil.beginTransaction();
             loadUserProfile();
 
             // HSS shall check that the user is allowed to roam in the visited
             // network on REGISTRATION
-            if (
-                (
-                        typeOfAuthorization == UserAuthorizationTypeAVP._REGISTRATION
-                    )
-                    || (
-                        typeOfAuthorization == UserAuthorizationTypeAVP._REGISTRATION_AND_CAPABILITIES
-                    ))
-            {
-                if (
-                    userProfil.isRoamingAllowed(visitedNetworkIdentifier) == false)
-                {
+            if ((typeOfAuthorization == UserAuthorizationTypeAVP._REGISTRATION) || 
+            		(typeOfAuthorization == UserAuthorizationTypeAVP._REGISTRATION_AND_CAPABILITIES)){
+            	
+                if (userProfil.isRoamingAllowed(visitedNetworkIdentifier) == false){
                     throw new RoamingNotAllowed();
                 }
 
-                registrationStatusResponse =
-                    new CxUserRegistrationStatusResponse(
-                        ResultCode._DIAMETER_SUBSEQUENT_REGISTRATION, false);
+                registrationStatusResponse = new CxUserRegistrationStatusResponse(
+                		ResultCode._DIAMETER_SUBSEQUENT_REGISTRATION, false);
             }
-            else
-            {
+            else{
                 // DE_REGISTRATION
-                registrationStatusResponse =
-                    new CxUserRegistrationStatusResponse(
-                        ResultCode._DIAMETER_SUCCESS, true);
+                registrationStatusResponse = new CxUserRegistrationStatusResponse(ResultCode._DIAMETER_SUCCESS, true);
             }
 
-            if (userProfil.getImpi().getScscfName() != null)
-            {
-                registrationStatusResponse.setAssignedSCSCFName(
-                    userProfil.getImpi().getScscfName());
+            if (userProfil.getImpi().getScscfName() != null){
+                registrationStatusResponse.setAssignedSCSCFName(userProfil.getImpi().getScscfName());
             }
-            else
-            {
-                registrationStatusResponse.setAssignedSCSCFName(
-                    DEFAULT_SCSCF_NAME);
+            else{
+                registrationStatusResponse.setAssignedSCSCFName(DEFAULT_SCSCF_NAME);
             }
+            
         }
-        finally
-        {
-        	if(getUserProfil() != null){
-            getUserProfil().closeSession();
-        	}
-            LOGGER.debug("exiting");
+        finally{
+        	HibernateUtil.commitTransaction();
+        	HibernateUtil.closeSession();
         }
 
+        LOGGER.debug("exiting");
         return registrationStatusResponse;
     }
 }

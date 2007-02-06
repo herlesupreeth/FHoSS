@@ -51,22 +51,24 @@ import java.io.ObjectOutputStream;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import de.fhg.fokus.hss.server.sh.ASshOperationsImpl;
+import de.fhg.fokus.hss.util.HibernateUtil;
 import de.fhg.fokus.sh.DiameterException;
 import de.fhg.fokus.sh.TransparentDataOutOfSync;
 import de.fhg.fokus.sh.UnableToComply;
 import de.fhg.fokus.sh.data.RepositoryData;
 import de.fhg.fokus.sh.data.ServiceData;
 import de.fhg.fokus.sh.data.ShData;
-
+import de.fhg.fokus.hss.util.*;
 
 /**
- * Contains all bussiness methods for repository data, like update or notify.
+ * Contains all bussiness methods for repository data (like update or notify).
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class RepDataBO extends HssBO
-{
+public class RepDataBO{
     /** logger */
     private static final Logger LOGGER = Logger.getLogger(RepDataBO.class);
     /** sh specific repository data */
@@ -82,8 +84,7 @@ public class RepDataBO extends HssBO
      * @param _apsvr Application Server
      * @param _userProfil User Profil contained assigned user
      */
-    public RepDataBO(ShData _shData, Apsvr _apsvr, ShUserProfil _userProfil)
-    {
+    public RepDataBO(ShData _shData, Apsvr _apsvr, ShUserProfil _userProfil){
         LOGGER.debug("entering");
         this.shData = _shData;
         this.apsvr = _apsvr;
@@ -92,7 +93,7 @@ public class RepDataBO extends HssBO
     }
 
     /**
-     * It updates the repository data
+     * It +s the repository data
      *
      * @throws DiameterException
      */
@@ -124,21 +125,19 @@ public class RepDataBO extends HssBO
             repDataPK.setSvcInd(serviceInd);
 
             RepData repData = null;
-            repData = (RepData) getSession().get(RepData.class, repDataPK);
+            Session session = HibernateUtil.getCurrentSession();
+            repData = (RepData) session.get(RepData.class, repDataPK);
 
             if ((repData == null) && (bufRepData != null)){
                 // Create entry
                 LOGGER.debug("create");
 
                 if (sqn == 0){
-                    beginnTx();
                     repData = new RepData();
                     repData.setComp_id(repDataPK);
                     repData.setSqn(new Integer(0));
                     repData.setSvcData(bufRepData);
-                    
-                    getSession().save(repData);
-                    endTx();
+                    session.save(repData);
                 }
                 else{
                 	throw new TransparentDataOutOfSync();
@@ -151,39 +150,32 @@ public class RepDataBO extends HssBO
                 if ((sqn - 1) == repData.getSqn().intValue()){
                 	repData.setSvcData(bufRepData);
                 	repData.setSqn(sqn);
-                	beginnTx();
-                	getSession().update(repData);
-                	endTx();
-                	commitShChanges(repData);
+                	session.update(repData);
+                	commitShChanges(repData, session);
                 }
                 else{
-                        LOGGER.warn(
-                            "Repository-Data out of Sync! SH-SQN-1: " + (sqn - 1)
-                            + " versus HSS-SQN: " + repData.getSqn().intValue());
-                        throw new TransparentDataOutOfSync();
+                	LOGGER.warn("Repository-Data out of Sync! SH-SQN-1: " + (sqn - 1) + " versus HSS-SQN: " + 
+                			repData.getSqn().intValue());
+                	throw new TransparentDataOutOfSync();
                }
             }
              else if (repData != null && bufRepData == null){
             	 LOGGER.debug("delete");
-                 commitShChanges(repData);
+                 commitShChanges(repData, session);
                  
                  // Delete
-                 beginnTx();
-                 getSession().delete(repData);
-                 endTx();
+                 session.delete(repData);
                  
             }
              else{
             	 // repository data is already null
             	 throw new UnableToComply();
              }
-            closeSession();
         }
         catch (IOException e){
             LOGGER.error(this, e);
             throw new UnableToComply();
         }
-
         LOGGER.debug("exiting");
     }
 
@@ -191,25 +183,20 @@ public class RepDataBO extends HssBO
      * Commit changes to sh interface.
      * @param repData
      */
-    private void commitShChanges(RepData repData)
+    private void commitShChanges(RepData repData, Session session)
     {
         LOGGER.debug("entering");
 
-        //BUG, the repData is null after some time... NULLPointerException is sent!!!         
-        LOGGER.error("Notify: " + repData.getNotifyRepDatas());
-
-        if (repData.getNotifyRepDatas().isEmpty() == false)
-        {
+        if (repData.getNotifyRepDatas().isEmpty() == false){
             Iterator it = repData.getNotifyRepDatas().iterator();
             ASshOperationsImpl operationsImpl = new ASshOperationsImpl();
 
-            while (it.hasNext())
-            {
+            while (it.hasNext()){
                 NotifyRepData notifyRepData = (NotifyRepData) it.next();
-                Apsvr notifApsvr = (Apsvr) getSession().get(Apsvr.class, notifyRepData.getComp_id().getApsvrId());
+                Apsvr notifApsvr = (Apsvr) session.get(Apsvr.class, notifyRepData.getComp_id().getApsvrId());
 
                 try{
-                    operationsImpl.shNotif(userProfil.getUri(), shData, notifApsvr.getName());
+                    operationsImpl.shNotif(userProfil.getUri(), shData, Util.getHost(notifApsvr.getAddress()));
                 }
                 catch (DiameterException e){
                     LOGGER.error(this, e);

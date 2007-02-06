@@ -48,6 +48,7 @@ import java.net.URI;
 
 import org.apache.log4j.Logger;
 
+import de.fhg.fokus.hss.util.HibernateUtil;
 import de.fhg.fokus.sh.DiameterException;
 import de.fhg.fokus.sh.RequestedData;
 
@@ -56,11 +57,9 @@ import de.fhg.fokus.sh.RequestedData;
  * This class represents the pull operation which is triggered by PNR command
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class NotifShOperation extends ShOperation
-{
+public class NotifShOperation extends ShOperation{
     /** logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(NotifShOperation.class);
+    private static final Logger LOGGER = Logger.getLogger(NotifShOperation.class);
     /** requested data */
     private RequestedData requestedData;
     /** service indication */
@@ -77,10 +76,8 @@ public class NotifShOperation extends ShOperation
 	 * @param applicationServerIdentity identity of application server
 	 * @param applicationServerName uri of application server
 	 */ 
-    public NotifShOperation(
-        URI userIdentity, RequestedData requestedData, byte[] serviceIndication,
-        String applicationServerIdentity, URI applicationServerName)
-    {
+    public NotifShOperation(URI userIdentity, RequestedData requestedData, byte[] serviceIndication,
+        String applicationServerIdentity, URI applicationServerName) {
         LOGGER.debug("entering");
         this.requestedData = requestedData;
         this.applicationServerIdentity = applicationServerIdentity;
@@ -96,19 +93,23 @@ public class NotifShOperation extends ShOperation
      * @return an object containing the pulled data
      * @throws DiameterException
      */
-    public Object execute() throws DiameterException
-    {
-        if (LOGGER.isDebugEnabled())
-        {
+    public Object execute() throws DiameterException{
+        
+    	if (LOGGER.isDebugEnabled()){
             LOGGER.debug("entering");
             LOGGER.debug(this);
         }
 
-        loadApsvr();
-        loadUserProfile();
-
+    	try{
+    		HibernateUtil.beginTransaction();
+    		loadApsvr();
+    		loadUserProfile();
+    	}
+    	finally{
+    		HibernateUtil.commitTransaction();
+    		HibernateUtil.closeSession();
+    	}
         LOGGER.debug("exiting");
-
         return null;
     }
 }

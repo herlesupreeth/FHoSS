@@ -61,6 +61,7 @@ import de.fhg.fokus.hss.form.GussForm;
 import de.fhg.fokus.hss.form.UssForm;
 import de.fhg.fokus.hss.model.Impi;
 import de.fhg.fokus.hss.model.UserSecSettings;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
@@ -70,61 +71,58 @@ public class GussShowAction extends HssAction
 	private static final Logger LOGGER = Logger.getLogger(GussShowAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
+
 		LOGGER.debug("entering");
 
 		GussForm form = (GussForm) actionForm;
+		
+		try{
+			HibernateUtil.beginTransaction();
+			Impi impi = (Impi) HibernateUtil.getCurrentSession().load(Impi.class, form.getPrimaryKey());
 
-		Impi impi = (Impi) getSession().load(Impi.class, form.getPrimaryKey());
+			// Load the uss list
+			Query query = HibernateUtil.getCurrentSession()
+				.createQuery("select uss from de.fhg.fokus.hss.model.UserSecSettings as uss where uss.impiId = ?");
+			query.setInteger(0, form.getPrimaryKey());
 
-		// Load the uss list
-		Query query = getSession()
-				.createQuery(
-						"select uss from de.fhg.fokus.hss.model.UserSecSettings as uss where uss.impiId = ?");
+			List gussList = query.list();
+			
+			ArrayList ussList = new ArrayList();
+			Iterator it = gussList.iterator();
 
-		query.setInteger(0, form.getPrimaryKey());
+			while (it.hasNext()){
+				UserSecSettings uss = (UserSecSettings) it.next();
+				UssForm ussForm = new UssForm();
+				ussForm.setId(convString(uss.getId()));
+				ussForm.setFlag(uss.getFlag().intValue());
+				ussForm.setUssType(uss.getUssType());
+				ussForm.setNafGroup(uss.getNafGroup());
+				ussList.add(ussForm);
+			}
 
-		List gussList = query.list();
-		ArrayList ussList = new ArrayList();
+			if ((request.getParameter("addUss") != null) && (request.getParameter("addUss").equals("true"))){
+				UssForm ussForm = new UssForm();
+				ussForm.setId("-1");
+				ussList.add(ussForm);
+			}
 
-		Iterator it = gussList.iterator();
+			form.setUssList(ussList);
 
-		while (it.hasNext())
-		{
-			UserSecSettings uss = (UserSecSettings) it.next();
-			UssForm ussForm = new UssForm();
-			ussForm.setId(convString(uss.getId()));
-			ussForm.setFlag(uss.getFlag().intValue());
-			ussForm.setUssType(uss.getUssType());
-			ussForm.setNafGroup(uss.getNafGroup());
-			ussList.add(ussForm);
+			// add the impi values
+			form.setUiccType(impi.getUiccType().intValue());
+			form.setImpiString(impi.getImpiString());
+
+			if (impi.getKeyLifeTime() != null){
+				form.setKeyLifeTime(impi.getKeyLifeTime());
+			}
+			HibernateUtil.commitTransaction();
 		}
-
-		if ((request.getParameter("addUss") != null)
-				&& (request.getParameter("addUss").equals("true")))
-		{
-			UssForm ussForm = new UssForm();
-			ussForm.setId("-1");
-			ussList.add(ussForm);
+		finally{
+			HibernateUtil.closeSession();
 		}
-
-		form.setUssList(ussList);
-
-		// add the impi values
-		form.setUiccType(impi.getUiccType().intValue());
-		form.setImpiString(impi.getImpiString());
-
-		if (impi.getKeyLifeTime() != null)
-		{
-			form.setKeyLifeTime(impi.getKeyLifeTime());
-		}
-
-		closeSession();
-
+		
 		LOGGER.debug("exiting");
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 }

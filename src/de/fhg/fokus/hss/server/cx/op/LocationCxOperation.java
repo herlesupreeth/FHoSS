@@ -52,6 +52,7 @@ import de.fhg.fokus.cx.datatypes.PublicIdentity;
 import de.fhg.fokus.cx.exceptions.DiameterException;
 import de.fhg.fokus.cx.exceptions.ims.IdentityNotRegistered;
 import de.fhg.fokus.hss.diam.ResultCode;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 
 /**
@@ -59,17 +60,14 @@ import de.fhg.fokus.hss.diam.ResultCode;
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class LocationCxOperation extends CxOperation
-{
+public class LocationCxOperation extends CxOperation{
     /** logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(LocationCxOperation.class);
+    private static final Logger LOGGER = Logger.getLogger(LocationCxOperation.class);
     /**
      * constructor
      * @param publicIdentity public user identity
      */
-    public LocationCxOperation(PublicIdentity publicIdentity)
-    {
+    public LocationCxOperation(PublicIdentity publicIdentity){
         LOGGER.debug("entering");
         this.publicIdentity = publicIdentity;
         LOGGER.debug("exiting");
@@ -80,10 +78,8 @@ public class LocationCxOperation extends CxOperation
      * @return an object containing the location information
      * @throws DiameterException
      */	   
-    public Object execute() throws DiameterException
-    {
-        if (LOGGER.isDebugEnabled())
-        {
+    public Object execute() throws DiameterException{
+        if (LOGGER.isDebugEnabled()){
             LOGGER.debug("entering");
             LOGGER.debug(this);
         }
@@ -92,43 +88,32 @@ public class LocationCxOperation extends CxOperation
 
         try
         {
+        	HibernateUtil.beginTransaction();
             loadUserProfile();
-
             String serverName = null;
 
-            if (getUserProfil().getImpu().getPsi())
-            {
-                serverName =
-                    getUserProfil().getImpu().getAssignedPsi().getPsiTempl()
-                        .getApsvr().getAddress();
+            if (getUserProfil().getImpu().getPsi()){
+                serverName = getUserProfil().getImpu().getAssignedPsi().getPsiTempl().getApsvr().getAddress();
             }
-            else
-            {
-                if (getUserProfil().getImpi() != null)
-                {
+            else{
+                if (getUserProfil().getImpi() != null){
                     serverName = getUserProfil().getImpi().getScscfName();
                 }
             }
 
-            if (serverName != null && serverName.equals("") == false)
-            {
-                locationQueryResponse =
-                    new CxLocationQueryResponse(
-                        ResultCode._DIAMETER_SUCCESS, true);
-
+            if (serverName != null && serverName.equals("") == false){
+                locationQueryResponse = new CxLocationQueryResponse(ResultCode._DIAMETER_SUCCESS, true);
                 locationQueryResponse.setAssignedSCSCFName(serverName);
             }
-            else
-            {
+            else{
             	LOGGER.info("User not registered, sending LIA: DIAMETER_ERROR_IDENTITY_NOT_REGISTERED !");
             	throw new IdentityNotRegistered();
             }
+            
         }
-        finally
-        {
-        	if(getUserProfil() != null){
-            getUserProfil().closeSession();
-        	}
+        finally{
+        	HibernateUtil.commitTransaction();
+        	HibernateUtil.closeSession();	
         }
 
         LOGGER.debug("exiting");

@@ -99,8 +99,7 @@ public class LIRCommandListener extends CxCommandListener{
         if (requestMessage.commandCode == COMMAND_ID){
             counter++;
             try{
-                PublicIdentity publicIdentity =
-                    loadPublicIdentity(requestMessage);
+                PublicIdentity publicIdentity = loadPublicIdentity(requestMessage);
 
                 CxLocationQueryResponse response = null;
                 AVP resultCode = null;
@@ -110,27 +109,29 @@ public class LIRCommandListener extends CxCommandListener{
                     throw new UnableToComply();
                 }
 
-                DiameterMessage responseMessage =
-                    diameterPeer.newResponse(requestMessage);
+                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
 
                  // Add assigned Server Name
                 AVP assginedSCSCFName = new AVP(Constants.AVPCode.CX_SERVER_NAME, true, Constants.Vendor.V3GPP);
                 assginedSCSCFName.setData(response.getAssignedSCSCFName());
                 responseMessage.addAVP(assginedSCSCFName);
-                    
-                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, Constants.Vendor.V3GPP);
-                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
-                vendorSpecificApplicationID.addChildAVP(vendorID);
                 
-                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.V3GPP);
+                /* vendor-specific app id */
+                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, Constants.Vendor.DIAM);
+                AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);
+                vendorID.setData(Constants.Vendor.V3GPP);
+                vendorSpecificApplicationID.addChildAVP(vendorID);
+                AVP applicationID = new AVP(Constants.AVPCode.AUTH_APPLICATION_ID, true,  Constants.Vendor.DIAM);
+                applicationID.setData(Constants.Application.CX);
                 vendorSpecificApplicationID.addChildAVP(applicationID);
                 responseMessage.addAVP(vendorSpecificApplicationID);
-                    
-                AVP authenticationSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.V3GPP);
+
+                /* auth-session-state, no state maintained */
+                AVP authenticationSessionState = new AVP(Constants.AVPCode.AUTH_SESSION_STATE, true, Constants.Vendor.DIAM);
                 authenticationSessionState.setData(1);
                 responseMessage.addAVP(authenticationSessionState);
                 
-                resultCode = saveResultCode(response.getResultCode(), response.resultCodeIsBase());
+                resultCode = getResultCodeAVP(response.getResultCode(), response.resultCodeIsBase());
                 responseMessage.addAVP(resultCode);
 
                 diameterPeer.sendMessage(FQDN, responseMessage);

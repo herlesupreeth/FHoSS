@@ -54,29 +54,27 @@ import org.apache.struts.action.ActionMapping;
 import org.hibernate.Query;
 
 import de.fhg.fokus.hss.form.TriggerPointSearchForm;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
  */
 public class TriggerPointSearchAction extends HssAction
 {
-	private static final Logger LOGGER = Logger
-			.getLogger(TriggerPointSearchAction.class);
+	private static final Logger LOGGER = Logger.getLogger(TriggerPointSearchAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception{
+		
 		LOGGER.debug("entering");
 
 		TriggerPointSearchForm form = (TriggerPointSearchForm) actionForm;
 		LOGGER.debug(form);
 
-		try
-		{
+		try{
+			HibernateUtil.beginTransaction();
 			// Prepare Querry
-			Query query = getSession()
-					.createQuery(
+			Query query = HibernateUtil.getCurrentSession().createQuery(
 							"select triggerPoint from de.fhg.fokus.hss.model.Trigpt as triggerPoint where triggerPoint.name like ?");
 			query.setString(0, "%" + form.getTrigPtName() + "%");
 
@@ -85,8 +83,7 @@ public class TriggerPointSearchAction extends HssAction
 			int currentPage = Integer.parseInt(form.getPage()) - 1;
 			int maxPages = (int) ((query.list().size() - 1) / rowPerPage) + 1;
 
-			if (currentPage > maxPages)
-			{
+			if (currentPage > maxPages){
 				currentPage = 0;
 			}
 
@@ -98,17 +95,17 @@ public class TriggerPointSearchAction extends HssAction
 
 			// store attributes in request
 			request.setAttribute("result", query.list());
-
+			HibernateUtil.commitTransaction();
+			
 			request.setAttribute("maxPages", String.valueOf(maxPages));
 			request.setAttribute("currentPage", String.valueOf(currentPage));
 			request.setAttribute("rowPerPage", String.valueOf(rowPerPage));
-		} finally
-		{
-			closeSession();
+		}
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 }

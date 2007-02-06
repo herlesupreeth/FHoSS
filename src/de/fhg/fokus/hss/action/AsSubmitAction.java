@@ -48,6 +48,8 @@ import de.fhg.fokus.hss.form.AsForm;
 import de.fhg.fokus.hss.model.Apsvr;
 import de.fhg.fokus.hss.model.ApsvrBO;
 import de.fhg.fokus.hss.model.AsPermList;
+import de.fhg.fokus.hss.util.HibernateUtil;
+import de.fhg.fokus.hss.util.InfrastructureException;
 
 import org.apache.log4j.Logger;
 
@@ -89,6 +91,7 @@ public class AsSubmitAction extends HssAction
 
 		try
 		{
+			HibernateUtil.beginTransaction();
 			if (primaryKey.intValue() == -1)
 			{
 				apsvr = new Apsvr();
@@ -130,21 +133,20 @@ public class AsSubmitAction extends HssAction
 			asPermList.setSubPsi(form.isSubPsi());
 
 			apsvrBO.saveOrUpdate(apsvr, asPermList);
-
+			HibernateUtil.commitTransaction();
+			
 			forward = mapping.findForward(FORWARD_SUCCESS);
-			forward = new ActionForward(forward.getPath() + "?asId="
-					+ apsvr.getApsvrId(), true);
-		} catch (ConstraintViolationException e)
-		{
+			forward = new ActionForward(forward.getPath() + "?asId=" + apsvr.getApsvrId(), true);
+		} 
+		catch (ConstraintViolationException e){
 			LOGGER.debug(this, e);
 			ActionMessages actionMessages = new ActionMessages();
-			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-					"error.duplicate"));
+			actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("error.duplicate"));
 			saveMessages(request, actionMessages);
 			forward = mapping.findForward(FORWARD_FAILURE);
-		} finally
-		{
-			apsvrBO.closeSession();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		if (LOGGER.isDebugEnabled())

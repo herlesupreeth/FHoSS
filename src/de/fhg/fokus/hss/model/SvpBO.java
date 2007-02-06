@@ -54,13 +54,14 @@ import org.apache.log4j.Logger;
 
 import de.fhg.fokus.cx.exceptions.DiameterException;
 import de.fhg.fokus.hss.server.cx.op.UpdateCxOperation;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 
 /**
  * This class provides database specific functions for service profiles
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class SvpBO extends HssBO
+public class SvpBO
 {
     /** logger */
     private static final Logger LOGGER = Logger.getLogger(SvpBO.class);
@@ -83,7 +84,7 @@ public class SvpBO extends HssBO
      */
     public Svp load(Serializable primaryKey)
     {
-        Svp svp = (Svp) getSession().load(Svp.class, primaryKey);
+        Svp svp = (Svp) HibernateUtil.getCurrentSession().load(Svp.class, primaryKey);
         svp.addPropertyChangeListener(svp);
         return svp;
     }
@@ -95,21 +96,12 @@ public class SvpBO extends HssBO
      */
     public void saveOrUpdate(Svp svp)
     {
-        try
-        {
-            beginnTx();
-            getSession().saveOrUpdate(svp);
-            endTx();
+        HibernateUtil.getCurrentSession().saveOrUpdate(svp);
 
-            if (svp.isChange())
-            {
-                commitShChanges(svp);
-                commitCxChanges(svp);
-            }
-        }
-        finally
+        if (svp.isChange())
         {
-            closeSession();
+            commitShChanges(svp);
+            commitCxChanges(svp);
         }
     }
 
@@ -119,7 +111,7 @@ public class SvpBO extends HssBO
      */
     private void commitShChanges(Svp svp)
     {
-      
+      // to do
     }
 
     /**
@@ -130,43 +122,33 @@ public class SvpBO extends HssBO
     {
         LOGGER.debug("entering");
         CxUserProfil cxUserProfil = null;
-        try
-        {
+        
+        try{
             ArrayList operationsList = new ArrayList();
             Iterator itImpu = null;
 
             itImpu = svp.getImpus().iterator();
-
-            while (itImpu.hasNext())
-            {
+            while (itImpu.hasNext()){
                 Impu impu = (Impu) itImpu.next();
-                cxUserProfil =
-                    new CxUserProfil(impu, getSession());
+                cxUserProfil = new CxUserProfil(impu);
 
-                if (cxUserProfil.isRegistered())
-                {
-                    URI privateIdentity =
-                        new URI(cxUserProfil.getImpi().getImpiString());
-                    UpdateCxOperation cxOperation =
-                        new UpdateCxOperation(cxUserProfil, privateIdentity);
+                if (cxUserProfil.isRegistered()){
+                    URI privateIdentity = new URI(cxUserProfil.getImpi().getImpiString());
+                    UpdateCxOperation cxOperation = new UpdateCxOperation(cxUserProfil, privateIdentity);
                     operationsList.add(cxOperation);
                 }
             }
 
             Iterator it = operationsList.iterator();
-
-            while (it.hasNext())
-            {
+            while (it.hasNext()){
                 UpdateCxOperation cxOperation = (UpdateCxOperation) it.next();
                 cxOperation.execute();
             }
         }
-        catch (DiameterException e)
-        {
+        catch (DiameterException e){
             LOGGER.error(svp, e);
         }
-        catch (URISyntaxException e)
-        {
+        catch (URISyntaxException e){
             LOGGER.error(svp, e);
         }
 

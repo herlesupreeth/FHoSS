@@ -54,6 +54,7 @@ import org.apache.struts.action.ActionMapping;
 import org.hibernate.Query;
 
 import de.fhg.fokus.hss.form.SvpSearchForm;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 /**
  * @author Andre Charton (dev -at- open-ims dot org)
@@ -72,12 +73,11 @@ public class SvpSearchAction extends HssAction
 		SvpSearchForm form = (SvpSearchForm) actionForm;
 		LOGGER.debug(form);
 
-		try
-		{
+		try{
+			HibernateUtil.beginTransaction();
 			// Prepare Querry
-			Query query = getSession()
-					.createQuery(
-							"select svp from de.fhg.fokus.hss.model.Svp as svp where svp.name like ?");
+			Query query = HibernateUtil.getCurrentSession()
+				.createQuery("select svp from de.fhg.fokus.hss.model.Svp as svp where svp.name like ?");
 			query.setString(0, "%" + form.getName() + "%");
 
 			// Check page browsing values
@@ -85,8 +85,7 @@ public class SvpSearchAction extends HssAction
 			int currentPage = Integer.parseInt(form.getPage()) - 1;
 			int maxPages = (int) ((query.list().size() - 1) / rowPerPage) + 1;
 
-			if (currentPage > maxPages)
-			{
+			if (currentPage > maxPages){
 				currentPage = 0;
 			}
 
@@ -98,16 +97,17 @@ public class SvpSearchAction extends HssAction
 
 			// store attributes in request
 			request.setAttribute("result", query.list());
-
+			HibernateUtil.commitTransaction();
+			
 			request.setAttribute("maxPages", String.valueOf(maxPages));
 			request.setAttribute("currentPage", String.valueOf(currentPage));
 			request.setAttribute("rowPerPage", String.valueOf(rowPerPage));
-		} finally
-		{
-			closeSession();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
+		
 		LOGGER.debug("exiting");
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 

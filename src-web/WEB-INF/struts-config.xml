@@ -54,6 +54,7 @@
 	<action-mappings>
 		<action path="/imsuShow" name="imsuForm" type="de.fhg.fokus.hss.action.ImsuShowAction" input="/pages/errorPage.jsp" validate="false">
 			<forward name="success" path="/pages/profiles/imsu.jsp" />
+			<forward name="failure" path="/pages/errorPage.jsp" />
 		</action>
 		<action path="/imsuSubmit" name="imsuForm" type="de.fhg.fokus.hss.action.ImsuSubmitAction" input="/pages/profiles/imsu.jsp">
 			<forward name="success" path="/imsuShow.do" />
@@ -141,6 +142,7 @@
 		
 		<action path="/chargingShow" name="chrginfoForm" type="de.fhg.fokus.hss.action.ChargingSetsShowAction" validate="false">
 			<forward name="success" path="/pages/network/chargingSets.jsp" />
+			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
 		<action path="/chargingSubmit" name="chrginfoForm" type="de.fhg.fokus.hss.action.ChargingSetsShowAction" input="/chargingShow.do">
 			<forward name="success" path="/pages/network/chargingSets.jsp" />
@@ -229,6 +231,10 @@
 		</action>			
 		<action path="/psiTemplSubmit" name="psiTemplForm" type="de.fhg.fokus.hss.action.PsiTemplSubmitAction" input="/psiTemplShow.do" validate="true">
 			<forward name="success" path="/psiTemplShow.do" />
+		</action>
+		<action path="/psiTemplDelete" name="psiTemplForm" type="de.fhg.fokus.hss.action.PsiTemplDeleteAction" input="/psiTemplDelete.do" validate="false">
+			<forward name="success" path="/pages/tiles/success.jsp" />
+			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
 		
 		<action path="/psiSearch" name="psiSearchForm" type="de.fhg.fokus.hss.action.PsiSearchAction" validate="false">

@@ -45,6 +45,7 @@
 package de.fhg.fokus.hss.action;
 
 import de.fhg.fokus.hss.form.PsiTemplSearchForm;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -74,12 +75,10 @@ public class PsiTemplSearchAction extends HssAction
 		PsiTemplSearchForm form = (PsiTemplSearchForm) actionForm;
 		LOGGER.debug(form);
 
-		try
-		{
-			// Prepare Querry
-			Query query = getSession()
-					.createQuery(
-							"select psiTempl from de.fhg.fokus.hss.model.PsiTempl as psiTempl where psiTempl.templName like ?");
+		try{
+			HibernateUtil.beginTransaction();
+			Query query = HibernateUtil.getCurrentSession()
+				.createQuery("select psiTempl from de.fhg.fokus.hss.model.PsiTempl as psiTempl where psiTempl.templName like ?");
 			query.setString(0, "%" + form.getPsiTemplName() + "%");
 
 			// Check page browsing values
@@ -87,8 +86,7 @@ public class PsiTemplSearchAction extends HssAction
 			int currentPage = Integer.parseInt(form.getPage()) - 1;
 			int maxPages = (int) ((query.list().size() - 1) / rowPerPage) + 1;
 
-			if (currentPage > maxPages)
-			{
+			if (currentPage > maxPages){
 				currentPage = 0;
 			}
 
@@ -100,17 +98,17 @@ public class PsiTemplSearchAction extends HssAction
 
 			// store attributes in request
 			request.setAttribute("result", query.list());
-
+			HibernateUtil.commitTransaction();
+			
 			request.setAttribute("maxPages", String.valueOf(maxPages));
 			request.setAttribute("currentPage", String.valueOf(currentPage));
 			request.setAttribute("rowPerPage", String.valueOf(rowPerPage));
-		} finally
-		{
-			closeSession();
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
-
+		
 		LOGGER.debug("exiting");
-
 		return mapping.findForward(FORWARD_SUCCESS);
 	}
 }

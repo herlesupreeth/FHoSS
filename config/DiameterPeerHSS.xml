@@ -13,7 +13,7 @@
 >
 	<Peer FQDN="icscf.open-ims.test" Realm="open-ims.test" port="3869" /> 
 	<Peer FQDN="scscf.open-ims.test" Realm="open-ims.test" port="3870" /> 
-	
+
 	<Acceptor port="3868" bind="127.0.0.1" />
 	
 	<Auth id="16777216" vendor="10415"/>

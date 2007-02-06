@@ -57,7 +57,9 @@ import de.fhg.fokus.cx.CxAuthDataResponse;
 import de.fhg.fokus.cx.datatypes.PublicIdentity;
 import de.fhg.fokus.cx.exceptions.DiameterException;
 import de.fhg.fokus.cx.exceptions.base.UnableToComply;
+import de.fhg.fokus.hss.diam.Constants;
 import de.fhg.fokus.hss.diam.ResultCode;
+import de.fhg.fokus.hss.form.ImpiForm;
 import de.fhg.fokus.hss.main.HSSProperties;
 import de.fhg.fokus.hss.model.Impi;
 
@@ -80,11 +82,10 @@ import de.fhg.fokus.security.auth.Milenage;
  * @author Andre Charton  (dev -at- open-ims dot org)
  * 
  */
-public class AuthCxOperation extends CxOperation
-{
+
+public class AuthCxOperation extends CxOperation{
     /** Logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(AuthCxOperation.class);
+    private static final Logger LOGGER = Logger.getLogger(AuthCxOperation.class);
     /** name of serving call session control function */    
     private String scscfName;
     /** authentication vector */
@@ -101,8 +102,7 @@ public class AuthCxOperation extends CxOperation
      * @param _scscfName serving call session control functions name
      */     
     public AuthCxOperation( PublicIdentity _publicIdentity, URI _privateUserIdentity,
-        Long _numberOfAuthVectors, AuthenticationVector _authenticationVector,
-        String _scscfName){
+        Long _numberOfAuthVectors, AuthenticationVector _authenticationVector, String _scscfName){
     	
         this.privateUserIdentity = _privateUserIdentity;
         this.publicIdentity = _publicIdentity;
@@ -129,6 +129,7 @@ public class AuthCxOperation extends CxOperation
         CxAuthDataResponse authDataResponse = null;
 
         try{
+        	HibernateUtil.beginTransaction();
             loadUserProfile();
             if (userProfil.getImpi().getScscfName().equals(scscfName) == false){
                 userProfil.getImpi().setScscfName(scscfName);
@@ -138,22 +139,22 @@ public class AuthCxOperation extends CxOperation
             ArrayList authenticationVectors = null;
 
             // Generate the Authentiaction Vectors
-            if (authenticationVector != null){
+            if (authenticationVector != null && authenticationVector.sipAuthorization != null){
                 // perform synchronization for the SQN (SQN-hn = SQN-ms)
                 authenticationVectors = performSynchronization();
             }
             else{
                 // generate the authentication vectors
-                authenticationVectors = generateAuthenticationVectors();
+                authenticationVectors = generateAuthenticationVectors(authenticationVector);
             }
             authDataResponse = new CxAuthDataResponse(ResultCode._DIAMETER_SUCCESS, true);
             authDataResponse.setAuthenticationVectors(authenticationVectors);
             updateUserProfile();
+            
         }
         finally{
-        	if(getUserProfil() != null){
-        		getUserProfil().closeSession();
-        	}
+        	HibernateUtil.commitTransaction();
+        	HibernateUtil.closeSession();
         }
 
         return authDataResponse;
@@ -163,7 +164,7 @@ public class AuthCxOperation extends CxOperation
      * This method generates the list of the authentication vectors
      * @return list of authentication vectors
      */
-    public ArrayList generateAuthenticationVectors(){
+    public ArrayList generateAuthenticationVectors(AuthenticationVector receivedAuthVector){
         LOGGER.debug("Generation of Authentication Vectors");
         ArrayList vectorList = null;
         Impi impi = null;
@@ -181,13 +182,29 @@ public class AuthCxOperation extends CxOperation
             byte [] op = codec.decode(impi.getOperatorId());
             byte [] opC = Milenage.generateOpC(secretKey, op);
             
-            String authScheme = impi.getAuthScheme();
+            String supportedAuthScheme = impi.getAuthScheme();
             Inet4Address ip = impi.getIP();
             byte [] sqn = codec.decode(impi.getSqn());
 
-            LOGGER.debug("Auth-Scheme Used: " + authScheme);
+            LOGGER.debug("Auth-Scheme Supported by the HSS: " + supportedAuthScheme);
+            String usedAuthScheme;
+            if (receivedAuthVector != null && receivedAuthVector.authenticationScheme != null){
+            	LOGGER.debug("Auth-Scheme asked by S-CSCF: " + receivedAuthVector.authenticationScheme);
+            	usedAuthScheme = receivedAuthVector.authenticationScheme;
+            	if (supportedAuthScheme.equalsIgnoreCase("any") == false && supportedAuthScheme.equalsIgnoreCase(usedAuthScheme) == false){
+            		throw new NoSuchAlgorithmException();
+            	}
+            }
+            else{
+            	usedAuthScheme = supportedAuthScheme;
+            	if (usedAuthScheme.equalsIgnoreCase("any")){
+            		// the default one
+            		usedAuthScheme = Constants.AuthScheme.AUTH_SCHEME_AKAv1;
+            	}
+            }
+            
             // MD5 Authentication Scheme
-            if (authScheme.equalsIgnoreCase("Digest-MD5")){
+            if (usedAuthScheme.equalsIgnoreCase("Digest-MD5")){
             	// Authentication Scheme is Digest-MD5
             	LOGGER.debug("Auth-Scheme is Digest-MD5");
                 SecureRandom randomAccess = SecureRandom.getInstance("SHA1PRNG");
@@ -199,18 +216,18 @@ public class AuthCxOperation extends CxOperation
                     
                 	secretKey = codec.decodePassword(impi.getSkey()).getBytes();
                 	
-                	AuthenticationVector aVector = new AuthenticationVector(authScheme, randBytes, secretKey);
+                	AuthenticationVector aVector = new AuthenticationVector(usedAuthScheme, randBytes, secretKey);
                 	vectorList.add(aVector);
                 }
             	markUpdateUserProfile();
             	return vectorList;
             }
-            else{
+            else if (usedAuthScheme.equalsIgnoreCase(Constants.AuthScheme.AUTH_SCHEME_AKAv1) || 
+            		usedAuthScheme.equalsIgnoreCase(Constants.AuthScheme.AUTH_SCHEME_AKAv2)){
             	// We have AKAv1 or AKAv2
             	LOGGER.debug("Auth-Scheme is Digest-AKA");
             	
-                for (long ix = 0; ix < numberOfAuthVectors.intValue(); ix++)
-                {
+                for (long ix = 0; ix < numberOfAuthVectors.intValue(); ix++){
                 	sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
         	        byte[] copySqnHe = new byte[6];
         	        int k = 0;
@@ -218,13 +235,16 @@ public class AuthCxOperation extends CxOperation
                 		copySqnHe[k] = sqn[i]; 
         	        }
 
-                	AuthenticationVector authenticationVector = DigestAKA.getAuthenticationVector(authScheme, ip,
+                	AuthenticationVector authenticationVector = DigestAKA.getAuthenticationVector(usedAuthScheme, ip,
                 			secretKey, opC, amf, copySqnHe);
                     vectorList.add(authenticationVector);
                 }
                 impi.setSqn(codec.encode(sqn));
                 markUpdateUserProfile();
             }
+            else throw new NoSuchAlgorithmException("The " + usedAuthScheme + " scheme is not supported on the HSS!");
+            
+            /* EarlyIMS to be implemented ...*/
         }
         catch (NoSuchAlgorithmException e){
             LOGGER.error(this, e);

@@ -61,9 +61,10 @@ public class LoggerHelper
 {
     private static Logger LOGGER = Logger.getLogger(LoggerHelper.class);
     private static final String APPENDER_NAME = "WebAppender";
-    public static StringWriter BUFFER;
-    public static boolean STATUS = false;
-    private static String loglevel= "info";
+    public static StringWriter BUFFER=null;;
+    public static boolean STATUS=false;
+    public static boolean empty_buffer=true;
+    public static String loglevel=null;
     private static WriterAppender appender;
 
     static
@@ -71,8 +72,13 @@ public class LoggerHelper
         off();
     }
 
-    public static void init(String loglevel)
+    public static void init()
     {
+        if(!STATUS){
+          BUFFER = new StringWriter();
+          BUFFER.append("Please select a debug level!");
+          return;
+        }        
         STATUS = true;
         appender = new WriterAppender();
         BUFFER = new StringWriter();
@@ -85,26 +91,25 @@ public class LoggerHelper
         }
         else
         {
+           loglevel="info";
            appender.setThreshold(Priority.INFO);
         }
         Layout lt = new PatternLayout("%-5p %c- %M - %m%n");
         appender.setLayout(lt);
         Logger.getRootLogger().addAppender(appender);
         LOGGER.info("WebLoggingAppender added/cleared.");
+        empty_buffer=false;
     }
 
     public static void clear()
     {
-        if (STATUS)
-        {
-            Logger.getRootLogger().removeAppender(appender);
-            if(loglevel.equals("info")){
-               init("info");
+
+            if(!empty_buffer)
+            {
+	            BUFFER.flush();
+	            init();
             }
-            else{
-               init("debug");
-            }
-        }
+ 
     }
 
     public static void off()
@@ -112,15 +117,17 @@ public class LoggerHelper
         if (STATUS)
         {
             STATUS = false;
+            loglevel=null;
             Logger.getRootLogger().removeAppender(appender);
-            BUFFER.flush();
         }
         else
         {
             BUFFER = new StringWriter();
+            BUFFER.append(
+                  "WebLoggerAppender is offline. Use the [TURN ON] link above to start logging.");
+            empty_buffer=false;                  
         }
 
-        BUFFER.append(
-            "WebLoggerAppender is offline. Use the [TURN ON] link above to start logging.");
+
     }
 }

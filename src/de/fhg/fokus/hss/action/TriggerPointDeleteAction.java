@@ -46,6 +46,7 @@ package de.fhg.fokus.hss.action;
 
 import de.fhg.fokus.hss.form.TriggerPointForm;
 import de.fhg.fokus.hss.model.Trigpt;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 import org.apache.log4j.Logger;
 
@@ -70,9 +71,8 @@ public class TriggerPointDeleteAction extends HssAction
 			.getLogger(TriggerPointDeleteAction.class);
 
 	public ActionForward execute(ActionMapping mapping, ActionForm actionForm,
-			HttpServletRequest request, HttpServletResponse reponse)
-			throws Exception
-	{
+			HttpServletRequest request, HttpServletResponse reponse) throws Exception {
+		
 		LOGGER.debug("entering");
 
 		TriggerPointForm form = (TriggerPointForm) actionForm;
@@ -80,45 +80,38 @@ public class TriggerPointDeleteAction extends HssAction
 
 		ActionForward forward = null;
 
-		try
-		{
+		try{
 			Integer primaryKey = form.getPrimaryKey();
 			Trigpt trigpt = null;
 
-			trigpt = (Trigpt) getSession().load(Trigpt.class, primaryKey);
+			HibernateUtil.beginTransaction();
+			trigpt = (Trigpt) HibernateUtil.getCurrentSession().load(Trigpt.class, primaryKey);
 
-			int assignendIfcs = ((Integer) getSession()
-					.createQuery(
-							"select count(ifc) from de.fhg.fokus.hss.model.Ifc ifc where ifc.trigpt.trigptId = ?")
+			int assignendIfcs = ((Integer) HibernateUtil.getCurrentSession()
+					.createQuery("select count(ifc) from de.fhg.fokus.hss.model.Ifc ifc where ifc.trigpt.trigptId = ?")
 					.setInteger(0, primaryKey).uniqueResult()).intValue();
 
-			if (assignendIfcs == 0)
-			{
-				beginnTx();
-				getSession().delete(trigpt);
-				endTx();
+			if (assignendIfcs == 0){
+				HibernateUtil.getCurrentSession().delete(trigpt);
 				forward = mapping.findForward(FORWARD_SUCCESS);
-			} else
-			{
+
+			} 
+			else{
 				ActionMessages actionMessages = new ActionMessages();
-
-				if (assignendIfcs != 0)
-				{
-					actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage(
-							"triggerPoint.error.existIfcs"));
+				if (assignendIfcs != 0){
+					actionMessages.add(Globals.MESSAGE_KEY, new ActionMessage("triggerPoint.error.existIfcs"));
 				}
-
 				saveMessages(request, actionMessages);
-
 				forward = mapping.findForward(FORWARD_FAILURE);
 			}
-		} finally
-		{
-			closeSession();
+			HibernateUtil.commitTransaction();
+			
+		} 
+		finally{
+			HibernateUtil.closeSession();
 		}
 
 		LOGGER.debug("exiting");
-
 		return forward;
 	}
 }

@@ -74,6 +74,7 @@ import de.fhg.fokus.cx.exceptions.base.MissingUserId;
 import de.fhg.fokus.cx.exceptions.base.UnableToComply;
 import de.fhg.fokus.cx.exceptions.ims.IdentitiesDontMatch;
 import de.fhg.fokus.cx.exceptions.ims.UserUnknown;
+import de.fhg.fokus.hss.util.HibernateUtil;
 
 
 /**
@@ -84,7 +85,7 @@ import de.fhg.fokus.cx.exceptions.ims.UserUnknown;
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class CxUserProfil extends HssBO
+public class CxUserProfil
 {
     private static final Logger LOGGER = Logger.getLogger(CxUserProfil.class);
 
@@ -142,11 +143,9 @@ public class CxUserProfil extends HssBO
      * @throws IdentitiesDontMatch
      * @throws DiameterException
      */
-    public CxUserProfil(Impu impu, Session session)
-        throws IdentitiesDontMatch, DiameterException
+    public CxUserProfil(Impu impu)throws IdentitiesDontMatch, DiameterException
     {
         LOGGER.debug("entering");
-        setSession(session);
         setImpu(impu);
         loadAssignedImpi();
         LOGGER.debug("exiting");
@@ -162,7 +161,7 @@ public class CxUserProfil extends HssBO
     {
         LOGGER.debug("entering");
 
-        this.impi = (Impi) getSession().load(Impi.class, _impi.getImpiId());
+        this.impi = (Impi) HibernateUtil.getCurrentSession().load(Impi.class, _impi.getImpiId());
         impuList = this.impi.getImpus();
 
         if ((impuList != null) && (impuList.size() > 0))
@@ -184,8 +183,7 @@ public class CxUserProfil extends HssBO
     {
         LOGGER.debug("entering");
 
-        Query query =
-            getSession().createQuery(
+        Query query = HibernateUtil.getCurrentSession().createQuery(
                 "select impu from de.fhg.fokus.hss.model.Impu as impu where impu.sipUrl = ?");
         query.setString(0, publicIdentity.getIdentity());
 
@@ -252,9 +250,8 @@ public class CxUserProfil extends HssBO
         try
         {
             impi =
-                (Impi) getSession()
-                           .createQuery(
-                    "select impi from de.fhg.fokus.hss.model.Impi as impi where impi.impiString = ?")
+                (Impi) HibernateUtil.getCurrentSession().createQuery(
+                		"select impi from de.fhg.fokus.hss.model.Impi as impi where impi.impiString = ?")
                            .setString(0, privateUserIdentity.getPath())
                            .uniqueResult();
 
@@ -439,26 +436,17 @@ public class CxUserProfil extends HssBO
     {
         LOGGER.debug("entering");
 
-        try
+        if (impi != null)
         {
-            if (impi != null)
-            {
-                ImpiBO impiBO = new ImpiBO();
-                impiBO.saveOrUpdate(impi);
-            }
-
-            if (impu != null)
-            {
-                beginnTx();
-                getSession().update(impu);
-                endTx();
-            }
-        }
-        finally
-        {
-            closeSession();
+            ImpiBO impiBO = new ImpiBO();
+            impiBO.saveOrUpdate(impi);
         }
 
+        if (impu != null)
+        {
+            ImpuBO impuBO = new ImpuBO();
+            impuBO.saveOrUpdate(impu);
+        }
         LOGGER.debug("exiting");
     }
 
@@ -649,63 +637,51 @@ public class CxUserProfil extends HssBO
         TriggerPoint triggerPoint = new TriggerPoint();
         triggerPoint.setConditionTypeCNF(trigpt.getCnf() == 1);
 
-        if ((trigpt.getSpts() != null) && (
-                    trigpt.getSpts().isEmpty() == false
-                ))
-        {
+        if ((trigpt.getSpts() != null) && (trigpt.getSpts().isEmpty() == false)){
             Iterator itSpt = trigpt.getSpts().iterator();
             TSePoTriChoice choice = null;
             Spt sptData = null;
             SPT spt = null;
 
-            while (itSpt.hasNext())
-            {
+            while (itSpt.hasNext()){
                 sptData = (Spt) itSpt.next();
                 choice = new TSePoTriChoice();
                 spt = new SPT();
                 spt.setConditionNegated(sptData.isNeg());
                 spt.addGroup(sptData.getGroupId());
 
-                switch (sptData.getType())
-                {
-                case TrigptBO.TYPE_URI:
-                    choice.setRequestURI(sptData.getReqUri());
+                switch (sptData.getType()){
+                
+                	case TrigptBO.TYPE_URI:
+                		choice.setRequestURI(sptData.getReqUri());
+                		break;
 
-                    break;
+                	case TrigptBO.TYPE_SIP_METHOD:
+                		choice.setMethod(sptData.getSipMethod());
+                		break;
 
-                case TrigptBO.TYPE_SIP_METHOD:
-                    choice.setMethod(sptData.getSipMethod());
+                	case TrigptBO.TYPE_SESSION_CASE:
 
-                    break;
+                		TDirectionOfRequest dir =
+                			TDirectionOfRequest.valueOf(
+                					String.valueOf(sptData.getSessionCase()));
+                		choice.setSessionCase(dir);
+                		break;
 
-                case TrigptBO.TYPE_SESSION_CASE:
+                	case TrigptBO.TYPE_SESSION_DESC:
+                		SessionDescription sessionDescription =
+                			new SessionDescription();
+                		sessionDescription.setContent(sptData.getSessionDescContent());
+                		sessionDescription.setLine(sptData.getSessionDescLine());
+                		choice.setSessionDescription(sessionDescription);
+                		break;
 
-                    TDirectionOfRequest dir =
-                        TDirectionOfRequest.valueOf(
-                            String.valueOf(sptData.getSessionCase()));
-                    choice.setSessionCase(dir);
-
-                    break;
-
-                case TrigptBO.TYPE_SESSION_DESC:
-
-                    SessionDescription sessionDescription =
-                        new SessionDescription();
-                    sessionDescription.setContent(
-                        sptData.getSessionDescContent());
-                    sessionDescription.setLine(sptData.getSessionDescLine());
-                    choice.setSessionDescription(sessionDescription);
-
-                    break;
-
-                case TrigptBO.TYPE_SIP_HEADER:
-
-                    SIPHeader header = new SIPHeader();
-                    header.setContent(sptData.getSipHeaderContent());
-                    header.setHeader(sptData.getSipHeader());
-                    choice.setSIPHeader(header);
-
-                    break;
+                	case TrigptBO.TYPE_SIP_HEADER:
+                		SIPHeader header = new SIPHeader();
+                		header.setContent(sptData.getSipHeaderContent());
+                		header.setHeader(sptData.getSipHeader());
+                		choice.setSIPHeader(header);
+                		break;
                 }
 
                 spt.setTSePoTriChoice(choice);

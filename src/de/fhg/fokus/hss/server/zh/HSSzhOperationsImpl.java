@@ -44,6 +44,7 @@
  */
 package de.fhg.fokus.hss.server.zh;
 
+import java.net.Inet4Address;
 import java.net.URI;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -59,11 +60,15 @@ import org.hibernate.Transaction;
 
 import de.fhg.fokus.cx.exceptions.base.UnableToComply;
 import de.fhg.fokus.hss.diam.ResultCode;
+import de.fhg.fokus.hss.main.HSSProperties;
 import de.fhg.fokus.hss.model.GussBO;
 import de.fhg.fokus.hss.model.Impi;
 import de.fhg.fokus.hss.model.Impu;
 import de.fhg.fokus.hss.model.UserSecSettings;
 import de.fhg.fokus.hss.util.HibernateUtil;
+import de.fhg.fokus.security.auth.DigestAKA;
+import de.fhg.fokus.security.auth.HexCoDec;
+import de.fhg.fokus.security.auth.Milenage;
 import de.fhg.fokus.zh.AuthenticationVector;
 import de.fhg.fokus.zh.ZhAuthDataResponse;
 import de.fhg.fokus.zh.ZhOperations;
@@ -80,17 +85,17 @@ import de.fhg.fokus.zh.exceptions.DiameterBaseException;
 import de.fhg.fokus.zh.exceptions.DiameterException;
 import de.fhg.fokus.zh.exceptions.UnknownImpi;
 
+import de.fhg.fokus.security.auth.*;
 
 /**
  * Implementation of the HSS Zh Operations.
  *
  * @author Andre Charton (dev -at- open-ims dot org)
  */
-public class HSSzhOperationsImpl implements ZhOperations
-{
+public class HSSzhOperationsImpl implements ZhOperations{
+	
     /** logger */
-    private static final Logger LOGGER =
-        Logger.getLogger(HSSzhOperationsImpl.class);
+    private static final Logger LOGGER = Logger.getLogger(HSSzhOperationsImpl.class);
     /** private user identity uri*/    
     private URI privateUserIdentity;
     /** number of authentication items */
@@ -99,73 +104,61 @@ public class HSSzhOperationsImpl implements ZhOperations
     private AuthenticationVector sipAuthDataItem;
     /** private user identity object used for hibernate transaction*/
     private Impi impi;
-    /** hibernate session */
-    private Session session;
 
     /**
      * Implementation of zh-MAR-Auth Method.
      * @return an object containing the zh specific authentication data
      * @throws DiameterException
      */
-    public ZhAuthDataResponse zhAuthData(
-        URI _privateUserIdentity, Long _numberAuthItems,
-        AuthenticationVector _sipAuthDataItem, String _serverName)
-        throws DiameterException
-    {
+    public ZhAuthDataResponse zhAuthData(URI _privateUserIdentity, Long _numberAuthItems,
+    		AuthenticationVector _sipAuthDataItem, String _serverName) throws DiameterException{
+    	
         LOGGER.debug("entering");
         this.privateUserIdentity = _privateUserIdentity;
         this.numberAuthItems = _numberAuthItems;
         this.sipAuthDataItem = _sipAuthDataItem;
 
-        if (LOGGER.isDebugEnabled())
-        {
+        if (LOGGER.isDebugEnabled()){
             LOGGER.debug(this);
         }
 
-        ZhAuthDataResponse authDataResponse =
-            new ZhAuthDataResponse(ResultCode._DIAMETER_SUCCESS);
+        ZhAuthDataResponse authDataResponse = new ZhAuthDataResponse(ResultCode._DIAMETER_SUCCESS);
 
         try
         {
-            this.session = HibernateUtil.currentSession();
-            this.impi =
-                (Impi) session.createQuery(
-                    "select impi from de.fhg.fokus.hss.model.Impi as impi where impi.impiString = ?")
-                              .setString(0, privateUserIdentity.getPath())
-                              .uniqueResult();
+            HibernateUtil.beginTransaction();
+            this.impi = (Impi) HibernateUtil.getCurrentSession()
+            	.createQuery("select impi from de.fhg.fokus.hss.model.Impi as impi where impi.impiString = ?")
+                .setString(0, privateUserIdentity.getPath())
+                .uniqueResult();
 
-            if (impi == null)
-            {
+            if (impi == null){
                 throw new UnknownImpi();
             }
 
             ArrayList authVector = null;
 
             // Generate the Authentiaction Vectors ...
-            if (sipAuthDataItem != null)
-            {
+            if (sipAuthDataItem != null){
                 // ... for synchronistation
-                authVector = handleSynchFailure();
+                authVector = performSynchronization();
             }
-            else
-            {
+            else{
                 // ... for authentication
-                authVector = generateVector();
+                authVector = generateAuthenticationVectors();
             }
-
             authDataResponse.setAuthenticationVectors(authVector);
 
             Guss guss = generateGuss();
-
             authDataResponse.setGuss(guss);
+            
         }
-        finally
-        {
+        finally{
+        	HibernateUtil.commitTransaction();
             HibernateUtil.closeSession();
         }
 
         LOGGER.debug("exiting");
-
         return authDataResponse;
     }
 
@@ -179,30 +172,25 @@ public class HSSzhOperationsImpl implements ZhOperations
 
         Guss guss = new Guss();
         guss.setId(impi.getImpiString());
-/*
-        boolean isGba =
-            ((int) impi.getUiccType().byteValue() == 0) ? false : true;
+
+        boolean isGba = ((int) impi.getUiccType().byteValue() == 0) ? false : true;
         Integer keylifeTime = impi.getKeyLifeTime();
         BsfInfo bsfInfo = new BsfInfo();
 
-        if (!isGba)
-        {
+        if (!isGba){
             bsfInfo.setUiccType("1");
         }
 
-        if (keylifeTime != null)
-        {
+        if (keylifeTime != null){
             bsfInfo.setLifeTime(keylifeTime.intValue());
         }
-
         guss.setBsfInfo(bsfInfo);
 
         // Get Uids
         Uids uids = new Uids();
         Iterator it = impi.getImpus().iterator();
 
-        while (it.hasNext())
-        {
+        while (it.hasNext()){
             Impu impu = (Impu) it.next();
             TuidsItem item = new TuidsItem();
             item.setUid(impu.getSipUrl());
@@ -211,32 +199,25 @@ public class HSSzhOperationsImpl implements ZhOperations
 
         // Iterate about the uss entrys
         UssList ussList = new UssList();
-
         UserSecSettings impiUss = null;
-        Iterator itUss =
-            session.createQuery(
-                "from de.fhg.fokus.hss.model.UserSecSettings as uss where uss.impiId = ?")
-                   .setInteger(0, impi.getImpiId()).list().iterator();
+        Iterator itUss = HibernateUtil.getCurrentSession().createQuery("from de.fhg.fokus.hss.model.UserSecSettings as uss where uss.impiId = ?")
+        	.setInteger(0, impi.getImpiId()).list().iterator();
 
-        while (itUss.hasNext())
-        {
+        while (itUss.hasNext()){
             impiUss = (UserSecSettings) itUss.next();
-
             TussListItem ussItem = new TussListItem();
             Uss uss = new Uss();
             uss.setId(GussBO.getIdByType(impiUss.getUssType()));
-            uss.setType(impiUss.getUssType());pso/index.php?section=Teme&file=Reguli
+            uss.setType(impiUss.getUssType());
             uss.setNafGroup(impiUss.getNafGroup());
 
             Integer flags = impiUss.getFlag();
             Flags ussFlags = new Flags();
             uss.setFlags(ussFlags);
 
-            if ((flags != null) && (flags.intValue() > 0))
-            {
+            if ((flags != null) && (flags.intValue() > 0)){
                 buildFlags(flags.intValue(), ussFlags);
             }
-
             uss.setUids(uids);
             ussItem.setUss(uss);
             ussList.addTussListItem(ussItem);
@@ -245,7 +226,6 @@ public class HSSzhOperationsImpl implements ZhOperations
         guss.setUssList(ussList);
 
         LOGGER.debug("exiting");
-*/
         return guss;
     }
 
@@ -255,20 +235,16 @@ public class HSSzhOperationsImpl implements ZhOperations
      * @param flagList a flag list in which the generated flags are saved
      *
      */
-    private void buildFlags(int value, Flags flagList)
-    {
+    private void buildFlags(int value, Flags flagList){
         int i = value;
         int j = 0;
 
-        while (i > 0)
-        {
-            if ((i % 2) == 1)
-            {
+        while (i > 0){
+            if ((i % 2) == 1){
                 TflagsItem flag = new TflagsItem();
                 flag.setFlag((int) Math.pow(2, j));
                 flagList.addTflagsItem(flag);
             }
-
             i /= 2;
             j++;
         }
@@ -278,73 +254,78 @@ public class HSSzhOperationsImpl implements ZhOperations
      * This method generates the authentication vectors sized by given paramter.
      * @return a list of Authentication vectors
      */
-    public ArrayList generateVector()
-    {
+    public ArrayList generateAuthenticationVectors(){
         LOGGER.debug("entering");
 
-        ArrayList vector = null;
-/*
-        try
-        {
-            // create per init answer vector
-            vector = new ArrayList(numberAuthItems.intValue());
+        ArrayList vectorList = null;
+        try{
+        	
+            vectorList = new ArrayList(numberAuthItems.intValue());
 
-            ServerDigestAKA digestAKA = new ServerDigestAKA();
+            HexCoDec codec;
+            codec = new HexCoDec();
+            byte [] secretKey = codec.decode(impi.getSkey());
+            byte [] amf = codec.decode(impi.getAmf());
 
-            // Collection values
-            SecureRandom randomAccess = SecureRandom.getInstance("SHA1PRNG");
-            AuthKey secretKey = new AuthKey(impi.getSkey());
-            Amf amf = new Amf(impi.getAmf());
-            Op operator = new Op(impi.getOperatorId());
-            Opc opc = digestAKA.generateOp_c(secretKey, operator);
+            // op and generate opC	
+            byte [] op = codec.decode(impi.getOperatorId());
+            byte [] opC = Milenage.generateOpC(secretKey, op);
+            
             String authScheme = impi.getAuthScheme();
-
-            String sqnString = new String(impi.getSqn());
-            Sqn sqn;
-
-            if (sqnString == null)
-            {
-                sqn = SimpleSqn.getNewInstance();
-            }
-            else
-            {
-                sqn = new SimpleSqn(sqnString);
+            Inet4Address ip = impi.getIP();
+            byte [] sqn = codec.decode(impi.getSqn());
+        	
+            for (long ix = 0; ix < numberAuthItems; ix++){
+            	sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
+                
+                vectorList.add(DigestAKA.getAuthenticationVector(authScheme, secretKey, opC, amf, sqn));
             }
 
-            for (long ix = 0; ix < numberAuthItems; ix++)
-            {
-                sqn = sqn.calculateNextSqn();
-                vector.add(
-                    generateAuthenticationVector(
-                        randomAccess, secretKey, amf, opc, sqn, (long) ix,
-                        digestAKA, authScheme));
+            
+            if (authScheme.equalsIgnoreCase("Digest-MD5")){
+            	// Authentication Scheme is Digest-MD5
+            	LOGGER.debug("Auth-Scheme is Digest-MD5");
+                SecureRandom randomAccess = SecureRandom.getInstance("SHA1PRNG");
+
+                for (long ix = 0; ix <numberAuthItems; ix++){
+                    byte[] randBytes = new byte[16];
+                	randomAccess.setSeed(System.currentTimeMillis());
+                    randomAccess.nextBytes(randBytes);
+                    
+                	secretKey = codec.decodePassword(impi.getSkey()).getBytes();
+                	
+                	AuthenticationVector aVector = new AuthenticationVector(authScheme, randBytes, secretKey);
+                	vectorList.add(aVector);
+                }
+                impi.setSqn(codec.encode(sqn));
+                HibernateUtil.getCurrentSession().update(impi);
             }
+            else{
+            	// We have AKAv1 or AKAv2
+            	LOGGER.debug("Auth-Scheme is Digest-AKA");
+            	
+                for (long ix = 0; ix < numberAuthItems; ix++)
+                {
+                	sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
+        	        byte[] copySqnHe = new byte[6];
+        	        int k = 0;
+        	        for (int i = 0; i < 6; i++, k++){
+                		copySqnHe[k] = sqn[i]; 
+        	        }
 
-            impi.setSqn(sqn.getAsString());
-
-            Transaction tx = session.beginTransaction();
-            session.update(impi);
-            tx.commit();
-            session.flush();
+                    vectorList.add(DigestAKA.getAuthenticationVector(authScheme, secretKey, opC, amf, sqn));
+                }
+                impi.setSqn(codec.encode(sqn));
+                HibernateUtil.getCurrentSession().update(impi);            }
+            
         }
-        catch (NoSuchAlgorithmException e)
-        {
+        catch (NoSuchAlgorithmException e){
             LOGGER.error(this, e);
         }
-        catch (CoDecException e)
-        {
+        catch (InvalidKeyException e){
             LOGGER.error(this, e);
         }
-        catch (KernelNotFoundException e)
-        {
-            LOGGER.error(this, e);
-        }
-        catch (InvalidKeyException e)
-        {
-            LOGGER.error(this, e);
-        }
-        catch (Exception e)
-        {
+        catch (Exception e){
             // Check impi
             if (impi.getAmf() == null)
             {
@@ -367,213 +348,142 @@ public class HSSzhOperationsImpl implements ZhOperations
                 throw new NullPointerException("Missing Operator ID.");
             }
         }
-*/
-        LOGGER.debug("exiting");
 
-        return vector;
+        LOGGER.debug("exiting");
+        return vectorList;
     }
 
-    /*
-     * It handles synchronization failure
-     * @return a list of authentication vectors
+    /**
+     * It handles the synchronization of the SQN-MS with the SQN-HE
      * @throws DiameterException
+     * @return a list of authentication vectorList
      */
-    public ArrayList handleSynchFailure() throws DiameterException
+    public ArrayList performSynchronization() throws DiameterException
     {
-        LOGGER.debug("entering");
-/*
-        try
-        {
-            ServerDigestAKA digestAKA = new ServerDigestAKA();
-            SIPAuthorization sipAuthorization =
-                new SIPAuthorization(sipAuthDataItem.sipAuthorization);
+    	LOGGER.info("Handling Synchronization between Mobile Station and Home Environment!");
+        byte[] sipAuthorization = sipAuthDataItem.sipAuthorization;
 
-            Nonce nonce = sipAuthorization.getNonce();
-            Auts auts = sipAuthorization.getAuts();
-            Ak ak = null;
-            Rand rand = nonce.getRand();
-            AuthKey key = new AuthKey(impi.getSkey());
-            Opc opc = digestAKA.generateOp_c(key, new Op(impi.getOperatorId()));
-            String sqnHeString = impi.getSqn();
-            String amf = impi.getAmf();
-            String authScheme = impi.getAuthScheme();
-            Sqn sqnHe = null;
+        HexCoDec codec;
+        codec = new HexCoDec();
 
-            if (sqnHeString == null)
-            {
-                sqnHe = SimpleSqn.getNewInstance();
-            }
-            else
-            {
-                sqnHe = new SimpleSqn(sqnHeString);
-            }
+        byte [] secretKey = codec.decode(impi.getSkey());
+        byte [] amf = codec.decode(impi.getAmf());
 
-            sqnHe = sqnHe.calculateNextSqn();
+        try {
+            // get op and generate opC	
+            byte [] op = codec.decode(impi.getOperatorId());
+			byte [] opC = Milenage.generateOpC(secretKey, op);
 
-            if (Ak.USE_AK)
-            {
-                ak = digestAKA.generateSynchronizationAnonoymityKey(
-                        key, rand, opc);
-            }
+			String authScheme = impi.getAuthScheme();
+	        Inet4Address ip = impi.getIP();
 
-            Sqn sqnMs = auts.extractSqn(ak);
+	        // sqnHE - represent the SQN from the HSS
+	        // sqnMS - represent the SQN from the client side
+	        byte[] sqnHe = codec.decode(impi.getSqn());
+	        sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
 
-            if (!sqnMs.isInRange(sqnHe))
-            {
-                Mac xMacS = digestAKA.generateXMACS(key, rand, opc, sqnMs);
-                Mac macS = auts.getMac();
-                LOGGER.debug("X-MACS: " + xMacS);
-                LOGGER.debug("MACS:   " + macS);
+	        byte [] nonce = new byte[32];
+	        byte [] auts = new byte[14];
+	        int k = 0;
+	        for (int i = 0; i < 32; i++, k++){
+        		nonce[k] = sipAuthorization[i]; 
+	        }
+	        k = 0;
+	        for (int i = 32; i < 46; i++, k++){
+        		auts[k] = sipAuthorization[i]; 
+	        }
+	        
+	        byte [] rand = new byte[16];
+	        k = 0;
+	        for (int i = 0; i < 16; i++, k++){
+        		rand[k] = nonce[i]; 
+	        }
 
-                if (!xMacS.equals(macS))
-                {
-                    throw new UnableToComply();
-                }
-
-                sqnHe = sqnMs;
-                sqnHe = sqnHe.calculateNextSqn();
+	        byte[] ak = null;
+	        if (HSSProperties.USE_AK){
+                ak = Milenage.f5star(secretKey, rand, opC);
             }
 
-            AuthenticationVector newAv =
-                generateAuthenticationVector(
-                    rand, key, new Amf(amf), opc, sqnHe, 0, digestAKA,
-                    authScheme);
+	        byte [] sqnMs = new byte[6];
+	        k = 0;
+	        if (HSSProperties.USE_AK){
+		        for (int i = 0; i < 6; i++, k++){
+	        		sqnMs[k] = (byte) (auts[i] ^ ak[i]); 
+		        }
+		        LOGGER.warn("USE_AK is enabled and will be used in Milenage algorithm!");
+	        }
+	        else{
+		        for (int i = 0; i < 6; i++, k++){
+	        		sqnMs[k] = auts[i]; 
+		        }
+		        LOGGER.warn("USE_AK is NOT enabled and will NOT be used in Milenage algorithm!");
+	        }
+	        
+	        if (DigestAKA.SQNinRange(sqnMs, sqnHe, HSSProperties.IND_LEN, HSSProperties.delta, HSSProperties.L)){
+	        	LOGGER.info("The new generated SQN value shall be accepted on the client, abort synchronization!");
+	        	k = 0;
+	        	byte[] copySqnHe = new byte[6];
+		        for (int i = 0; i < 6; i++, k++){
+	        		copySqnHe[k] = sqnHe[i]; 
+		        }
+	        	
+	            AuthenticationVector aVector = DigestAKA.getAuthenticationVector(authScheme, secretKey, opC, amf, copySqnHe);
+	            ArrayList vectorsList = new ArrayList();
+	            vectorsList.add(aVector);
 
-            ArrayList avs = new ArrayList();
-            avs.add(newAv);
+	            // update Cxdata
+	            impi.setSqn(codec.encode(sqnHe));
+	            HibernateUtil.getCurrentSession().update(impi);
+	            return vectorsList;	        	
+	        }
+	        	
+        	byte xmac_s[] = Milenage.f1star(secretKey, rand, opC, sqnMs, amf);
+        	byte mac_s[] = new byte[8];
+        	k = 0;
+        	for (int i = 6; i < 14; i++, k++){
+        		mac_s[k] = auts[i];
+        	}
+	        	
+        	for (int i = 0; i < 8; i ++)
+        		if (xmac_s[i] != mac_s[i]){
+        			LOGGER.error("XMAC and MAC are different! User not authorized in performing synchronization!");
+        			throw new DiameterBaseException(5012);
+               }
+
+            sqnHe = sqnMs;
+            sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
+     		LOGGER.info("Synchronization of SQN_HE with SQN_MS was completed successfully!");
+	        
+	        byte[] copySqnHe = new byte[6];
+	        k = 0;
+	        for (int i = 0; i < 6; i++, k++){
+        		copySqnHe[k] = sqnHe[i]; 
+	        }
+            AuthenticationVector aVector = DigestAKA.getAuthenticationVector(authScheme, secretKey, opC, amf, copySqnHe);
+            ArrayList vectorsList = new ArrayList();
+            vectorsList.add(aVector);
 
             // update Cxdata
-            impi.setSqn(sqnHe.getAsString());
-
-            Transaction tx = session.beginTransaction();
-            session.update(impi);
-            tx.commit();
-            session.flush();
-            LOGGER.debug("exiting");
-
-            return avs;
-        }
-        catch (CoDecException e)
-        {
-            LOGGER.error(this, e);
-            throw new DiameterBaseException(UnableToComply.ERRORCODE);
-        }
-        catch (InvalidKeyException e)
-        {
-            LOGGER.error(this, e);
-            throw new DiameterBaseException(UnableToComply.ERRORCODE);
-        }
-        catch (KernelNotFoundException e)
-        {
-            LOGGER.error(this, e);
-            throw new DiameterBaseException(UnableToComply.ERRORCODE);
-        }
-        catch (Exception e)
-        {
-            LOGGER.error(this, e);
-            throw new DiameterBaseException(UnableToComply.ERRORCODE);
-        }*/
+            impi.setSqn(codec.encode(sqnHe));
+            HibernateUtil.getCurrentSession().update(impi);
+            return vectorsList;
+            
+		} 
+        catch (InvalidKeyException e) {
+			e.printStackTrace();
+		}
+        catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
         
-        return null;
+        return new ArrayList();
     }
-
-    /**
-     * It generates authentication vector with the help of provided arguments
-     * @param random an object which can generate some random value
-     * @param secretKey secret key object
-     * @param amf authentication management field object
-     * @param opc operator specific parameter object
-     * @param sqn sequence number object
-     * @param pos position
-     * @param digestAKA digestAKA object
-     * @param authScheme authentication scheme
-     * @return the generated authentication vector
-     * @throws CoDecException
-     * @throws InvalidKeyException
-     */ 
-    
-/*    private static AuthenticationVector generateAuthenticationVector(
-        SecureRandom random, AuthKey secretKey, Amf amf, Opc opc, Sqn sqn,
-        long pos, ServerDigestAKA digestAKA, String authScheme)
-        throws CoDecException, InvalidKeyException
-    {
-        byte[] randBytes = new byte[Rand.BYTES_LENGTH];
-        random.setSeed(System.currentTimeMillis());
-        random.nextBytes(randBytes);
-
-        Rand rand = new Rand(randBytes);
-
-        return generateAuthenticationVector(
-            rand, secretKey, amf, opc, sqn, pos, digestAKA, authScheme);
-    }
-*/
-    /**
-     * It generates authentication vector with the help of provided arguments
-     * @param rand an object which can generate some random value
-     * @param secretKey secret key object
-     * @param amf authentication management field object
-     * @param opc operator specific parameter object
-     * @param sqn sequence number object
-     * @param pos position
-     * @param digestAKA digestAKA object
-     * @param authScheme authentication scheme
-     * @return the generated authentication vector
-     * @throws CoDecException
-     * @throws InvalidKeyException
-     */ 
-/*    private static AuthenticationVector generateAuthenticationVector(
-        Rand rand, AuthKey secretKey, Amf amf, Opc opc, Sqn sqn, long pos,
-        ServerDigestAKA digestAKA, String authScheme)
-        throws CoDecException, InvalidKeyException
-    {
-        LOGGER.debug("vector number: " + pos);
-        LOGGER.debug("amf: " + amf.getAsString());
-        LOGGER.debug("opc: " + opc.getAsString());
-        LOGGER.debug("rand: " + rand.getAsString());
-        LOGGER.debug("sqn: " + sqn.getAsString());
-
-        Mac mac = digestAKA.generateMACA(secretKey, rand, opc, sqn, amf);
-
-        LOGGER.debug("mac: " + mac.getAsString());
-
-        Res res = digestAKA.generateXRES(authScheme,secretKey, rand, opc);
-
-        LOGGER.debug("res: " + res.getAsString());
-
-        Ck ck = digestAKA.generateCipherKey(secretKey, rand, opc);
-
-        LOGGER.debug("ck: " + ck.getAsString());
-
-        Ik ik = digestAKA.generateIntegrityKey(secretKey, rand, opc);
-        LOGGER.debug("ik: " + ik.getAsString());
-
-        Ak ak = null;
-        Autn autn = new Autn(sqn, amf, mac);
-
-        if (Ak.USE_AK)
-        {
-            ak = digestAKA.generateAnonoymityKey(secretKey, rand, opc);
-            LOGGER.debug("ak: " + ak.getAsString());
-            autn.xorSqn(ak);
-        }
-
-        Nonce nonce = new Nonce(rand, autn);
-
-        byte[] sipAuthenticate = nonce.getBytes();
-        byte[] sipAuthorization = res.getBytes();
-
-        return new AuthenticationVector(
-            authScheme, sipAuthenticate, sipAuthorization, ck.getBytes(),
-            ik.getBytes());
-    }*/
 
     /** 
      *  a string converter
      *  @return the string
      */
-    public String toString()
-    {
-        return ToStringBuilder.reflectionToString(
-            this, ToStringStyle.MULTI_LINE_STYLE);
+    public String toString(){
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 }
