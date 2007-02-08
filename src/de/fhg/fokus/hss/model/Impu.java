@@ -441,6 +441,7 @@ public class Impu extends NotifySupport implements Serializable
     * @param svp service profile 
     */
 	public void setSvp(de.fhg.fokus.hss.model.Svp svp) {
+		changeSupport.firePropertyChange("svp", this.svp, svp);
 		this.svp = svp;
 	}
 }
