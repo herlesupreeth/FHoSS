@@ -96,7 +96,6 @@ public class PsiSubmitAction extends HssAction
 
 				sipName = psiTempl.getUsername() + form.getWildcard() + "@" + psiTempl.getHostname();
 				assginedImpu.setSipUrl(sipName);
-				assginedImpu.setTelUrl("");
 				assginedImpu.setBarringIndication(false);
 				HibernateUtil.getCurrentSession().save(assginedImpu);
 

@@ -75,9 +75,6 @@ public class Impu extends NotifySupport implements Serializable
     private String sipUrl;
 
     /** persistent field */
-    private String telUrl;
-
-    /** persistent field */
     private Boolean barringIndication;
 
     /** persistent field */
@@ -106,7 +103,6 @@ public class Impu extends NotifySupport implements Serializable
      * full constructor 
      * @param userStatus Status of user
      * @param sipUrl  sip URL of the public identity
-     * @param telUrl  telUrl of the public identity
      * @param barringIndication barringIndication
      * @param psi a flag to identify if the public identity 
      *        identifies a public service identity
@@ -117,14 +113,13 @@ public class Impu extends NotifySupport implements Serializable
      * @param notifyScscfnames 
      */
     public Impu(
-        String userStatus, String sipUrl, String telUrl,
+        String userStatus, String sipUrl,
         Boolean barringIndication, boolean psi,
         de.fhg.fokus.hss.model.Psi assignedPsi, de.fhg.fokus.hss.model.Svp svp,
         Set impis, Set notifyImsUserStates, Set notifyScscfnames)
     {
         this.userStatus = userStatus;
         this.sipUrl = sipUrl;
-        this.telUrl = telUrl;
         this.barringIndication = barringIndication;
         this.psi = psi;
         this.assignedPsi = assignedPsi;
@@ -138,7 +133,6 @@ public class Impu extends NotifySupport implements Serializable
      * minimal constructor 
      * @param userStatus Status of user
      * @param sipUrl  sip URL of the public identity
-     * @param telUrl  telUrl of the public identity
      * @param barringIndication barringIndication
      * @param psi a flag to identify if the public identity 
      *        identifies a public service identity
@@ -148,13 +142,12 @@ public class Impu extends NotifySupport implements Serializable
      * @param notifyScscfnames 
      */
     public Impu(
-        String userStatus, String sipUrl, String telUrl,
+        String userStatus, String sipUrl,
         Boolean barringIndication, boolean psi, de.fhg.fokus.hss.model.Svp svp,
         Set impis, Set notifyImsUserStates, Set notifyScscfnames)
     {
         this.userStatus = userStatus;
         this.sipUrl = sipUrl;
-        this.telUrl = telUrl;
         this.barringIndication = barringIndication;
         this.psi = psi;
         this.svp = svp;
@@ -167,7 +160,6 @@ public class Impu extends NotifySupport implements Serializable
      * minimal constructor 
      * @param userStatus Status of user
      * @param sipUrl  sip URL of the public identity
-     * @param telUrl  telUrl of the public identity
      * @param barringIndication barringIndication
      * @param impis public identities
      * @param notifyImsUserStates 
@@ -177,13 +169,12 @@ public class Impu extends NotifySupport implements Serializable
      *        identifies a public service identity
      */
     public Impu(
-        String userStatus, String sipUrl, String telUrl,
+        String userStatus, String sipUrl,
         Boolean barringIndication, Set impis, Set notifyImsUserStates,
         Set notifyScscfnames, boolean psi, Psi assignedPsi)
     {
         this.userStatus = userStatus;
         this.sipUrl = sipUrl;
-        this.telUrl = telUrl;
         this.barringIndication = barringIndication;
         this.impis = impis;
         this.notifyImsUserStates = notifyImsUserStates;
@@ -278,24 +269,6 @@ public class Impu extends NotifySupport implements Serializable
     {
         fire("sipUrl", this.sipUrl, sipUrl);
         this.sipUrl = sipUrl;
-    }
-
-   /**
-    * Getter method for telUrl
-    * @return telUrl of public identity
-    */
-    public String getTelUrl()
-    {
-        return this.telUrl;
-    }
-
-   /**
-    * Setter method for telUrl
-    * @param telUrl telUrl of public identity 
-    */
-    public void setTelUrl(String telUrl)
-    {
-        this.telUrl = telUrl;
     }
 
    /**

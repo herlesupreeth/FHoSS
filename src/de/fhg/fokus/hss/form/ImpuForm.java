@@ -75,7 +75,6 @@ public class ImpuForm extends HssForm
     }
 
     private String sipUrl = null;
-    private String telUrl = null;
     private String impuId = null;
     private String impiId = null;
     private boolean barred = false;
@@ -86,7 +85,6 @@ public class ImpuForm extends HssForm
     public void reset(ActionMapping arg0, HttpServletRequest arg1)
     {
         sipUrl = null;
-        telUrl = null;
         impuId = null;
         impiId = null;
         barred = false;
@@ -106,7 +104,11 @@ public class ImpuForm extends HssForm
         }
         if ((getSipUrl() != null) || (getSipUrl().length() > 1))
         {
-        	if(getSipUrl().toLowerCase().startsWith("sip:") == false){
+        	if((getSipUrl().toLowerCase().startsWith("sip:") == false &&
+		getSipUrl().toLowerCase().startsWith("tel:") == false) 
+		&& (getSipUrl().toLowerCase().startsWith("sips:") == false &&
+		getSipUrl().toLowerCase().startsWith("tels:") == false)
+		){
             actionErrors.add(
                 "sipUrl", new ActionMessage("impu.error.format.sipUrl"));
         	}
@@ -161,15 +163,6 @@ public class ImpuForm extends HssForm
         this.barred = barred;
     }
 
-    public String getTelUrl()
-    {
-        return telUrl;
-    }
-
-    public void setTelUrl(String telUrl)
-    {
-        this.telUrl = telUrl;
-    }
 
     public String getUserStatusId()
     {

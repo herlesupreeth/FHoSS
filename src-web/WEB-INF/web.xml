@@ -130,8 +130,7 @@
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>hss.web.console</web-resource-name>
-      <url-pattern>*.do</url-pattern>
-      <url-pattern>/index.jsp</url-pattern>
+      <url-pattern>*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
        <role-name>hss</role-name>

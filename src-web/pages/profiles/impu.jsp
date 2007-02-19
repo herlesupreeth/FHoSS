@@ -31,12 +31,8 @@
 								property="impuId" /> <html:hidden property="impiId" /></td>
 						</tr>
 						<tr>
-							<td nowrap="nowrap"><bean:message key="impu.head.sipUrl" />*</td>
+							<td nowrap="nowrap"><bean:message key="impu.head.identity" /></td>
 							<td><html:text styleClass="inputtext" property="sipUrl"  style="width:325px;"/></td>
-						</tr>
-						<tr>
-							<td nowrap="nowrap"><bean:message key="impu.head.telUrl" /></td>
-							<td><html:text styleClass="inputtext" property="telUrl"  style="width:325px;"/></td>
 						</tr>						
 						<tr>
 							<td nowrap="nowrap"><bean:message key="impu.head.barred" /></td>

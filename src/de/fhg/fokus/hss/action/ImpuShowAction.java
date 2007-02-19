@@ -81,7 +81,6 @@ public class ImpuShowAction extends HssAction
 				Impu impu = impuBO.load(form.getPrimaryKey());
 		        
 				form.setSipUrl(impu.getSipUrl());
-				form.setTelUrl(impu.getTelUrl());
 				form.setBarred(impu.getBarringIndication().booleanValue());
 				form.setUserStatusId(impu.getUserStatus());
 				

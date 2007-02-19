@@ -38,13 +38,7 @@
         not-null="true"
         length="255"
     />
-    <property
-        name="telUrl"
-        type="java.lang.String"
-        column="tel_url"
-        not-null="true"
-        length="255"
-    />
+
     <property
         name="barringIndication"
         type="java.lang.Boolean"
