@@ -132,7 +132,7 @@ public class SvpBO
                 Impu impu = (Impu) itImpu.next();
                 cxUserProfil = new CxUserProfil(impu);
 
-                if (cxUserProfil.isRegistered()){
+                if (cxUserProfil.isRegistered() && cxUserProfil.getImpi() != null){
                     URI privateIdentity = new URI(cxUserProfil.getImpi().getImpiString());
                     UpdateCxOperation cxOperation = new UpdateCxOperation(cxUserProfil, privateIdentity);
                     operationsList.add(cxOperation);

@@ -54,6 +54,7 @@ import org.apache.struts.action.ActionMapping;
 
 import de.fhg.fokus.hss.form.ImpiForm;
 import de.fhg.fokus.hss.model.ImpuBO;
+import de.fhg.fokus.hss.model.Impu;
 import de.fhg.fokus.hss.util.HibernateUtil;
 import de.fhg.fokus.hss.util.InfrastructureException;
 
@@ -81,8 +82,17 @@ public class Impu2ImpiAction extends HssAction
 		Integer impuPk = Integer.valueOf(form.getImpuSelectId());
 		boolean isLink = form.getImpuSelect().equals("remove") == false;
 
+		
 		try{
 			HibernateUtil.beginTransaction();
+
+			Impu impu = (Impu) HibernateUtil.getCurrentSession().load(Impu.class, impuPk);
+	
+			if (isLink == false && !impu.getUserStatus().equals(Impu.USER_STATUS_NOT_REGISTERED)){
+				impu.setUserStatus(Impu.USER_STATUS_NOT_REGISTERED);
+				impuBO.saveOrUpdate(impu);
+			}
+
 			impuBO.linkImpu2Impi(impiPk, impuPk, isLink);
 			HibernateUtil.commitTransaction();
 		}
