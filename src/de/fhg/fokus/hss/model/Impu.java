@@ -248,7 +248,6 @@ public class Impu extends NotifySupport implements Serializable
     */
     public void setUserStatus(String userStatus)
     {
-        fire("userStatus", this.userStatus, userStatus);
         this.userStatus = userStatus;
     }
 

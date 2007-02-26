@@ -202,18 +202,15 @@ public class ImpuBO
                 pi.setIdentity(impu.getSipUrl());
 
                 CxUserProfil cxUserProfil = new CxUserProfil(pi);
-                URI privateIdentity =
-                    new URI(cxUserProfil.getImpi().getImpiString());
+                String privateIdentity = cxUserProfil.getImpi().getImpiString();
+                String publicIdentity =
+                	cxUserProfil.getImpu().getSipUrl();
                 UpdateCxOperation cxOperation =
-                    new UpdateCxOperation(cxUserProfil, privateIdentity);
+                    new UpdateCxOperation(cxUserProfil, privateIdentity, publicIdentity);
                 cxOperation.execute();
             }
         }
         catch (DiameterException e)
-        {
-            LOGGER.error(impu, e);
-        }
-        catch (URISyntaxException e)
         {
             LOGGER.error(impu, e);
         }

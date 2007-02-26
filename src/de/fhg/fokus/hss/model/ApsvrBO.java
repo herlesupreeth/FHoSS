@@ -178,10 +178,9 @@ public class ApsvrBO
 
                                 if (cxUserProfil.isRegistered())
                                 {
-                                    URI privateIdentity = new URI(cxUserProfil.getImpi()
-                                                                              .getImpiString());
+                                    
                                     UpdateCxOperation cxOperation = new UpdateCxOperation(cxUserProfil,
-                                            privateIdentity);
+                                    		cxUserProfil.getImpi().getImpiString(), pi.getIdentity());
                                     cxOperation.execute();
                                     impuIds.add(impu.getImpuId());
                                 }
@@ -192,10 +191,6 @@ public class ApsvrBO
             }
         }
         catch (DiameterException e)
-        {
-            LOGGER.error(this, e);
-        }
-        catch (URISyntaxException e)
         {
             LOGGER.error(this, e);
         }

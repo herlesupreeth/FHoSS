@@ -46,6 +46,7 @@
 package de.fhg.fokus.hss.server.cx.op;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.log4j.Logger;
 
@@ -65,16 +66,23 @@ public class UpdateCxOperation extends CxOperation {
 	private static final Logger LOGGER = Logger.getLogger(UpdateCxOperation.class);
 	/** name of serving call session control function */
 	private String scscfName;
-
+	private String publicUserIdentity;
     /**
      * constructor
      * @param _userProfil user profile
      * @param _privateUserIdentity private user identity
      */    	
-	public UpdateCxOperation(CxUserProfil _userProfil, URI _privateUserIdentity){
+	public UpdateCxOperation(CxUserProfil _userProfil, String privateIdentity, String publicUserIdentity){
 		LOGGER.debug("entering");
 		this.userProfil = _userProfil;
-		this.privateUserIdentity = _privateUserIdentity;
+		try {
+			this.privateUserIdentity = new URI(privateIdentity);
+			this.publicUserIdentity = publicUserIdentity;
+			
+		} 
+		catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 		this.scscfName = userProfil.getImpi().getScscfName();
 		LOGGER.debug("exiting");
 	}
@@ -88,7 +96,8 @@ public class UpdateCxOperation extends CxOperation {
 	public Object execute() throws DiameterException {
 		LOGGER.debug("entering");
 		CSCFOperations operations = new CSCFOperationsImpl();
-		operations.cxUpdateSubscriberData(privateUserIdentity, userProfil.getIMSSubscription(), userProfil.getChargingInfoSet(), scscfName);
+		operations.cxUpdateSubscriberData(privateUserIdentity, userProfil.getIMSSubscription(publicUserIdentity),
+				userProfil.getChargingInfoSet(), scscfName);
 		LOGGER.debug("exiting");
 		return null;
 	}

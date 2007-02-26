@@ -533,29 +533,27 @@ public class CxUserProfil
      *
      * @return IMSSubscription Object
      */
-    public IMSSubscription getIMSSubscription()
+    public IMSSubscription getIMSSubscription(String publicUserIdentity)
     {
         IMSSubscription subscription = new IMSSubscription();
         subscription.setPrivateID(getImpi().getImpiString());
 
         ServiceProfile serviceProfile = null;
-        TreeMap svpMap = new TreeMap();
 
-        if (impuList != null)
-        {
-            Iterator it = impuList.iterator();
-
-            while (it.hasNext())
-            {
-                Impu next = (Impu) it.next();
+        Impu impu = null;
+        Iterator it = impuList.iterator(); 
+        while (it.hasNext()){
+        	impu = (Impu) it.next();
+        	if (impu.getSipUrl().equals(publicUserIdentity))
+        		break;
+        }
+        
 
                 if (impu.getSvp() != null)
                 {
                     Svp svp = impu.getSvp();
                     Integer key = svp.getSvpId();
 
-                    if (svpMap.containsKey(key) == false)
-                    {
                         serviceProfile = new ServiceProfile();
 
                         if (svp.getIfc2svps() != null)
@@ -605,24 +603,16 @@ public class CxUserProfil
                                     initialFilterCriteria);
                             }
                             
+                            
                             PublicIdentity publicIdentity = new PublicIdentity();
-                            publicIdentity.setIdentity(next.getSipUrl());
+                            publicIdentity.setIdentity(impu.getSipUrl());
                             publicIdentity.setBarringIndication(
-                                next.getBarringIndication());
+                                impu.getBarringIndication());
                             serviceProfile.addPublicIdentity(publicIdentity);
                         }
-
-                        svpMap.put(key, serviceProfile);
-                        subscription.addServiceProfile(serviceProfile);
-                    }
-                    else
-                    {
-                        serviceProfile = (ServiceProfile) svpMap.get(key);
-                    }
+                        
                 }
-            }
-        }
-
+        subscription.addServiceProfile(serviceProfile);        
         return subscription;
     }
 

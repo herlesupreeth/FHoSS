@@ -6,8 +6,6 @@
 	<classpathentry kind="lib" path="lib/antlr-2.7.5H3.jar"/>
 	<classpathentry kind="lib" path="lib/asm.jar"/>
 	<classpathentry kind="lib" path="lib/asm-attrs.jar"/>
-	<classpathentry kind="lib" path="lib/c3p0-0.9.0.2.jar"/>
-	<classpathentry kind="lib" path="lib/c3p0-oracle-thin-extras-0.9.0.2.jar"/>
 	<classpathentry kind="lib" path="lib/catalina.jar"/>
 	<classpathentry kind="lib" path="lib/catalina-optional.jar"/>
 	<classpathentry kind="lib" path="lib/cglib-2.1.jar"/>

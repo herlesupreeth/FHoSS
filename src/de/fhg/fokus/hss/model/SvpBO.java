@@ -133,8 +133,8 @@ public class SvpBO
                 cxUserProfil = new CxUserProfil(impu);
 
                 if (cxUserProfil.isRegistered() && cxUserProfil.getImpi() != null){
-                    URI privateIdentity = new URI(cxUserProfil.getImpi().getImpiString());
-                    UpdateCxOperation cxOperation = new UpdateCxOperation(cxUserProfil, privateIdentity);
+                    
+                    UpdateCxOperation cxOperation = new UpdateCxOperation(cxUserProfil, cxUserProfil.getImpi().getImpiString(), impu.getSipUrl());
                     operationsList.add(cxOperation);
                 }
             }
@@ -146,9 +146,6 @@ public class SvpBO
             }
         }
         catch (DiameterException e){
-            LOGGER.error(svp, e);
-        }
-        catch (URISyntaxException e){
             LOGGER.error(svp, e);
         }
 

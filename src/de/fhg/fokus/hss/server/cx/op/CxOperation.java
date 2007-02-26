@@ -89,7 +89,7 @@ public abstract class CxOperation implements PropertyChangeListener
         LOGGER.debug("entering");
 
         try{
-            UpdateCxOperation cxOperation = new UpdateCxOperation(getUserProfil(), privateUserIdentity);
+            UpdateCxOperation cxOperation = new UpdateCxOperation(getUserProfil(), privateUserIdentity.getPath(), publicIdentity.getIdentity());
             cxOperation.execute();
         }
         catch (DiameterException e){

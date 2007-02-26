@@ -253,7 +253,8 @@ public class PullCxOperation extends CxOperation
                 throw new UnableToComply();
             }
             // Download the user profile and the charging functions
-            notificationResponse.setUserProfile(userProfil.getIMSSubscription(), userProfil.getChargingInfoSet());
+            notificationResponse.setUserProfile(userProfil.getIMSSubscription(this.publicIdentity.getIdentity()), 
+            		userProfil.getChargingInfoSet());
         }
 
         updateUserProfile();
