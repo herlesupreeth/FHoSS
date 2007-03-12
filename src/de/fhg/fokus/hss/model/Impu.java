@@ -95,6 +95,10 @@ public class Impu extends NotifySupport implements Serializable
     private boolean deregistered = false;
     /** a field which tells whether a users state is changed or not*/
     private boolean changeUserState = false;
+    
+    private boolean changedSVP = false;
+    private boolean changedBarring = false;
+    
 
     /** persistent field */
     private Set notifyScscfnames;
@@ -248,7 +252,8 @@ public class Impu extends NotifySupport implements Serializable
     */
     public void setUserStatus(String userStatus)
     {
-        this.userStatus = userStatus;
+    	fire("userStatus", this.userStatus, userStatus);
+    	this.userStatus = userStatus;
     }
 
    /**
@@ -342,16 +347,20 @@ public class Impu extends NotifySupport implements Serializable
     {
         super.propertyChange(evt);
 
-        if (evt.getPropertyName().equals("userStatus"))
+        if (evt.getPropertyName().equals("userStatus") && (evt.getOldValue() != null))
         {
             changeUserState = true;
 
-            if (
-                (evt.getNewValue().equals(USER_STATUS_NOT_REGISTERED))
-                    && (evt.getOldValue() != null))
+            if ((evt.getNewValue().equals(USER_STATUS_NOT_REGISTERED)) && (evt.getOldValue() != null))
             {
                 deregistered = true;
             }
+        }
+        else if (evt.getPropertyName().equals("svp") && (evt.getOldValue() != null)){
+        	this.changedSVP = true;
+        } 
+        else if (evt.getPropertyName().equals("barringIndication") && (evt.getOldValue() != null)){
+        	this.changedBarring = true;
         }
     }
 
@@ -416,4 +425,13 @@ public class Impu extends NotifySupport implements Serializable
 		changeSupport.firePropertyChange("svp", this.svp, svp);
 		this.svp = svp;
 	}
+
+	public boolean isChangedBarring() {
+		return changedBarring;
+	}
+
+	public boolean isChangedSVP() {
+		return changedSVP;
+	}
+	
 }

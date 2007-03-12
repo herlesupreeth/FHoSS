@@ -147,9 +147,11 @@ public class AuthCxOperation extends CxOperation{
                 // generate the authentication vectors
                 authenticationVectors = generateAuthenticationVectors(authenticationVector);
             }
-            authDataResponse = new CxAuthDataResponse(ResultCode._DIAMETER_SUCCESS, true);
-            authDataResponse.setAuthenticationVectors(authenticationVectors);
-            updateUserProfile();
+            if (authenticationVectors != null){
+            	authDataResponse = new CxAuthDataResponse(ResultCode._DIAMETER_SUCCESS, true);
+            	authDataResponse.setAuthenticationVectors(authenticationVectors);
+            	updateUserProfile();
+            }
             
         }
         finally{

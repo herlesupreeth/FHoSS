@@ -115,11 +115,9 @@ public class ImpuBO
 
         HibernateUtil.getCurrentSession().saveOrUpdate(impu);
 
-        if ((impu.isChange())
-                && (
-                    impu.getUserStatus().equals(
-                        Impu.USER_STATUS_NOT_REGISTERED) == false)){
-            commitCxChanges(impu);
+        if (impu.isChange() && (impu.isChangedSVP() || impu.isChangedBarring())
+                && (impu.getUserStatus().equals(Impu.USER_STATUS_NOT_REGISTERED) == false)){
+        	commitCxChanges(impu);
         }
         else if (impu.isDeregistered())
         {

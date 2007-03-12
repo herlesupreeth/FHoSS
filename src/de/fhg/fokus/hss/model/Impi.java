@@ -114,6 +114,7 @@ public class Impi extends NotifySupport implements Serializable
 
     /** flag about changed scscf name **/
     private boolean changeScscfName;
+    
 
     /** 
      * full constructor 
@@ -472,10 +473,7 @@ public class Impi extends NotifySupport implements Serializable
     {
         super.propertyChange(evt);
 
-        if (
-            (evt.getPropertyName().equals("scscfName"))
-                && (evt.getOldValue() != null))
-        {
+        if ((evt.getPropertyName().equals("scscfName")) && (evt.getOldValue() != null)){
             this.changeScscfName = true;
         }
     }

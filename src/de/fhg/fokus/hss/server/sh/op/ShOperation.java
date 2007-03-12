@@ -143,8 +143,8 @@ public abstract class ShOperation
     protected void loadApsvr() throws DiameterException
     {
         apsvr = (Apsvr) HibernateUtil.getCurrentSession()
-        	.createQuery("select apsvr from de.fhg.fokus.hss.model.Apsvr as apsvr where apsvr.name = ?")
-            .setString(0, applicationServerIdentity)
+        	.createQuery("select apsvr from de.fhg.fokus.hss.model.Apsvr as apsvr where apsvr.address like ?")
+            .setString(0, "%" + applicationServerIdentity + "%")
             .uniqueResult();
         
         if (apsvr == null){

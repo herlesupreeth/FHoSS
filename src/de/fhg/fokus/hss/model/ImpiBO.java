@@ -118,7 +118,6 @@ public class ImpiBO
                 Impu impu = (Impu) impuIt.next();
                 if (impu.getNotifyScscfnames().isEmpty() == false){
                     Iterator it = impu.getNotifyScscfnames().iterator();
-
                     while (it.hasNext()){
                     	NotifyScscfname notifyScscfName = (NotifyScscfname) it.next();
                         Apsvr notifApsvr = (Apsvr) HibernateUtil.getCurrentSession().get(Apsvr.class,
