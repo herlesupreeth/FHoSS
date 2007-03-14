@@ -192,13 +192,37 @@ public class CxUserProfil
         if (resultList.size() > 0)
         {
             this.impu = (Impu) resultList.get(0);
+            loadAssignedImpi();
         }
         else
         {
+        	// check if the public identity match on a PSI
+        	query = HibernateUtil.getCurrentSession()
+        		.createQuery("select impu from de.fhg.fokus.hss.model.Impu as impu where impu.psi = true");
+        	resultList = query.list();
+        	if (resultList != null && resultList.size() != 0){
+        		Iterator it = resultList.iterator();
+        		String psiIdentity;
+        		String pIdentity = publicIdentity.getIdentity();
+        		int i;
+        		if (( i = pIdentity.indexOf("sip:")) != -1){
+        			pIdentity = pIdentity.substring(4);
+        		}
+        		 
+        		Impu crtImpu;
+        		while (it.hasNext()){
+        			crtImpu = (Impu)it.next();
+        			psiIdentity = crtImpu.getSipUrl();
+        			if (pIdentity.matches(psiIdentity)){
+        				this.impu = crtImpu;
+        				return;
+        			}
+        		}
+        	}
+        	
+        	// if the the public identity is not matched on any psi, throw exception
             throw new UserUnknown();
         }
-
-        loadAssignedImpi();
 
         LOGGER.debug("exiting");
     }
