@@ -6,10 +6,19 @@
     attributeFormDefault="unqualified">
 
   <!-- This import brings in the XML language attribute xml:lang-->
+
+
   <xs:import namespace="http://www.w3.org/XML/1998/namespace"
       schemaLocation="http://www.w3.org/2001/xml.xsd"/>
 
+<!-- Uncomment this setting and comment the upper import if you DO NOT have an Internet connection when compiling FHoSS 
+	 Moreover, change the "schemaLocation" path according to your installation path of FHoSS, if necessary!             -->
 
+<!--
+	<xs:import namespace="http://www.w3.org/XML/1998/namespace"
+		schemaLocation="file:///opt/OpenIMSCore/FHoSS/xsd/xml.xsd"/>
+-->
+				       
   <!-- User Public Identities for authentication -->
   <xs:complexType name="Tuids">
     <xs:sequence minOccurs="1" maxOccurs="unbounded">

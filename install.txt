@@ -10,6 +10,13 @@ Simple Steps for compiling and installing FHoSS:
 --------------------------------
 svn checkout
 
+1.5 Warning!
+--------------------------------
+If you DO NOT HAVE an Internet connection available when you are compiling FHoSS on your machine please edit
+"xsd/ZhDataType.xsd" and modify the configuration of the import clause as explained in that file! 
+
+Be aware that this is a pre-required step for all the rest!
+
 2. Generate additional java sources from xsd files (xsd/CxDataType, xsd/ShDataType, ZhDataType)
 --------------------------------------------------
 ant gen
