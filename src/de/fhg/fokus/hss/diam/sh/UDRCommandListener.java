@@ -130,7 +130,8 @@ public class UDRCommandListener extends ShCommandListener{
 
                 // create the diameter response message 
                 DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
-
+                responseMessage.flagProxiable = true;
+                
                 /* add Vendor-Specific app id */
                 AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, Constants.Vendor.DIAM);
                 AVP vendorID = new AVP(Constants.AVPCode.VENDOR_ID, true, Constants.Vendor.DIAM);

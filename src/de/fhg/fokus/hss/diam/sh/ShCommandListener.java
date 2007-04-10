@@ -160,6 +160,7 @@ public abstract class ShCommandListener extends CommandListener{
             if ((diameterPeer != null) && (FQDN != null) && (requestMessage != null)){
                 
             	DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
+            	responseMessage.flagProxiable = true;
             	
                 AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, 
                    		Constants.Vendor.DIAM);

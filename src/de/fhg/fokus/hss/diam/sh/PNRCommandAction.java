@@ -125,7 +125,7 @@ public class PNRCommandAction extends CommandAction
 
         try{
             message = HssDiameterStack.diameterPeer.newRequest(Constants.Command.PNR, Application.SH);
-
+            message.flagProxiable = true;
     		/* session-id */
     		AVP sessionID = new AVP(263,true,0);
     		sessionID.setData(asAddress + publicIdentity.getPath() + ";11271298949;" + System.currentTimeMillis());

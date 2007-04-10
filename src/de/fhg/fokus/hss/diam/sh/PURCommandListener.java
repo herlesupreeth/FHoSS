@@ -116,6 +116,7 @@ public class PURCommandListener extends ShCommandListener
 
                // create the responseMessage
                DiameterMessage responseMessage = diameterPeer.newResponse(requestMessage);
+               responseMessage.flagProxiable = true;
                
                /* add Vendor-Specific app id */
                AVP vendorSpecificApplicationID = new AVP(Constants.AVPCode.VENDOR_SPECIFIC_APPLICATION_ID, true, 
