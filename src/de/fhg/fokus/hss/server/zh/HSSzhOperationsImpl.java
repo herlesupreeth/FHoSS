@@ -275,13 +275,6 @@ public class HSSzhOperationsImpl implements ZhOperations{
             Inet4Address ip = impi.getIP();
             byte [] sqn = codec.decode(impi.getSqn());
         	
-            for (long ix = 0; ix < numberAuthItems; ix++){
-            	sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
-                
-                vectorList.add(DigestAKA.getAuthenticationVector(authScheme, secretKey, opC, amf, sqn));
-            }
-
-            
             if (authScheme.equalsIgnoreCase("Digest-MD5")){
             	// Authentication Scheme is Digest-MD5
             	LOGGER.debug("Auth-Scheme is Digest-MD5");
@@ -300,7 +293,7 @@ public class HSSzhOperationsImpl implements ZhOperations{
                 impi.setSqn(codec.encode(sqn));
                 HibernateUtil.getCurrentSession().update(impi);
             }
-            else{
+            else if (authScheme.equalsIgnoreCase("Digest-AKAv1-MD5") || authScheme.equalsIgnoreCase("Digest-AKAv2-MD5")){
             	// We have AKAv1 or AKAv2
             	LOGGER.debug("Auth-Scheme is Digest-AKA");
             	
@@ -316,7 +309,8 @@ public class HSSzhOperationsImpl implements ZhOperations{
                     vectorList.add(DigestAKA.getAuthenticationVector(authScheme, secretKey, opC, amf, sqn));
                 }
                 impi.setSqn(codec.encode(sqn));
-                HibernateUtil.getCurrentSession().update(impi);            }
+                HibernateUtil.getCurrentSession().update(impi);            
+            }
             
         }
         catch (NoSuchAlgorithmException e){
