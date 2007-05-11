@@ -306,7 +306,7 @@ public class HSSzhOperationsImpl implements ZhOperations{
                 		copySqnHe[k] = sqn[i]; 
         	        }
 
-                    vectorList.add(DigestAKA.getAuthenticationVector(authScheme, secretKey, opC, amf, sqn));
+                    vectorList.add(DigestAKA.getAuthenticationVector(authScheme, secretKey, opC, amf, copySqnHe));
                 }
                 impi.setSqn(codec.encode(sqn));
                 HibernateUtil.getCurrentSession().update(impi);            

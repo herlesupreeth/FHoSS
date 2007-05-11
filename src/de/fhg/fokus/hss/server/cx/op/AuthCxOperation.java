@@ -187,7 +187,10 @@ public class AuthCxOperation extends CxOperation{
             String supportedAuthScheme = impi.getAuthScheme();
             Inet4Address ip = impi.getIP();
             byte [] sqn = codec.decode(impi.getSqn());
-
+            
+            for (int i=0; i < 6; i++)
+            	System.out.println("SQNNNNNNNNNNNN:" + sqn[i]);
+            
             LOGGER.debug("Auth-Scheme Supported by the HSS: " + supportedAuthScheme);
             String usedAuthScheme;
             if (receivedAuthVector != null && receivedAuthVector.authenticationScheme != null){
