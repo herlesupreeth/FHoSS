@@ -317,14 +317,9 @@ public class AuthCxOperation extends CxOperation{
 	        sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
 	        //System.out.println("SQN_He is after increment: " + codec.encode(sqnHe));
 
-	        byte [] nonce = new byte[32];
 	        byte [] auts = new byte[14];
-	        int k = 0;
-	        for (int i = 0; i < 32; i++, k++){
-        		nonce[k] = sipAuthorization[i]; 
-	        }
-	        k = 0;
-	        for (int i = 32; i < 46; i++, k++){
+	        int k=0;
+	        for (int i = sipAuthorization.length-auts.length; i < sipAuthorization.length; i++, k++){
         		auts[k] = sipAuthorization[i]; 
 	        }
 	        //System.out.println("AUTS is: " + codec.encode(auts));
@@ -332,7 +327,7 @@ public class AuthCxOperation extends CxOperation{
 	        byte [] rand = new byte[16];
 	        k = 0;
 	        for (int i = 0; i < 16; i++, k++){
-        		rand[k] = nonce[i]; 
+        		rand[k] = sipAuthorization[i]; 
 	        }
 	        //System.out.println("Rand is: " + codec.encode(rand));
 
