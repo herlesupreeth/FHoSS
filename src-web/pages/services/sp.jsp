@@ -329,7 +329,7 @@ function add_action_for_form(action, associated_ID) {
 											</td>
 		
 											<% 
-												if (request.isUserInRole(WebConstants.Security_Permission_ADMIN) && id == -1){ 
+												if (request.isUserInRole(WebConstants.Security_Permission_ADMIN)){ 
 											%>		
 											<td> 
 												<input type="button" name="detach_shared_ifc" 

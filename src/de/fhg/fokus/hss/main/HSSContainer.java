@@ -106,9 +106,6 @@ public class HSSContainer {
 	
 	public static void main(String args[]){
 		HSSContainer hssContainer = new HSSContainer();
-		Tester t = new Tester();
-		t.start();
-		
 		waitForExit();
 		try{
 			hssContainer.tomcatServer.stopTomcat();
