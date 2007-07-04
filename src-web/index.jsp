@@ -6,8 +6,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>FHoSS Management Console</title>
 </head>
-<frameset rows="200,*" border="0" frameborder="no">
-	<frame name="nav" src="nav.jsp">
-	<frame name="main" src="home.html">
+<frameset rows="200,*" border="0" frameborder="1">
+	<frame name="nav" src="top_nav.jsp">
+	<frame name="main" src="home.jsp">
 </frameset>
 </html>

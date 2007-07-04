@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<class name="de.fhg.fokus.hss.db.model.RTR_PPR" table="rtr_ppr">
+	
+	<id name="id">
+		<generator class="native"/>
+	</id>
+
+	<property name="hopbyhop" type="long" />
+	<property name="endtoend" type="long"/>
+	<property name="id_impu" type="int" />
+	<property name="id_impi" type="int"/>
+	<property name="id_implicit_set" type="int"/>
+	<property name="type" type="int"/>
+	<property name="subtype" type="int"/>	
+	<property name="grp" type="int"/>	
+	<property name="reason_info" type="string"/>	
+	<property name="trials_cnt" type="int"/>	
+	<property name="diameter_name" type="string"/>		
+</class>
+</hibernate-mapping>

@@ -18,29 +18,30 @@
 		<property name="show_sql">false</property>
 		
 		<!-- Mapping files for the java classes -->
-		
-		<mapping resource="mappings/Network.hbm.xml"/>		
-		<mapping resource="mappings/Imsu.hbm.xml"/>
-		<mapping resource="mappings/Impi.hbm.xml"/>
-		<mapping resource="mappings/Impu.hbm.xml"/>		
-		<mapping resource="mappings/Ifc.hbm.xml"/>			
-		<mapping resource="mappings/Ifc2svp.hbm.xml"/>
-		<mapping resource="mappings/Spt.hbm.xml"/>		
-		<mapping resource="mappings/Trigpt.hbm.xml"/>
-		<mapping resource="mappings/Apsvr.hbm.xml"/>
-		<mapping resource="mappings/Psi.hbm.xml"/>
-		<mapping resource="mappings/PsiTempl.hbm.xml"/>				
-		<mapping resource="mappings/Chrginfo.hbm.xml"/>
-		<mapping resource="mappings/AsPermList.hbm.xml"/>
-		<mapping resource="mappings/RepData.hbm.xml"/>
-		<mapping resource="mappings/NotifyRepData.hbm.xml"/>
-		<mapping resource="mappings/NotifyImsUserState.hbm.xml"/>		
-		<mapping resource="mappings/NotifyScscfname.hbm.xml"/>
-		<mapping resource="mappings/NotifyIfc.hbm.xml"/>
-		<mapping resource="mappings/DiamServer.hbm.xml"/>	
-		<mapping resource="mappings/Uss.hbm.xml"/>
-		<mapping resource="mappings/Svp.hbm.xml"/>
-		
+		<mapping resource="mappings/ApplicationServer.hbm.xml"/>
+		<mapping resource="mappings/CapabilitiesSet.hbm.xml"/>
+		<mapping resource="mappings/Capability.hbm.xml"/>
+		<mapping resource="mappings/ChargingInfo.hbm.xml"/>
+		<mapping resource="mappings/IFC.hbm.xml"/>
+		<mapping resource="mappings/IMPI_IMPU.hbm.xml"/>
+		<mapping resource="mappings/IMPI.hbm.xml"/>
+		<mapping resource="mappings/IMPU.hbm.xml"/>						
+		<mapping resource="mappings/IMPU_VisitedNetwork.hbm.xml"/>				
+		<mapping resource="mappings/IMSU.hbm.xml"/>						
+		<mapping resource="mappings/Preferred_SCSCF_Set.hbm.xml"/>			
+		<mapping resource="mappings/RTR_PPR.hbm.xml"/>									
+		<mapping resource="mappings/Shared_IFC_Set.hbm.xml"/>			
+		<mapping resource="mappings/ShNotification.hbm.xml"/>			
+		<mapping resource="mappings/ShSubscription.hbm.xml"/>					
+		<mapping resource="mappings/SP_IFC.hbm.xml"/>						
+		<mapping resource="mappings/SP_Shared_IFC_Set.hbm.xml"/>								
+		<mapping resource="mappings/SP.hbm.xml"/>								
+		<mapping resource="mappings/SPT.hbm.xml"/>										
+		<mapping resource="mappings/TP.hbm.xml"/>										
+		<mapping resource="mappings/VisitedNetwork.hbm.xml"/>												
+		<mapping resource="mappings/RepositoryData.hbm.xml"/>				
+		<mapping resource="mappings/AliasesRepositoryData.hbm.xml"/>		
+		<mapping resource="mappings/Zh_USS.hbm.xml"/>								
 	</session-factory>
 	
 </hibernate-configuration>

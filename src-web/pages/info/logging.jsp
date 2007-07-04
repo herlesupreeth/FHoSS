@@ -5,7 +5,7 @@
 	prefix="bean"%>
 <%@ taglib uri="http://jakarta.apache.org/struts/tags-html"
 	prefix="html"%>
-<%@ page import="de.fhg.fokus.hss.util.LoggerHelper"%>
+<%@ page import="de.fhg.fokus.hss.web.util.LoggerHelper" %>
 <%
 	// This jsp access hibernate directly to collect
 	// information about the hss data content.

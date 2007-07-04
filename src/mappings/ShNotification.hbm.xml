@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<class name="de.fhg.fokus.hss.db.model.ShNotification" table="sh_notification">
+	
+	<id name="id">
+		<generator class="native"/>
+	</id>
+
+	<property name="id_impu" type="int" not-null="true"/>
+	<property name="id_application_server" type="int" not-null="true"/>
+	<property name="data_ref" type="int" not-null="true"/>
+	<property name="service_indication" type="string" not-null="false"/>							
+	<property name="rep_data" type="binary" not-null="false"/>				
+	<property name="sqn" type="int" not-null="false"/>				
+	<property name="id_ifc" type="int" not-null="false"/>				
+	<property name="server_name" type="string" not-null="false"/>			
+	<property name="scscf_name" type="string" not-null="false"/>			
+	<property name="reg_state" type="int" not-null="false"/>						
+	<property name="psi_activation" type="int" not-null="false"/>						
+	<property name="dsai_tag" type="string" not-null="false"/>							
+	<property name="dsai_value" type="int" not-null="false"/>						
+	<property name="hopbyhop" type="long" not-null="false"/>				
+	<property name="endtoend" type="long" not-null="false"/>			
+	<property name="grp" type="int" not-null="true"/>						
+	
+</class>
+</hibernate-mapping>

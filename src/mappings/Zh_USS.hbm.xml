@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<class name="de.fhg.fokus.hss.db.model.Zh_USS" table="zh_uss">
+	
+	<id name="id">
+		<generator class="native"/>
+	</id>
+
+	<property name="id_impi" type="int" not-null="true"/>
+	<property name="type" type="int" not-null="true"/>
+	<property name="flags" type="int"/>
+	<property name="naf_group" type="string"/>
+			
+</class>
+</hibernate-mapping>

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<class name="de.fhg.fokus.hss.db.model.SPT" table="spt">
+	
+	<id name="id">
+		<generator class="native"/>
+	</id>
+
+	<property name="id_tp" type="int" not-null="true" />
+	<property name="condition_negated" type="int" not-null="true"/>
+	<property name="grp" type="int" not-null="true"/>
+	<property name="type" type="int" not-null="true"/>
+	<property name="requesturi" type="string"/>
+	<property name="method" type="string"/>	
+	<property name="header" type="string"/>	
+	<property name="header_content" type="string"/>		
+	<property name="session_case" type="java.lang.Integer"/>		
+	<property name="sdp_line" type="string"/>		
+	<property name="sdp_line_content" type="string"/>			
+	<property name="registration_type" type="int"/>				
+	
+</class>
+</hibernate-mapping>
+

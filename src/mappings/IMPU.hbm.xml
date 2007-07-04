@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<class name="de.fhg.fokus.hss.db.model.IMPU" table="impu">
+	
+	<id name="id">
+		<generator class="native"/>
+	</id>
+		
+	<property name="identity" type="string" not-null="true" />
+	<property name="type" type="int" not-null="true"/>
+	<property name="barring" type="int" not-null="true" />
+	<property name="user_state" type="int" />		
+	<property name="id_implicit_set" type="int" />		
+	<property name="wildcard_psi" type="string" />
+	<property name="display_name" type="string" />	
+	<property name="psi_activation" type="int" />
+	<property name="can_register" type="int" />	
+	
+	<property name="id_sp" type="int" />	
+	<property name="id_charging_info" type="int" />	
+
+</class>
+</hibernate-mapping>

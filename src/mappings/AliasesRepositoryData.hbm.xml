@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<class name="de.fhg.fokus.hss.db.model.AliasesRepositoryData" table="aliases_repository_data">
+	
+	<id name="id">
+		<generator class="native"/>
+	</id>
+
+	<property name="id_implicit_set" type="int" not-null="true"/>
+	<property name="service_indication" type="string" not-null="true"/>
+	<property name="sqn" type="int" not-null="true" />
+	<property name="rep_data" type="binary" not-null="true"/>	
+
+</class>
+</hibernate-mapping>

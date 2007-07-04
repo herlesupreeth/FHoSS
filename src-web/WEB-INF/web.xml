@@ -7,9 +7,19 @@
 	
 	<filter id="respFilterId">
         <filter-name>respFilter</filter-name>
-        <filter-class>de.fhg.fokus.hss.servlet.ResponseFilter</filter-class>
+        <filter-class>de.fhg.fokus.hss.web.servlet.ResponseFilter</filter-class>
     </filter>
-	
+
+    <filter-mapping>
+        <filter-name>respFilter</filter-name>
+	    <url-pattern>/pages/services/sp.jsp</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>respFilter</filter-name>
+	    <url-pattern>/pages/network/capability_set.jsp</url-pattern>
+    </filter-mapping>
+
     <filter-mapping>
         <filter-name>respFilter</filter-name>
 <!--	    <servlet-name>action</servlet-name> -->
@@ -131,9 +141,10 @@
     <web-resource-collection>
       <web-resource-name>hss.web.console</web-resource-name>
       <url-pattern>*</url-pattern>
+<!--      <url-pattern>/index.jsp</url-pattern> -->
     </web-resource-collection>
     <auth-constraint>
-       <role-name>hss</role-name>
+       <role-name>hss_user</role-name>
     </auth-constraint>
   </security-constraint>
   
@@ -148,7 +159,7 @@
     <description>
       The role that is required to log into the HSS
     </description>
-    <role-name>hss</role-name>
+    <role-name>hss_user</role-name>
   </security-role>
 
 </web-app>

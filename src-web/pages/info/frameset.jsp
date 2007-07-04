@@ -5,8 +5,8 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 </head>
-<frameset cols="180,*" border="0" frameborder="no">
-	<frame name="innerNav" src="navigation.jsp">
-	<frame name="content" src="overview.jsp">
+<frameset cols="240,*" frameborder="1">
+	<frame name="menu_statistics" src="menu_statistics.jsp" frameborder="1">
+	<frame name="content" src="logging.jsp" frameborder="1">
 </frameset>
 </html>

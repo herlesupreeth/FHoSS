@@ -78,7 +78,7 @@ public class TomcatServer
     /**
      * The logger
      */
-    private static final Logger LOGGER = Logger.getLogger(HssServer.class);
+    private static final Logger LOGGER = Logger.getLogger(TomcatServer.class);
 
     /**
      * The tomcat server object

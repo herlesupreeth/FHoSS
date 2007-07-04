@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+    
+<hibernate-mapping>
+<class name="de.fhg.fokus.hss.db.model.ApplicationServer" table="application_server">
+	
+	<id name="id">
+		<generator class="native"/>
+	</id>
+	
+	<property name="name" type="string" not-null="true" />
+	<property name="server_name" type="string" not-null="true" length="255"/>
+	<property name="default_handling" type="int" not-null="true" />
+	<property name="service_info" type="string" length="255"/>
+	<property name="diameter_address" type="string" length="255"/>
+	<property name="rep_data_size_limit" type="int"  />
+
+    <property name="udr" type="int" />
+	<property name="pur" type="int" />
+	<property name="snr" type="int" />
+	<property name="udr_rep_data" type="int"/>
+	<property name="udr_impu" type="int" />
+	<property name="udr_ims_user_state" type="int" />
+	<property name="udr_scscf_name" type="int" />
+	<property name="udr_ifc" type="int" />
+	<property name="udr_location" type="int" />
+	<property name="udr_user_state" type="int" />
+	<property name="udr_charging_info" type="int" />
+	<property name="udr_msisdn" type="int" /> 
+	<property name="udr_psi_activation" type="int" />
+	<property name="udr_dsai" type="int" />
+	<property name="udr_aliases_rep_data" type="int" />
+	<property name="pur_rep_data" type="int" />
+	<property name="pur_psi_activation" type="int" />
+	<property name="pur_dsai" type="int" />
+	<property name="pur_aliases_rep_data" type="int" />
+	<property name="snr_rep_data" type="int" />
+	<property name="snr_impu" type="int" />
+	<property name="snr_ims_user_state" type="int" />
+	<property name="snr_scscf_name" type="int" />
+	<property name="snr_ifc" type="int" />
+	<property name="snr_psi_activation" type="int" />
+	<property name="snr_dsai" type="int" />
+	<property name="snr_aliases_rep_data" type="int" />
+	
+</class>
+</hibernate-mapping>

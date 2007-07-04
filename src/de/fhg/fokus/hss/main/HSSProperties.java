@@ -64,14 +64,14 @@ public class HSSProperties {
 	public static String TOMCAT_PORT;
 	public static String OPERATOR_ID;
 	public static String AMF_ID;
-	public static String PSI_DEFAULT_IMPI;
-	public static String PSI_DEFAULT_PRI_COLL_CHRG_FN;
 
+	// Authentication & Security settings
 	public static boolean USE_AK = false;
 	public static int IND_LEN = 5;
 	public static int delta = 268435456;
 	public static int L = 32;
 	
+	public static boolean iFC_NOTIF_ENABLED = false;
 	private static String fileName = "hss.properties";
 	
 	static {
@@ -85,12 +85,11 @@ public class HSSProperties {
 			TOMCAT_PORT = props.getProperty("port");
 			OPERATOR_ID = props.getProperty("operatorId");
 			AMF_ID = props.getProperty("amfId");
-			PSI_DEFAULT_IMPI = props.getProperty("psi.defaultImpi");
-			PSI_DEFAULT_PRI_COLL_CHRG_FN = props.getProperty("psi.defaultPriChrgCollFN");
 			USE_AK = Boolean.valueOf(props.getProperty("USE_AK")).booleanValue();
 			IND_LEN = Integer.parseInt(props.getProperty("IND_LEN"));
 			delta = Integer.parseInt(props.getProperty("delta"));
 			L = Integer.parseInt(props.getProperty("L"));
+			iFC_NOTIF_ENABLED = Boolean.valueOf(props.getProperty("iFC_NOTIF_ENABLED")).booleanValue();
 		}
 		catch (FileNotFoundException e) {
 			LOGGER.error("FileNotFoundException !", e);

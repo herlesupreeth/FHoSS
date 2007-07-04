@@ -3,13 +3,24 @@
 /* + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + */
 
 /* basics: */
-html, body, div, p, h1, h2, h3, span, a, table, td, form, img {
+html, body, div, p, h1, h2, h3, span, a, td, form, img {
 	margin:					0;
 	padding:				0;
 	font-family:			Verdana, Arial, Helvetica, sans-serif;
 	color:					#333333;
-	text-align:				left;
+	/*text-align:				left;*/
+	line-height:			140%; 
+	font-size: 12px;
+	}
+
+
+table{
+	padding:				0;
+	font-family:			Verdana, Arial, Helvetica, sans-serif;
+	color:					#333333;
+	/*text-align:				left;*/
 	line-height:			140%; }
+
 
 pre {
 	margin:					0;
@@ -18,42 +29,41 @@ pre {
 	
 .inputbox {
 	border:					thin solid #EB9015;
-	background-color:		white; }
+	background-color:		#FDDE96; }
 
 .inputtext {
 	padding-left:			3px;
 	font-family:			Verdana, Arial, Helvetica, sans-serif;
 	border:					thin solid #EB9015;
-	background-color:		#FDDE96; }
+	background-color:		#FFFFFF; }
 .inputtext_readonly {
 	padding-left:			3px;
 	font-family:			Verdana, Arial, Helvetica, sans-serif;
 	color:					#BBBBBB;
 	border:					thin solid #EB9015;
-	background-color:		#FDDE96; }
+	background-color:		#F0F0F0; }
 img {
 	border:					none; }
 
 a {
 	color:					#333333;
 	font-weight:			bold;
-	text-decoration:		none; }
+	text-decoration:		none; 
+	font-size:				12px;	
+}
 	
 a:hover {
 	color:					#EB9015; }
 
-html, body {
-	background:				#FDDE96 url('images/bg_main.gif') repeat-x; }
-
 /* text: */
 
 h1 {
-	font-size:				15px;
+	font-size:				24px;
 	font-weight:			bold;
 	padding-top:			30px; }
 	
 h2 {
-	font-size:				12px;
+	font-size:				15px;
 	font-weight:			bold; }
 
 p {

@@ -11,6 +11,7 @@
 	<property name="build" location="bin" />
 	<property name="docs" location="docs" />
 	<property name="web-dest" location="${install.dest}/webapps/hss.web.console" />	
+	<property name="logs" location="${install.dest}/logs" />	
 	
 	<!-- compilation control functions -->
 	<property name="compile.debug" value="true" />
@@ -125,7 +126,8 @@
 			</fileset>
 		</copy>
 		
-		<echo message="Install the hss.web.console \n"/>		
+		<echo message="Install the hss.web.console"/>		
+		<mkdir dir="${logs}"/>
 		<mkdir dir="${web-dest}"/>
 		<copy todir="${web-dest}">
 			<fileset dir="src-web">
