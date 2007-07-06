@@ -115,13 +115,15 @@ public class TomcatServer
 
         // Create an engine
         engine = embedded.createEngine();
-        engine.setDefaultHost("localhost");
-
+        engine.setDefaultHost("127.0.0.1");
+        
         // Install the containers
         embedded.addEngine(engine);
 
         // Create a connector
         Connector connector = embedded.createConnector(HSSProperties.TOMCAT_HOST, Integer.parseInt(HSSProperties.TOMCAT_PORT), false);
+        // enable DNS lookups
+        connector.setEnableLookups(true);
         embedded.addConnector(connector);
         embedded.start();
 

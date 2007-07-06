@@ -142,7 +142,7 @@ function add_action_for_form(action, associated_ID) {
 							</tr>			
 							
 							<tr bgcolor="#FFCC66">
-								<td>Charging-Info Set*</td>
+								<td>Charging-Info Set</td>
 								<td>
 									<html:select property="id_charging_info" name="IMPU_Form" styleClass="inputtext" size="1" style="width:250px;">
 										<html:option value="-1">Select Charging-Info...</html:option>

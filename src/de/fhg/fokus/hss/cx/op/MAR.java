@@ -468,11 +468,10 @@ public class MAR {
 	public static AuthenticationVector generateAuthVector(Session session, int auth_scheme, IMPI impi, String realm, String uri, String method){
 		
         byte [] secretKey = HexCodec.getBytes(impi.getK(), CxConstants.Auth_Parm_Secret_Key_Size);
-        byte [] amf = impi.getAmf();
-
-        // op and generate opC	
+        byte [] amf = impi.getAmf();	
         byte [] op = impi.getOp();
-        
+
+        // generate opC        
         byte[] opC;
 		try {
 			opC = Milenage.generateOpC(secretKey, op);

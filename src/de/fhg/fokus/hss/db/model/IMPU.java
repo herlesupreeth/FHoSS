@@ -53,6 +53,12 @@ import java.io.Serializable;
 public class IMPU implements Serializable{
 	private static final long serialVersionUID=1L;
 	
+	// Convention!!!
+	//----------------
+	// An initial value set to -2 meens a starter value, before the set methods are automatically invoked by hibernate; this value is
+	// used to distinguish between a first initialization and an update with a NULL value (-1)
+	// An elementary field (int) initialised with -1 meens that we have a NULL field 
+	
 	// table fields
 	private int id;
 	private String identity;
@@ -65,7 +71,7 @@ public class IMPU implements Serializable{
 	private int psi_activation = -2;
 	private int can_register;
 	private int id_sp = -2;
-	private int id_charging_info;
+	private int id_charging_info = -1;
 	
 	// flag indicating if an update occured for the PSI Activation
 	private boolean psi_dirtyFlag = false;
@@ -163,8 +169,11 @@ public class IMPU implements Serializable{
 		return id_charging_info;
 	}
 
-	public void setId_charging_info(int id_charging_info) {
-		this.id_charging_info = id_charging_info;
+	public void setId_charging_info(Integer id_charging_info) {
+		if (id_charging_info == null)
+			this.id_charging_info = -1;
+		else
+			this.id_charging_info = id_charging_info;
 	}
 
 	public int getId_sp() {

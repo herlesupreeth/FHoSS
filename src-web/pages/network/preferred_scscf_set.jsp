@@ -234,10 +234,10 @@ function add_action_for_form(action, associated_ID) {
 									<%=preferred_scscf_set.getPriority()%>
 								</td>
 								
-								<td> 
-									
+
 									<%
 									 	if (request.isUserInRole(WebConstants.Security_Permission_ADMIN)){
+									 		out.println("<td>");
 											if (((String)request.getAttribute("deleteSCSCFDeactivation")).equals("true")){
 									%>
 												<input type="button" name="delete_scscf" "value="Delete" onclick="add_action_for_form(5, <%= preferred_scscf_set.getId() %>);" disabled/>	
@@ -248,9 +248,10 @@ function add_action_for_form(action, associated_ID) {
 												<input type="button" name="delete_scscf" "value="Delete" onclick="add_action_for_form(5, <%= preferred_scscf_set.getId() %>);" />										
 									<%
 											}
+									 		out.println("</td>");
 										}
 									%>												
-								</td>
+								
 							</tr>											
 					<%			
 								idx++;												

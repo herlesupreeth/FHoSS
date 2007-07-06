@@ -251,10 +251,10 @@ function add_action_for_form(action, associated_ID) {
 										out.println(tuple.getName()); 
 									%>
 								</td>
-								<td>
 									<%
 										 if (request.isUserInRole(WebConstants.Security_Permission_ADMIN)){
 									%>
+								<td>
 								
 									<%
 											if (((String)request.getAttribute("detachDeactivation")).equals("true")){
@@ -267,10 +267,12 @@ function add_action_for_form(action, associated_ID) {
 												<input type="button" name="detach_cap" "value="Detach" onclick="add_action_for_form(5, <%= cap.getId() %>);" />										
 									<%
 											}
+									%>
+								</td>	
+									<%											
 										}
 									%>												
 									
-								</td>	
 							</tr>											
 					<%			
 								idx++;												

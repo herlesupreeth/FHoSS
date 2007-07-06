@@ -217,7 +217,9 @@ public class SAR {
 					
 					// add charging information
 					ChargingInfo chargingInfo = ChargingInfo_DAO.get_by_ID(session, impu.getId_charging_info());
-					UtilAVP.addChargingInformation(response, chargingInfo);
+					if (chargingInfo != null){
+						UtilAVP.addChargingInformation(response, chargingInfo);	
+					}
 					
 					// if more private are associated to the IMSU,  AssociatedIdentities AVP are added
 					List privateIdentitiesList = IMPI_DAO.get_all_by_IMSU_ID(session, impi.getId_imsu());
@@ -256,8 +258,9 @@ public class SAR {
 					
 					// add charging Info
 					chargingInfo = ChargingInfo_DAO.get_by_ID(session, impu.getId_charging_info());
-					UtilAVP.addChargingInformation(response, chargingInfo);
-					
+					if (chargingInfo != null){
+						UtilAVP.addChargingInformation(response, chargingInfo);
+					}
 					// add a private to the response (the first private found, if more than one are available)					
 					UtilAVP.addUserName(response, first_IMPI.getIdentity());
 					
@@ -434,8 +437,9 @@ public class SAR {
 						UtilAVP.addUserData(response, user_data);
 						// add charging information
 						chargingInfo = ChargingInfo_DAO.get_by_ID(session, impu.getId_charging_info());
-						UtilAVP.addChargingInformation(response, chargingInfo);
-												
+						if (chargingInfo != null){
+							UtilAVP.addChargingInformation(response, chargingInfo);
+						}												
 						UtilAVP.addUserName(response, impi.getIdentity());
 						
 						privateIdentitiesList = IMPI_DAO.get_all_by_IMSU_ID(session, impi.getId_imsu());

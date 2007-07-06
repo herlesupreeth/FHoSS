@@ -150,11 +150,6 @@ public class IMPU_Form extends ActionForm implements Serializable{
         			actionErrors.add("id_sp", new ActionMessage("impu_form.error.id_sp"));
         		}
 
-        		if (this.id_charging_info == -1){
-        			actionErrors.add("id_charging_info", new ActionMessage("impu_form.error.id_charging_info"));
-        		}
-        
-        	
         		IMPU impu = IMPU_DAO.get_by_Identity(session, identity);
         		if (impu != null && impu.getId() != id){
         			actionErrors.add("impu_form.error.duplicate_identity", new ActionMessage("impu_form.error.duplicate_identity"));	
