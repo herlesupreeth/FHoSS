@@ -115,7 +115,7 @@ public class TomcatServer
 
         // Create an engine
         engine = embedded.createEngine();
-        engine.setDefaultHost("127.0.0.1");
+        engine.setDefaultHost(HSSProperties.TOMCAT_HOST);
         
         // Install the containers
         embedded.addEngine(engine);
