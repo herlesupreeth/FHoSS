@@ -65,14 +65,14 @@ import de.fhg.fokus.hss.db.model.ChargingInfo;
 import de.fhg.fokus.hss.db.model.IMPI;
 import de.fhg.fokus.hss.db.model.IMPU;
 import de.fhg.fokus.hss.db.model.IMPU_VisitedNetwork;
-import de.fhg.fokus.hss.db.model.RTR_PPR;
+import de.fhg.fokus.hss.db.model.CxEvents;
 import de.fhg.fokus.hss.db.model.SP;
 import de.fhg.fokus.hss.db.op.ChargingInfo_DAO;
 import de.fhg.fokus.hss.db.op.IMPI_DAO;
 import de.fhg.fokus.hss.db.op.IMPI_IMPU_DAO;
 import de.fhg.fokus.hss.db.op.IMPU_DAO;
 import de.fhg.fokus.hss.db.op.IMPU_VisitedNetwork_DAO;
-import de.fhg.fokus.hss.db.op.RTR_PPR_DAO;
+import de.fhg.fokus.hss.db.op.CxEvents_DAO;
 import de.fhg.fokus.hss.db.op.SP_DAO;
 import de.fhg.fokus.hss.db.op.VisitedNetwork_DAO;
 import de.fhg.fokus.hss.db.hibernate.*;
@@ -280,14 +280,13 @@ public class IMPU_Submit extends Action{
 					IMPU impu = IMPU_DAO.get_by_ID(session, id);
 					if (impu.getUser_state() == CxConstants.IMPU_user_state_Registered || impu.getUser_state() == 
 							CxConstants.IMPU_user_state_Unregistered){
-						
-						logger.warn("IMPU: " + form.getIdentity() + " is not registered! PPR aborted!");
+												
 						// we process the request only if the user is in Registered or Unregistered state
 						int id_impi = IMPU_DAO.get_a_registered_IMPI_ID(session, form.getId());
 						if (id_impi != -1){
-							int grp = RTR_PPR_DAO.get_max_grp(session);
+							int grp = CxEvents_DAO.get_max_grp(session);
 							// we have only a PPR message for the implicit set!
-							RTR_PPR rtr_ppr = new RTR_PPR();
+							CxEvents rtr_ppr = new CxEvents();
 							rtr_ppr.setId_impi(id_impi);
 							rtr_ppr.setId_implicit_set(impu.getId_implicit_set());
 							rtr_ppr.setId_impu(impu.getId());
@@ -295,9 +294,13 @@ public class IMPU_Submit extends Action{
 							rtr_ppr.setType(2);
 							rtr_ppr.setSubtype(form.getPpr_apply_for());
 							rtr_ppr.setGrp(grp);
-							RTR_PPR_DAO.insert(session, rtr_ppr);
+							CxEvents_DAO.insert(session, rtr_ppr);
 						}
 					}
+					else{
+						logger.warn("IMPU: " + form.getIdentity() + " is not registered! PPR Aborted!");						
+					}
+					
 					forward = actionMapping.findForward(WebConstants.FORWARD_SUCCESS);
 					forward = new ActionForward(forward.getPath() +"?id=" + form.getId());
 				}

@@ -98,8 +98,8 @@ public class DiameterStack implements EventListener, TransactionListener {
 		}
 	}
 	
-	public void receiveAnswer(String FQDN, DiameterMessage request, DiameterMessage answer) {
-		Task task = new Task(hssContainer.diamStack, 2, FQDN, request.commandCode, request.applicationID, answer);
+	public void receiveAnswer(String FQDN, DiameterMessage request, DiameterMessage response) {
+		Task task = new Task(hssContainer.diamStack, 2, FQDN, request.commandCode, request.applicationID, response);
 		try{
 			hssContainer.tasksQueue.put(task);
 		}
@@ -109,7 +109,14 @@ public class DiameterStack implements EventListener, TransactionListener {
 	}
 
 	public void timeout(DiameterMessage request) {
-		// to be completed
+		Task task = new Task(hssContainer.diamStack, 3, request.commandCode, request.applicationID);
+		task.message = request;
+		try{
+			hssContainer.tasksQueue.put(task);
+		}
+		catch(InterruptedException e){
+			e.printStackTrace();
+		}
 	}
 	
 }

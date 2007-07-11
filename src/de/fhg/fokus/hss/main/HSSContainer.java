@@ -91,6 +91,8 @@ public class HSSContainer {
 			workers[i] = new Worker(this);
 			workers[i].start();
 		}
+		// Initialise the diameter stack
+		diamStack = new DiameterStack(this);
 		
 		// CxEvents Worker
 		CxEventsWorker cxEventsWorker = new CxEventsWorker(diamStack, 10);
@@ -100,7 +102,7 @@ public class HSSContainer {
 		ShEventsWorker shEventsWorker = new ShEventsWorker(diamStack, 10);
 		shEventsWorker.start();
 		
-		diamStack = new DiameterStack(this);
+
 	}
 		
 	
@@ -130,7 +132,7 @@ public class HSSContainer {
 		String input="";
 		while (true){
 		    try{
-		        logger.info("Type \"exit\" if you want to exit.");			       
+		        logger.info("\nType \"exit\" to stop FHoSS!");			       
 		        read = System.in.read(buffer, 0, 80);			        
 		        input = new String(buffer, 0, read);
 		        input  = input.trim();
@@ -139,7 +141,7 @@ public class HSSContainer {
 		        e.printStackTrace();
 		    }
 			   
-		    if(input.equalsIgnoreCase("exit")){
+		    if(input.equalsIgnoreCase("exit") || input.equalsIgnoreCase("x")){
 		    	return;
 		    }
 		}

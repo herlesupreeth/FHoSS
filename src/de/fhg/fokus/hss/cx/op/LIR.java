@@ -145,8 +145,15 @@ public class LIR {
 					}
 					
 					if (originatingRequest == 1 || unregistered_services == true){
+						if (scscf_name == null || scscf_name.equals("")){
+							throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_UNABLE_TO_COMPLY);
+						}
 						UtilAVP.addServerName(response, scscf_name);
 						UtilAVP.addResultCode(response, DiameterConstants.ResultCode.DIAMETER_SUCCESS.getCode());
+					}
+					else{
+						// cannot fulfil the request
+						throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_UNABLE_TO_COMPLY);
 					}
 					break;
 

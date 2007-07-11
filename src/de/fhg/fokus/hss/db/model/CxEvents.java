@@ -49,7 +49,7 @@ import java.io.Serializable;
  * @author adp dot fokus dot fraunhofer dot de 
  * Adrian Popescu / FOKUS Fraunhofer Institute
  */
-public class RTR_PPR implements Serializable{
+public class CxEvents implements Serializable{
 	private static final long serialVersionUID=1L;
 	
 	private int id;
@@ -65,7 +65,7 @@ public class RTR_PPR implements Serializable{
 	private int trials_cnt;
 	private String diameter_name;
 	
-	public RTR_PPR(){}
+	public CxEvents(){}
 
 	public long getEndtoend() {
 		return endtoend;

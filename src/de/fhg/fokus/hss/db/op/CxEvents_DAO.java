@@ -49,40 +49,40 @@ import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
-import de.fhg.fokus.hss.db.model.RTR_PPR;
+import de.fhg.fokus.hss.db.model.CxEvents;
 
 /**
  * @author adp dot fokus dot fraunhofer dot de 
  * Adrian Popescu / FOKUS Fraunhofer Institute
  */
-public class RTR_PPR_DAO {
+public class CxEvents_DAO {
 	
-	public static void insert(Session session, RTR_PPR rtr_ppr){
-		session.save(rtr_ppr);
+	public static void insert(Session session, CxEvents cx_events){
+		session.save(cx_events);
 	}
 	
-	public static void update(Session session, RTR_PPR rtr_ppr){
-		session.saveOrUpdate(rtr_ppr);
+	public static void update(Session session, CxEvents cx_events){
+		session.saveOrUpdate(cx_events);
 	}
 	
 	public static void mark_all_from_grp(Session session, int grp){
 		Query query;
-		query = session.createSQLQuery("update rtr_ppr set hopbyhop=1 where grp=?");
+		query = session.createSQLQuery("update cx_events set hopbyhop=1 where grp=?");
 		query.setInteger(0, grp);
 		query.executeUpdate();
 	}
 	
 	public static List get_all_from_grp(Session session, int grp){
 		Query query;
-		query = session.createSQLQuery("select * from rtr_ppr where grp=?")
-				.addEntity(RTR_PPR.class);
+		query = session.createSQLQuery("select * from cx_events where grp=?")
+				.addEntity(CxEvents.class);
 		query.setInteger(0, grp);
 		return query.list();
 	}
 	
 	public static void update_by_grp(Session session, int grp, long hopByHopID, long endToEndID){
 		Query query;
-		query = session.createSQLQuery("update rtr_ppr set hopbyhop=?, endtoend=? where grp=?")
+		query = session.createSQLQuery("update cx_events set hopbyhop=?, endtoend=? where grp=?")
 				.setLong(0, hopByHopID)
 				.setLong(1, endToEndID)
 				.setInteger(2, grp);
@@ -90,22 +90,22 @@ public class RTR_PPR_DAO {
 	}
 	
 	public static void delete(Session session, long hopbyhop, long endtoend){
-		Query query = session.createSQLQuery("delete from rtr_ppr where hopbyhop=? and endtoend=?");
+		Query query = session.createSQLQuery("delete from cx_events where hopbyhop=? and endtoend=?");
 		query.setLong(0, hopbyhop);
 		query.setLong(1, endtoend);
 		query.executeUpdate();
 	}
 
-	public static RTR_PPR get_next_available(Session session){
+	public static CxEvents get_next_available(Session session){
 		Query query;
-		query = session.createSQLQuery("select * from rtr_ppr where hopbyhop=0 limit 1")
-				.addEntity(RTR_PPR.class);
-		return (RTR_PPR) query.uniqueResult();
+		query = session.createSQLQuery("select * from cx_events where hopbyhop=0 limit 1")
+				.addEntity(CxEvents.class);
+		return (CxEvents) query.uniqueResult();
 	}
 
 	public static List get_all_IMPI_IDs_by_HopByHop_and_EndToEnd_ID(Session session, long hopbyhop, long endtoend){
 		Query query;
-		query = session.createSQLQuery("select distinct id_impi from rtr_ppr where hopbyhop=? and endtoend=?")
+		query = session.createSQLQuery("select distinct id_impi from cx_events where hopbyhop=? and endtoend=?")
 				.addScalar("id_impi", Hibernate.INTEGER);
 		query.setLong(0, hopbyhop);
 		query.setLong(1, endtoend);
@@ -114,19 +114,19 @@ public class RTR_PPR_DAO {
 	
 	
 	public static int get_max_grp(Session session){
-		Query query = session.createSQLQuery("select max(grp) from rtr_ppr");
+		Query query = session.createSQLQuery("select max(grp) from cx_events");
 		Integer result = (Integer) query.uniqueResult();
 		if (result == null)
 			return 0;
 		return result.intValue();
 	}
 	
-	public static RTR_PPR get_one_from_grp (Session session, long hopbyhop, long endtoend){
+	public static CxEvents get_one_from_grp (Session session, long hopbyhop, long endtoend){
 		Query query;
-		query = session.createSQLQuery("select * from rtr_ppr where hopbyhop=? and endtoend=? limit 1")
-			.addEntity(RTR_PPR.class);
+		query = session.createSQLQuery("select * from cx_events where hopbyhop=? and endtoend=? limit 1")
+			.addEntity(CxEvents.class);
 		query.setLong(0, hopbyhop);
 		query.setLong(1, endtoend);
-		return (RTR_PPR) query.uniqueResult();
+		return (CxEvents) query.uniqueResult();
 	}
 }

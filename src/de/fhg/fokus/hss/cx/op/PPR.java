@@ -58,7 +58,7 @@ import de.fhg.fokus.hss.db.op.ChargingInfo_DAO;
 import de.fhg.fokus.hss.db.op.IMPI_DAO;
 import de.fhg.fokus.hss.db.op.IMPU_DAO;
 import de.fhg.fokus.hss.db.op.IMSU_DAO;
-import de.fhg.fokus.hss.db.op.RTR_PPR_DAO;
+import de.fhg.fokus.hss.db.op.CxEvents_DAO;
 import de.fhg.fokus.hss.diam.DiameterConstants;
 import de.fhg.fokus.hss.diam.DiameterStack;
 import de.fhg.fokus.hss.diam.UtilAVP;
@@ -122,10 +122,13 @@ public class PPR {
         		}
         		
         		// add hopbyhop and endtoend ID into the rtr_ppr table
-        		RTR_PPR_DAO.update_by_grp(session, grp, request.hopByHopID, request.endToEndID);
+        		CxEvents_DAO.update_by_grp(session, grp, request.hopByHopID, request.endToEndID);
         		
         		// send the request
-        		diameterPeer.sendRequestTransactional(imsu.getDiameter_name(), request, diameterStack);
+        		if (!diameterPeer.sendRequestTransactional(imsu.getDiameter_name(), request, diameterStack)){
+        			// if the host is not connected or the request cannot be sent from other reasons, delete the Cx Event from database!
+       	        	CxEvents_DAO.delete(session, request.hopByHopID, request.endToEndID);
+        		}
         	}
 		}
 		catch (HibernateException e){
@@ -142,8 +145,6 @@ public class PPR {
 	}
 	
 	public static void processResponse(DiameterPeer diameterPeer, DiameterMessage response){
-		logger.info("Processing PPR Response!");
-		
 		String vendorSpecificAppID = UtilAVP.getVendorSpecificApplicationID(response);
 		String authSessionState = UtilAVP.getAuthSessionState(response);
 		String originHost = UtilAVP.getOriginatingHost(response);
@@ -156,12 +157,21 @@ public class PPR {
 		// get the response code...
 		// to be implemented
 		
-		// delete the coresponding row from rtr_ppr table
+		// delete the coresponding row from CxEvents table
+		deleteCxEvent(response.hopByHopID, response.endToEndID);
+	}
+	
+	public static void processTimeout(DiameterMessage request){
+		// delete the coresponding row from CxEvents table
+		deleteCxEvent(request.hopByHopID, request.endToEndID);
+	}
+
+	private static void deleteCxEvent(long hopByHopID, long endToEndID){
 		boolean dbException = false;
 		try{
         	Session session = HibernateUtil.getCurrentSession();
         	HibernateUtil.beginTransaction();
-        	RTR_PPR_DAO.delete(session, response.hopByHopID, response.endToEndID);
+        	CxEvents_DAO.delete(session, hopByHopID, endToEndID);
 		}
 		catch (HibernateException e){
 			logger.error("Hibernate Exception occured!\nReason:" + e.getMessage());
@@ -175,9 +185,4 @@ public class PPR {
 			HibernateUtil.closeSession();
 		}		        	
 	}
-	
-	public static void processTimeout(DiameterMessage request){
-		
-	}
-
 }

@@ -67,12 +67,12 @@ import de.fhg.fokus.hss.cx.CxConstants;
 import de.fhg.fokus.hss.db.model.IMPI;
 import de.fhg.fokus.hss.db.model.IMPU;
 import de.fhg.fokus.hss.db.model.IMSU;
-import de.fhg.fokus.hss.db.model.RTR_PPR;
+import de.fhg.fokus.hss.db.model.CxEvents;
 import de.fhg.fokus.hss.db.op.IMPI_DAO;
 import de.fhg.fokus.hss.db.op.IMPI_IMPU_DAO;
 import de.fhg.fokus.hss.db.op.IMPU_DAO;
 import de.fhg.fokus.hss.db.op.IMSU_DAO;
-import de.fhg.fokus.hss.db.op.RTR_PPR_DAO;
+import de.fhg.fokus.hss.db.op.CxEvents_DAO;
 import de.fhg.fokus.hss.db.hibernate.*;
 import de.fhg.fokus.hss.web.form.IMPI_Form;
 import de.fhg.fokus.hss.web.util.WebConstants;
@@ -239,7 +239,7 @@ public class IMPI_Submit extends Action{
 				// if a PPR is to be sent for an IMPI, we are preparing more PPR messages, corresponding to each different implicit registration set!
 				
 				List implicit_sets_ids = IMPI_DAO.get_all_registered_implicit_sets(session, form.getId());
-				int grp = RTR_PPR_DAO.get_max_grp(session);
+				int grp = CxEvents_DAO.get_max_grp(session);
 				
 				if (implicit_sets_ids != null && implicit_sets_ids.size() > 0){
 					int id_implicit_set;
@@ -248,7 +248,7 @@ public class IMPI_Submit extends Action{
 						id_implicit_set = (Integer) implicit_sets_ids.get(i);
 						
 						// add row into rtr_ppr table coresponding to the implicit_set
-						RTR_PPR rtr_ppr = new RTR_PPR();
+						CxEvents rtr_ppr = new CxEvents();
 						rtr_ppr.setId_impi(form.getId());
 						rtr_ppr.setId_implicit_set(id_implicit_set);
 						rtr_ppr.setId_impu(-1);
@@ -256,7 +256,7 @@ public class IMPI_Submit extends Action{
 						rtr_ppr.setType(2);
 						rtr_ppr.setSubtype(form.getPpr_apply_for());
 						rtr_ppr.setGrp(grp);
-						RTR_PPR_DAO.insert(session, rtr_ppr);
+						CxEvents_DAO.insert(session, rtr_ppr);
 					}
 				}
 
@@ -279,9 +279,9 @@ public class IMPI_Submit extends Action{
 				if (list != null && list.size() > 0){
 					
 					IMSU imsu = IMSU_DAO.get_by_ID(session, form.getId_imsu());
-					int grp = RTR_PPR_DAO.get_max_grp(session) + 1;
+					int grp = CxEvents_DAO.get_max_grp(session) + 1;
 					for (int i = 0; i < list.size(); i++){
-						RTR_PPR rtr_ppr = new RTR_PPR();
+						CxEvents rtr_ppr = new CxEvents();
 						rtr_ppr.setGrp(grp);
 						// type for RTR is 1
 						rtr_ppr.setType(1);
@@ -299,7 +299,7 @@ public class IMPI_Submit extends Action{
 							rtr_ppr.setId_impi(impi.getId());
 							rtr_ppr.setId_impu(-1);
 						}
-						RTR_PPR_DAO.insert(session, rtr_ppr);
+						CxEvents_DAO.insert(session, rtr_ppr);
 					}
 				}
 				
@@ -312,12 +312,12 @@ public class IMPI_Submit extends Action{
 				String[] rtr_identities = form.getRtr_identities();
 				
 				if (rtr_identities != null){
-					int grp = RTR_PPR_DAO.get_max_grp(session) +  1;
+					int grp = CxEvents_DAO.get_max_grp(session) +  1;
 					IMSU imsu = IMSU_DAO.get_by_ID(session, form.getId_imsu());
 					for (int i = 0; i < rtr_identities.length; i++){
 						if (Integer.parseInt(rtr_identities[i]) == -1)
 							break;
-						RTR_PPR rtr_ppr = new RTR_PPR();
+						CxEvents rtr_ppr = new CxEvents();
 						rtr_ppr.setGrp(grp);
 						// type for RTR is 1
 						rtr_ppr.setType(1);
@@ -333,7 +333,7 @@ public class IMPI_Submit extends Action{
 							rtr_ppr.setId_impi(Integer.parseInt(rtr_identities[i]));
 							rtr_ppr.setId_impu(-1);
 						}
-						RTR_PPR_DAO.insert(session, rtr_ppr);
+						CxEvents_DAO.insert(session, rtr_ppr);
 					}
 				}
 				forward = actionMapping.findForward(WebConstants.FORWARD_SUCCESS);

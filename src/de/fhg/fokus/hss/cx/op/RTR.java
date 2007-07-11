@@ -56,8 +56,8 @@ import de.fhg.fokus.hss.cx.CxConstants;
 import de.fhg.fokus.hss.db.model.IMPI;
 import de.fhg.fokus.hss.db.model.IMPU;
 import de.fhg.fokus.hss.db.model.IMSU;
-import de.fhg.fokus.hss.db.model.RTR_PPR;
-import de.fhg.fokus.hss.db.op.RTR_PPR_DAO;
+import de.fhg.fokus.hss.db.model.CxEvents;
+import de.fhg.fokus.hss.db.op.CxEvents_DAO;
 import de.fhg.fokus.hss.db.op.DB_Op;
 import de.fhg.fokus.hss.db.op.IMPI_IMPU_DAO;
 import de.fhg.fokus.hss.db.op.IMSU_DAO;
@@ -321,10 +321,13 @@ public class RTR {
 
 			// update RTR_PPR
     		// add hopbyhop and endtoend ID into the rtr_ppr table
-    		RTR_PPR_DAO.update_by_grp(session, grp, request.hopByHopID, request.endToEndID);
+    		CxEvents_DAO.update_by_grp(session, grp, request.hopByHopID, request.endToEndID);
 
     		// send the request
-			diameterPeer.sendRequestTransactional(diameter_name, request, diameterStack);
+			if (!diameterPeer.sendRequestTransactional(diameter_name, request, diameterStack)){
+    			// if the host is not connected or the request cannot be sent from other reasons, delete the Cx Event from database!				
+				CxEvents_DAO.delete(session, request.hopByHopID, request.endToEndID);				
+			}
 		}
 		catch (HibernateException e){
 			logger.error("Hibernate Exception occured!\nReason:" + e.getMessage());
@@ -346,7 +349,7 @@ public class RTR {
 		try{
         	Session session = HibernateUtil.getCurrentSession();
         	HibernateUtil.beginTransaction();
-        	List impi_ids_list = RTR_PPR_DAO.get_all_IMPI_IDs_by_HopByHop_and_EndToEnd_ID(session, response.hopByHopID, response.endToEndID);
+        	List impi_ids_list = CxEvents_DAO.get_all_IMPI_IDs_by_HopByHop_and_EndToEnd_ID(session, response.hopByHopID, response.endToEndID);
         	
         	// test if all the associated identities corresponding to the default IMPI were included in the response
         	// for the moment - a simple test -> refering to the lists size
@@ -355,8 +358,8 @@ public class RTR {
         			(associatedIdentities == null || associatedIdentities.size() + 1 < impi_ids_list.size())){
 
         		// we are sending new RTRs to all these IMPIs separatelly (S-CSCF is not supporting AssociatedIdentities in the request)
-            	RTR_PPR rtr_ppr = RTR_PPR_DAO.get_one_from_grp(session, response.hopByHopID, response.endToEndID);
-            	int grp = RTR_PPR_DAO.get_max_grp(session);
+        		CxEvents rtr_ppr = CxEvents_DAO.get_one_from_grp(session, response.hopByHopID, response.endToEndID);
+            	int grp = CxEvents_DAO.get_max_grp(session);
             	if (rtr_ppr == null)
             		return;
 
@@ -364,7 +367,7 @@ public class RTR {
             	for (int i = 0; i < impi_ids_list.size(); i++){
             		grp++;
             		int id_impi = (Integer) impi_ids_list.get(i);
-            		RTR_PPR new_rtr_ppr = new RTR_PPR();
+            		CxEvents new_rtr_ppr = new CxEvents();
             		new_rtr_ppr.setGrp(grp);
             		new_rtr_ppr.setId_impi(id_impi);
             		new_rtr_ppr.setTrials_cnt(rtr_ppr.getTrials_cnt() + 1);
@@ -372,12 +375,12 @@ public class RTR {
             		new_rtr_ppr.setType(rtr_ppr.getType());
             		new_rtr_ppr.setReason_info(rtr_ppr.getReason_info());
             		new_rtr_ppr.setDiameter_name(rtr_ppr.getDiameter_name());
-            		RTR_PPR_DAO.insert(session, new_rtr_ppr);
+            		CxEvents_DAO.insert(session, new_rtr_ppr);
             	}
         	}
         	
         	// delete the old rows
-        	RTR_PPR_DAO.delete(session, response.hopByHopID, response.endToEndID);
+        	CxEvents_DAO.delete(session, response.hopByHopID, response.endToEndID);
 		}
 		catch (HibernateException e){
 			logger.error("Hibernate Exception occured!\nReason:" + e.getMessage());
@@ -393,7 +396,22 @@ public class RTR {
 	}
 	
 	public static void processTimeout(DiameterMessage request){
-		logger.info("\nRTR Process Timeout!");
+		boolean dbException = false;
+		try{
+        	Session session = HibernateUtil.getCurrentSession();
+        	HibernateUtil.beginTransaction();
+        	CxEvents_DAO.delete(session, request.hopByHopID, request.endToEndID);
+		}
+		catch (HibernateException e){
+			logger.error("Hibernate Exception occured!\nReason:" + e.getMessage());
+			e.printStackTrace();
+			dbException = true;
+		}
+		finally{
+			if (!dbException){
+				HibernateUtil.commitTransaction();
+			}
+			HibernateUtil.closeSession();
+		}		        	
 	}
-	
 }

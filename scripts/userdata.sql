@@ -165,14 +165,14 @@ UNLOCK TABLES;
 /*!40000 ALTER TABLE `repository_data` ENABLE KEYS */;
 
 --
--- Dumping data for table `rtr_ppr`
+-- Dumping data for table `cx_events`
 --
 
 
-/*!40000 ALTER TABLE `rtr_ppr` DISABLE KEYS */;
-LOCK TABLES `rtr_ppr` WRITE;
+/*!40000 ALTER TABLE `cx_events` DISABLE KEYS */;
+LOCK TABLES `cx_events` WRITE;
 UNLOCK TABLES;
-/*!40000 ALTER TABLE `rtr_ppr` ENABLE KEYS */;
+/*!40000 ALTER TABLE `cx_events` ENABLE KEYS */;
 
 --
 -- Dumping data for table `sh_notification`

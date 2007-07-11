@@ -52,10 +52,10 @@ import org.hibernate.Session;
 import de.fhg.fokus.hss.db.hibernate.HibernateUtil;
 import de.fhg.fokus.hss.db.model.IMPI;
 import de.fhg.fokus.hss.db.model.IMPU;
-import de.fhg.fokus.hss.db.model.RTR_PPR;
+import de.fhg.fokus.hss.db.model.CxEvents;
 import de.fhg.fokus.hss.db.op.IMPI_DAO;
 import de.fhg.fokus.hss.db.op.IMPU_DAO;
-import de.fhg.fokus.hss.db.op.RTR_PPR_DAO;
+import de.fhg.fokus.hss.db.op.CxEvents_DAO;
 import de.fhg.fokus.hss.diam.DiameterConstants;
 import de.fhg.fokus.hss.diam.DiameterStack;
 
@@ -85,23 +85,23 @@ public class CxEventsWorker extends Thread{
 					Session session = HibernateUtil.getCurrentSession();
 					HibernateUtil.beginTransaction();
 					
-					RTR_PPR rtr_ppr = RTR_PPR_DAO.get_next_available(session);
+					CxEvents rtr_ppr = CxEvents_DAO.get_next_available(session);
 					while (rtr_ppr != null){
 						
 						// mark row(s) that it was already taken into consideration
-						RTR_PPR_DAO.mark_all_from_grp(session, rtr_ppr.getGrp());
+						CxEvents_DAO.mark_all_from_grp(session, rtr_ppr.getGrp());
 						
 						if (rtr_ppr.getType() == 1){
 							//	we have RTR
-							List all_rows_from_grp = RTR_PPR_DAO.get_all_from_grp(session, rtr_ppr.getGrp());
+							List all_rows_from_grp = CxEvents_DAO.get_all_from_grp(session, rtr_ppr.getGrp());
 							List<IMPI> impiList = null;
 							List<IMPU> impuList = null;
 							if (all_rows_from_grp != null && all_rows_from_grp.size() > 0){
-								RTR_PPR row = null;
+								CxEvents row = null;
 								IMPI impi = null;
 								IMPU impu = null;
 								for (int i = 0; i < all_rows_from_grp.size(); i++){
-									row = (RTR_PPR)all_rows_from_grp.get(i);
+									row = (CxEvents)all_rows_from_grp.get(i);
 									if (i == 0){
 										impi = IMPI_DAO.get_by_ID(session, row.getId_impi());
 										if (impiList == null){
@@ -142,7 +142,7 @@ public class CxEventsWorker extends Thread{
 							task.id_implicit_set = rtr_ppr.getId_implicit_set();
 							diameterStack.hssContainer.tasksQueue.add(task);
 						}
-						rtr_ppr = RTR_PPR_DAO.get_next_available(session);
+						rtr_ppr = CxEvents_DAO.get_next_available(session);
 					}
 				}
 				catch (HibernateException e){

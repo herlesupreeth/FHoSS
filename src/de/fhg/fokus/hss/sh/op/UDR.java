@@ -186,7 +186,7 @@ public class UDR {
 				if (crt_data_ref == ShConstants.Data_Ref_IMS_Public_Identity){
 					identitySet = UtilAVP.getIdentitySet(request);
 					if (identitySet == -1){
-						throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+						identitySet = ShConstants.Identity_Set_All_Identities; 
 					}
 				}
 				
@@ -425,7 +425,30 @@ public class UDR {
 					case  ShConstants.Data_Ref_User_State:
 						break;
 					
+			        /** Added Jo?o Vitor Torres contribution for MSISDN */
 					case  ShConstants.Data_Ref_MSISDN:
+                        PublicIdentityElement msisdn = shData.getPublicIdentifiers();
+                        if (msisdn == null){
+                                msisdn = new PublicIdentityElement();
+                                shData.setPublicIdentifiers(msisdn);
+                        }
+                        impuList = IMPU_DAO.get_all_within_same_IMPI_Associations(session, impu.getId());
+                        // add the IMPUs to the response
+                        if (impuList == null){
+                        	logger.error("IMPU List is NULL. The list should contain at least one element!");
+                        	return;
+                        }
+
+                        for (int i = 0; i < impuList.size(); i++){
+                        	IMPU crtIMPU = (IMPU)impuList.get(i);
+                            if (crtIMPU.getIdentity().matches("(tel:)?[0-9]+")){
+                            	if (i == 0){
+                            		// add the identity type for all the IMPUs
+                                    msisdn.setIdentityType(crtIMPU.getType());
+                                }
+                            	msisdn.addMSISDN(crtIMPU.getIdentity().substring(crtIMPU.getIdentity().indexOf(":")+1));
+                            }
+                        }
 						break;
 						
 					case  ShConstants.Data_Ref_DSAI:

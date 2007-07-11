@@ -29,7 +29,7 @@
 		<mapping resource="mappings/IMPU_VisitedNetwork.hbm.xml"/>				
 		<mapping resource="mappings/IMSU.hbm.xml"/>						
 		<mapping resource="mappings/Preferred_SCSCF_Set.hbm.xml"/>			
-		<mapping resource="mappings/RTR_PPR.hbm.xml"/>									
+		<mapping resource="mappings/CxEvents.hbm.xml"/>									
 		<mapping resource="mappings/Shared_IFC_Set.hbm.xml"/>			
 		<mapping resource="mappings/ShNotification.hbm.xml"/>			
 		<mapping resource="mappings/ShSubscription.hbm.xml"/>					

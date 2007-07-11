@@ -143,7 +143,9 @@ public class PNR {
 			ShNotification_DAO.update_by_grp(session, group, request.hopByHopID, request.endToEndID);
 			
 			// send the request
-			diameterPeer.sendRequestTransactional(applicationServer.getDiameter_address(), request, diameterStack);
+			if (!diameterPeer.sendRequestTransactional(applicationServer.getDiameter_address(), request, diameterStack)){
+				ShNotification_DAO.delete(session, request.hopByHopID, request.endToEndID);				
+			}
 		}
 		catch (HibernateException e){
 			logger.error("Hibernate Exception occured!\nReason:" + e.getMessage());
@@ -331,11 +333,19 @@ public class PNR {
 	}
 	
 	public static void processResponse(DiameterPeer diameterPeer, DiameterMessage response){
+		deleteShNotification(response.hopByHopID, response.endToEndID);
+	}
+	
+	public static void processTimeout(DiameterMessage request){
+		deleteShNotification(request.hopByHopID, request.endToEndID);
+	}
+
+	private static void deleteShNotification(long hopByHopID, long endToEndID){
 		boolean dbException = false;
 		try{
         	Session session = HibernateUtil.getCurrentSession();
         	HibernateUtil.beginTransaction();
-        	ShNotification_DAO.delete(session, response.hopByHopID, response.endToEndID);
+        	ShNotification_DAO.delete(session, hopByHopID, endToEndID);
 		}
 		catch (HibernateException e){
 			logger.error("Hibernate Exception occured!\nReason:" + e.getMessage());
@@ -348,11 +358,5 @@ public class PNR {
 			}
 			HibernateUtil.closeSession();
 		}		        	
-		
 	}
-	
-	public static void processTimeout(DiameterPeer diameterPeer, DiameterMessage message){
-		
-	}
-	
 }

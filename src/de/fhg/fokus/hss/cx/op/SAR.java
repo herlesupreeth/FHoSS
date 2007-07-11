@@ -66,8 +66,6 @@ import de.fhg.fokus.hss.db.model.IMSU;
 import de.fhg.fokus.hss.db.model.SP;
 import de.fhg.fokus.hss.db.model.SPT;
 import de.fhg.fokus.hss.db.model.SP_IFC;
-import de.fhg.fokus.hss.db.model.ShNotification;
-import de.fhg.fokus.hss.db.model.ShSubscription;
 import de.fhg.fokus.hss.db.model.TP;
 import de.fhg.fokus.hss.db.op.ApplicationServer_DAO;
 import de.fhg.fokus.hss.db.op.ChargingInfo_DAO;
@@ -80,12 +78,10 @@ import de.fhg.fokus.hss.db.op.SPT_DAO;
 import de.fhg.fokus.hss.db.op.SP_IFC_DAO;
 import de.fhg.fokus.hss.db.op.SP_Shared_IFC_Set_DAO;
 import de.fhg.fokus.hss.db.op.ShNotification_DAO;
-import de.fhg.fokus.hss.db.op.ShSubscription_DAO;
 import de.fhg.fokus.hss.db.op.TP_DAO;
 import de.fhg.fokus.hss.diam.DiameterConstants;
 import de.fhg.fokus.hss.diam.UtilAVP;
 import de.fhg.fokus.hss.db.hibernate.*;
-import de.fhg.fokus.hss.sh.ShConstants;
 
 /**
  * @author adp dot fokus dot fraunhofer dot de 
@@ -142,7 +138,7 @@ public class SAR {
 				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN); 
 			}
 			
-			// stpre the IMSU ID in id_imsu
+			// store the IMSU ID in id_imsu
 			int id_imsu;
 			if (impi == null){
 				IMPI associatedIMPI = IMPI_DAO.get_an_IMPI_for_IMPU(session, impu.getId());
@@ -195,6 +191,10 @@ public class SAR {
 				
 				case CxConstants.Server_Assignment_Type_Registration:
 				case CxConstants.Server_Assignment_Type_Re_Registration:
+					if (impi == null || impu == null){
+						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+					}
+					
 					// clear the auth pending if neccessary
 					impi_impu = IMPI_IMPU_DAO.get_by_IMPI_and_IMPU_ID(session, impi.getId(), impu.getId());
 					
@@ -227,7 +227,7 @@ public class SAR {
 						UtilAVP.addAsssociatedIdentities(response, privateIdentitiesList);
 					}
 					UtilAVP.addResultCode(response, DiameterConstants.ResultCode.DIAMETER_SUCCESS.getCode());
-
+					logger.info("\nUser with Public Identity: " + impu.getIdentity() + " and all its coresponding implicit-set identities are Registered!");
 					if (serverAssignmentType == CxConstants.Server_Assignment_Type_Registration){
 						// send Sh Notifications for IMS-User-State for all of the subscribers
 						ShNotification_DAO.insert_notif_for_IMS_User_State(session, impu.getId_implicit_set(), 
@@ -236,6 +236,10 @@ public class SAR {
 					break;
 					
 				case CxConstants.Server_Assignment_Type_Unregistered_User:
+					if (impu == null){
+						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+					}
+					
 					// store the scscf_name & orgiin_host
 					privateIdentitiesList = IMPI_IMPU_DAO.get_all_IMPI_by_IMPU_ID(session, impu.getId());
 					if (privateIdentitiesList == null || privateIdentitiesList.size() == 0){
@@ -272,6 +276,7 @@ public class SAR {
 					// result code = diameter success
 					UtilAVP.addResultCode(response, DiameterConstants.ResultCode.DIAMETER_SUCCESS.getCode());
 					
+					logger.info("\nUser with Public Identity: " + impu.getIdentity() + " and all its coresponding implicit-set identities are Un-Registered!");
 					// send Sh Notifications for IMS-User-State for all of the subscribers
 					ShNotification_DAO.insert_notif_for_IMS_User_State(session, impu.getId_implicit_set(), 
 							CxConstants.IMPU_user_state_Unregistered);
@@ -281,7 +286,10 @@ public class SAR {
 				case CxConstants.Server_Assignment_Type_User_Deregistration:
 				case CxConstants.Server_Assignment_Type_Deregistration_Too_Much_Data:
 				case CxConstants.Server_Assignment_Type_Administrative_Deregistration:
-					
+					if (impi == null){
+						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+					}
+
 					List impuList = UtilAVP.getAllIMPU(session, request);
 					if (impuList == null){
 						impuList = IMPI_IMPU_DAO.get_all_Default_IMPU_of_Set_by_IMPI(session, impi.getId());
@@ -313,22 +321,27 @@ public class SAR {
 										// send Sh Notifications for SCSCF_Name for all of the subscribers
 										ShNotification_DAO.insert_notif_for_SCSCFName(session, id_imsu, "");
 									}
+									logger.info("User with Public Identity: " + crt_impu.getIdentity() + " and all its coresponding implicit-set identities are De-Registered!");									
 									// send Sh Notifications for IMS-User-State for all of the subscribers
-									ShNotification_DAO.insert_notif_for_IMS_User_State(session, impu.getId_implicit_set(), 
+									ShNotification_DAO.insert_notif_for_IMS_User_State(session, crt_impu.getId_implicit_set(), 
 											CxConstants.IMPU_user_state_Not_Registered);
 								}
 								else{
 									DB_Op.setUserState(session, impi.getId(), crt_impu.getId_implicit_set(), 
 											CxConstants.IMPU_user_state_Not_Registered, false);
 
+									logger.info("Only the the association of: Public Identity: " + crt_impu.getIdentity() + " with Private Identity: " + impi.getIdentity() + " is De-Registered!");									
 									// send Sh Notifications for IMS-User-State for all of the subscribers
-									ShNotification_DAO.insert_notif_for_IMS_User_State(session, impu.getId_implicit_set(), 
+									ShNotification_DAO.insert_notif_for_IMS_User_State(session, crt_impu.getId_implicit_set(), 
 											CxConstants.IMPU_user_state_Not_Registered);
 
 								}
 								break;
 								
 							case CxConstants.IMPU_user_state_Unregistered:
+								if (impi == null){
+									throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+								}
 								// set the user_state to Not-Registered
 								DB_Op.setUserState(session, impi.getId(), crt_impu.getId_implicit_set(), 
 										CxConstants.IMPU_user_state_Not_Registered, true);
@@ -346,9 +359,9 @@ public class SAR {
 									ShNotification_DAO.insert_notif_for_SCSCFName(session, id_imsu, "");																		
 								}
 								// send Sh Notifications for IMS-User-State for all of the subscribers
-								ShNotification_DAO.insert_notif_for_IMS_User_State(session, impu.getId_implicit_set(), 
+								ShNotification_DAO.insert_notif_for_IMS_User_State(session, crt_impu.getId_implicit_set(), 
 										CxConstants.IMPU_user_state_Not_Registered);
-								
+								logger.info("User with Public Identity: " + crt_impu.getIdentity() + " and all its coresponding implicit-set identities are De-Registered!");								
 								break;
 						}
 					}
@@ -391,16 +404,18 @@ public class SAR {
 								ShNotification_DAO.insert_notif_for_SCSCFName(session, id_imsu, "");									
 								
 							}
+							logger.info("User with Public Identity: " + crt_impu.getIdentity() + " and all its coresponding implicit-set identities are De-Registered!");							
 						}
 						else{
 							// Set the user_state to Not-Registered only on IMPI_IMPU association, IMPU registration state
 							//remain registered
 							DB_Op.setUserState(session, impi.getId(), crt_impu.getId_implicit_set(), 
 									CxConstants.IMPU_user_state_Not_Registered, false);
+							logger.info("Only the the association of: Public Identity: " + crt_impu.getIdentity() + " with Private Identity: " + impi.getIdentity() + " is De-Registered!");							
 						}
 						
 						// send Sh Notifications for IMS-User-State for all of the subscribers
-						ShNotification_DAO.insert_notif_for_IMS_User_State(session, impu.getId_implicit_set(), 
+						ShNotification_DAO.insert_notif_for_IMS_User_State(session, crt_impu.getId_implicit_set(), 
 								CxConstants.IMPU_user_state_Not_Registered);
 
 					}

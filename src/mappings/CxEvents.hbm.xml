@@ -3,7 +3,7 @@
     "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
     
 <hibernate-mapping>
-<class name="de.fhg.fokus.hss.db.model.RTR_PPR" table="rtr_ppr">
+<class name="de.fhg.fokus.hss.db.model.CxEvents" table="cx_events">
 	
 	<id name="id">
 		<generator class="native"/>

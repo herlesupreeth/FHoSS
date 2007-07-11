@@ -280,11 +280,11 @@ CREATE TABLE `aliases_repository_data` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Aliases Repository Data';
 
 --
--- Table structure for table `rtr_ppr`
+-- Table structure for table `cx_events`
 --
 
-DROP TABLE IF EXISTS `rtr_ppr`;
-CREATE TABLE `rtr_ppr` (
+DROP TABLE IF EXISTS `cx_events`;
+CREATE TABLE `cx_events` (
   `id` int(11) NOT NULL auto_increment,
   `hopbyhop` bigint(20) default NULL,
   `endtoend` bigint(20) default NULL,

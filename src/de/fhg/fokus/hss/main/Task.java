@@ -117,13 +117,13 @@ public class Task {
 			// Cx commands
 			switch (command_code){
 				case DiameterConstants.Command.LIR:
-					logger.info("Processing LIR!");
+					logger.debug("Processing LIR!");
 					response = LIR.processRequest(peer, message);
 					peer.sendMessage(FQDN, response);
 					break;
 				
 				case DiameterConstants.Command.MAR:
-					logger.info("Processing MAR!");
+					logger.debug("Processing MAR!");
 					response = MAR.processRequest(peer, message);
 					peer.sendMessage(FQDN, response);
 					break;
@@ -131,39 +131,41 @@ public class Task {
 				case DiameterConstants.Command.PPR:
 					if (event_type == 1){
 						// the diameter stack is the sender for the message (Initiated message by HSS: PPR or RTR)
-						logger.info("Sending PPR!");
+						logger.debug("Sending PPR!");
 						PPR.sendRequest(diameterStack, id_impi, id_implicit_set, type, grp);
 					}
 					else if (event_type == 2){
-						logger.info("Processing PPA!");
+						logger.debug("Processing PPA!");
 						PPR.processResponse(peer, message);
 					} 
 					else{
+						logger.debug("Processing PPR Timeout!");
 						PPR.processTimeout(message);
 					}
 					break;
 				
 				case DiameterConstants.Command.RTR:
 					if (event_type == 1){
-						logger.info("Sending RTR!");
+						logger.debug("Sending RTR!");
 						RTR.sendRequest(diameterStack, diameter_name, impuList, impiList, reasonCode, reasonInfo, grp);
 					}
 					else if (event_type == 2){
-						logger.info("Processing RTA!");
+						logger.debug("Processing RTA!");
 						RTR.processResponse(peer, message);
 					} 
 					else{
+						logger.debug("Processing RTR Timeout!");						
 						RTR.processTimeout(message);
 					}
 					
 					break;
 				case DiameterConstants.Command.SAR:
-					logger.info("Processing SAR!");
+					logger.debug("Processing SAR!");
 					response = SAR.processRequest(peer, message);
 					peer.sendMessage(FQDN, response);
 					break;
 				case DiameterConstants.Command.UAR:
-					logger.info("Processing UAR!");
+					logger.debug("Processing UAR!");
 					response = UAR.processRequest(peer, message);
 					peer.sendMessage(FQDN, response);
 					break;
@@ -175,16 +177,19 @@ public class Task {
 			switch(command_code){
 			
 				case DiameterConstants.Command.UDR:
+					logger.debug("Processing Sh-UDR!");
 					response = UDR.processRequest(peer, message);
 					peer.sendMessage(FQDN, response);
 					break;
 			
 				case DiameterConstants.Command.PUR:
+					logger.debug("Processing Sh-PUR!");
 					response = PUR.processRequest(peer, message);
 					peer.sendMessage(FQDN, response);
 					break;
 			
 				case DiameterConstants.Command.SNR:
+					logger.debug("Processing Sh-SNR!");
 					response = SNR.processRequest(peer, message);
 					peer.sendMessage(FQDN, response);
 					break;
@@ -192,15 +197,16 @@ public class Task {
 				case DiameterConstants.Command.PNR:
 					if (event_type == 1){
 						// the diameter stack is the sender for the message (Initiated message by HSS: PPR or RTR)
-						logger.info("Sending PNR!");
+						logger.debug("Sending Sh-PNR!");
 						PNR.sendRequest(diameterStack, id_application_server, id_impu, grp);
 					}
 					else if (event_type == 2){
-						logger.info("Processing PNA!");
+						logger.debug("Processing Sh-PNA!");
 						PNR.processResponse(peer, message);
 					} 
 					else{
-						PNR.processTimeout(peer, message);
+						logger.debug("Processing Sh-PNR Timeout!");
+						PNR.processTimeout(message);
 					}
 					break;
 			}
@@ -209,7 +215,7 @@ public class Task {
 			// Zh commands
 			switch(command_code){
 				case DiameterConstants.Command.MARzh:
-					logger.info("Processing Zh-MAR!");
+					logger.debug("Processing Zh-MAR!");
 					response = de.fhg.fokus.hss.zh.op.MAR.processRequest(peer, message);
 					peer.sendMessage(FQDN, response);
 					break;
