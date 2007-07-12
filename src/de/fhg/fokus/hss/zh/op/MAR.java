@@ -447,17 +447,18 @@ public class MAR{
         sBuff.append(bsfInfo_e);
         
         // add ussList
+        sBuff.append(ussList_s);
         List zh_USS_List = Zh_USS_DAO.get_all_for_IMPI_ID(session, impi.getId());
         if(zh_USS_List != null && zh_USS_List.size() > 0){
             List impuList = IMPU_DAO.get_all_for_IMPI_ID(session, impi.getId());
             if(impuList != null && impuList.size() > 0){
-                sBuff.append(ussList_s);
+                
                 for(int i = 0; i < zh_USS_List.size(); i++){
                     Zh_USS zh_uss = (Zh_USS)zh_USS_List.get(i);
                     // add uss
                     sBuff.append(uss_s);
                     sBuff.append((new StringBuilder()).append("id=\"").append(zh_uss.getType()).append("\" type=\"").append(zh_uss.getType()).append("\"").toString());
-                    if(!zh_uss.getNaf_group().equals(""))
+                    if(zh_uss.getNaf_group()!= null && !zh_uss.getNaf_group().equals(""))
                         sBuff.append((new StringBuilder()).append(" nafGroup=\"").append(zh_uss.getNaf_group()).append("\"").toString());
                     sBuff.append(">");
                     
@@ -472,8 +473,9 @@ public class MAR{
                     sBuff.append(uids_e);
                     
                     // add flags
+                    sBuff.append(flags_s);
                     if(zh_uss.getFlags() > 0){
-                        sBuff.append(flags_s);
+                        
                         int flags = zh_uss.getFlags();
                         int crt_flag = 0;
                         while(flags > 0) {
@@ -489,13 +491,14 @@ public class MAR{
                             sBuff.append(crt_flag);
                             sBuff.append(flag_e);
                         }
-                        sBuff.append(flags_e);
                     }
+                    sBuff.append(flags_e);
                     sBuff.append(uss_e);
                 }
-                sBuff.append(ussList_e);
+                
             }
         }
+        sBuff.append(ussList_e);
         sBuff.append(guss_e);
         return sBuff.toString();
     }
