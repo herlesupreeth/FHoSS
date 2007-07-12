@@ -114,7 +114,7 @@ public class WebConstants {
 		select_spt_method_type.add(new Tuple("PUBLISH", "PUBLISH"));
 		select_spt_method_type.add(new Tuple("SUBSCRIBE", "SUBSCRIBE"));
 		select_spt_method_type.add(new Tuple("MESSAGE", "MESSAGE"));
-		
+		select_spt_method_type.add(new Tuple("INFO", "INFO"));
 		//etc
 	}
 	public static final ArrayList<Tuple> select_profile_part_indicator;
