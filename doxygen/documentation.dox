@@ -78,12 +78,7 @@
   * \page using Getting started
   * You can use Ant to build and install the FHoSS.
   * \par Build
-  * To build the FHoSS you must first execute the \c gen target, to generate
-  * the data classes.
-  * \par 
-  * <tt>ant gen</tt>
-  * \par 
-  * after that use compile to build the binaries
+  * First of all use the "compile" target to compile the source code:
   * \par
   * <tt>ant compile</tt>
   * 
@@ -91,12 +86,12 @@
   * Installation is also done using ant
   *
   * \par
-  * With the deploy target you can install the FHoSS
+  * With the "deploy" target you can install the FHoSS
   * \par
   * <tt>ant deploy</tt>
   * \par
   * To modify the destination, change the <tt>install.dest</tt> property in the
-  * build.properties file.
+  * "build.properties" file.
   *
   * \par 
   * Configuration after deploy
@@ -110,28 +105,28 @@
   *	\li "hibernate.properties": You should configure the main properties for
   *	hibernate; implicitly is configured to connect to the mysql on the localhost (127.0.0.1:3306).
   *	The most relevant properties are:
-  *	hibernate.connection.url=jdbc:mysql://127.0.0.1:3306/hssdb
+  *	hibernate.connection.url=jdbc:mysql://127.0.0.1:3306/hss_db
   *	hibernate.connection.username=hss
   *	hibernate.connection.password=hss
   * Please refer to the hibernate documentation to get further information
   * about the hibernate configuration.
   *
   *	\li "hss.properties": Specify configuration like: on which address the tomcat is
-  *	listening (e.g. host=localhost) and the relative path of the web
-  *	interface of the FHoSS. (e.g. appPath=/hss.web.console). Other parameters like:
-  *	operatorId, amfId or defaultPsiImpi can be specified here.
+  *	listening (e.g. host=localhost). Other parameters like:
+  *	operatorId, amfId or SQN security settings can be specified here. Read the "install.txt" if you need further information.
   *
   *	\li "log4j.properties": Contains configuration for the logger. The most relevant
-  *	things here, are the output file path of the logger and the level of logging.
+  *	things here, are the output file path of the logger and the level of logging. Implicitely the logs are saved in the "logs" folder
+  * of the deployment directory.
   *		
-  * If you want to change some tomcat configuration files, you will find them in conf/ folder
-  * of the deployment directory (tomcat-users.xml contains the "hss" and "hssAdmin" users defined). 
+  * If you want to change some tomcat configuration files, you will find them in "conf/" folder
+  * of the deployment directory ("tomcat-users.xml" contains the "hss" and "hssAdmin" users defined). 
   *
   * \par Creating the Database
   * You will need a database in order to use the FHoSS. You will find
   * to sql scripts for the MySQL database in the root directory of your installation.
   * Use thes scripts to create a new MySQL database and to populate it with default values.
-  * \li to create the database and the tables: mysql -u admin -p <hssdb.sql
+  * \li to create the database and the tables: mysql -u admin -p <hss_db.sql
   * \li to create two demo users and initial values for service profiles: mysql -u admin -p <userdata.sql
   *
   * \par 
@@ -153,7 +148,7 @@
   * You can access the management console using a web browser.
   *
   * \par
-  * <tt>http://localhost:8080/hss.web.console</tt>
+  * <tt>http://localhost:8080</tt>
   * 
   * \par
   * There are two initial users:
@@ -175,7 +170,6 @@
  * \par
  * \b Files:
  * 	\li commons-beanutils.jar
- * 	\li commons-collections-2.1.1.jar
  * 	\li commons-collections-3.1.jar
  * 	\li commons-digester.jar
  * 	\li commons-fileupload.jar
@@ -190,21 +184,6 @@
  * 
  * \par 
  * License: Apache License
- * 
- * <HR>
- * 
- * \par Castor Project
- *
- * \par  
- * \b Files:
- * 	\li castor-0.9.6.jar
- * 	\li castor.jar
- * 
- * \par  
- * \b Homepage: http://www.castor.org/
- * 
- * \par  
- * \b License: Exolab License (Apache 2.0 License, http://www.castor.org/license.html)
  * 
  * <HR>
  * 
@@ -241,8 +220,7 @@
  * 
  * \par  
  * \b Files:
- * 	\li c3p0-0.9.0.2.jar
- * 	\li c3p0-oracle-thin-extras-0.9.0.2.jar
+ * 	\li c3p0-0.9.1.jar
  * 
  * \par  
  * \b Homepage: ?
@@ -475,37 +453,23 @@
  *
  * \par GUI
  * The GUI layer is used to manage and monitor FHoSS. The GUI is, as allready said, based
- * on Struts. The implementation of the gui logic can be found at de.fhg.fokus.hss.form
- * and package de.fhg.fokus.hss.action. The rendering is done by several Java Server Pages
- * which can be found in src-web folder.
+ * on Struts. The implementation of the gui logic can be found at de.fhg.fokus.hss.web.
+ *The rendering is done by several Java Server Pages which can be found in src-web folder.
  *
  * \par DAL - Data Access Layer
  * The Hibernate persistenc framework was used to build that layer. The related data classes
- * can be found in the de.fhg.fokus.hss.model package. There you can also find 
+ * can be found in the de.fhg.fokus.hss.db.model package. There you can also find 
  * the BO classes which provide additional service functionality to for the data classes.
  * 
  * \par Interface Layer
  * The interface layer describes the external behavior of the Hss. 
- * There are three interface specifications in there. They can be found in the de.fhg.fokus.cx,
- * de.fhg.fokus.sh and the de.fhg.fokus.zh package. 
+ * There are three interface specifications in there. They can be found in the de.fhg.fokus.hss.cx,
+ * de.fhg.fokus.hss.sh and the de.fhg.fokus.hss.zh package. 
  * 
  * \par
- * For each interface there is a direct implementation. This implementation can be found
- * in the de.fhg.fokus.hss.server and subsequent packages. For every method of the interface
+ * For each interface there is a direct implementation. For every method of the interface
  * there is a related operation class  in the \b op packages. 
  *
- * \par
- * These operations will be called by the interface implementations and will
- * call in turn the diameter commands. As you can read in the 3gpp specification,
- * every interface method is mapped to a number of Diameter requests.
- * These requests are realized by implementing the CommandAction and CommandListener
- * classes. You will find a action for every command which send through the diameter peer,
- * in the de.fhg.fokus.hss.diam.cx, de.fhg.fokus.hss.diam.sh and de.fhg.fokus.hss.diam.zh packages.
- * For every command which will be received by the Hss one listener exists.
- *
- * \par
- * The command listener will dispatch the requests to the interface methods.
- */
 
 /**
  * \dir config
@@ -580,52 +544,10 @@
  *
  * \par \b hss
  * With this role the complete web application is protected. 
- * Every user how want access the web console must be in this role. 
- * Internal the role has no regard. A user in this role have readable 
- * access to every page.
- * \note If you want create specific role, add the "hss"
- * role and the every role you want. 
+ * Every user who want access the web console must have at least this role. 
+ * A user in this role has only readable access to every page.
  * 
- * \par \b hssNetworkAdmin
- * This role permits the right to 
- * manage the network configuration. This includes the roaming network and 
- * the charging functions. 
- * This not includes the assignment of roaming network to a Private User Identity.
- * Therefore it exist the role hssIMPIAdmin.
- *
- * \par \b hssIMPUAdmin
- * The Public User Admin role allows the user how is assigned to this 
- * role to administrate the Public User Identity. 
- * This includes creating, updating and deleting them. 
- * If you delete a Public User Identity it also deletes the assignment to the 
- * Private Identities. 
- * Assignment from Public User Identity to Private User Identity is only possible 
- * for the role hssIMPIAdmin
- *
- * \par \b hssIMPIAdmin
- * The Private User Admin is the manager of all private user identities. 
- * This right includes creating, updating and deleting of 
- * Private User Identity. Also a user in this role can assign and detach 
- * Roaming Networks, manage GUSS entries, assign and detach Public Identities.
- *
- * \par \b hssIMSUAdmin
- * The IMS Subscription Admin role allows a user to manage IMS Subscriptions. 
- * This includes creating, updating, deleting of IMS Subscriptions 
- * and attaching and detaching of private user identities to any Subscription.
- *
- * \par \b hssAPSVRAdmin
- * This role is used to manage Application Servers within an IMS Network. Therefore the user in this role can create, editing and deleting Application Servers and assigned permission lists.
- *
- * \par \b hssIFCAdmin
- * Users how want to mange the IFC configuration in the Home Subscriber Server must act in the role as an hssIFCAdmin. This includes the management of Trigger Points and assigned Service Point Trigger. Creating service profiles is the right of the next role SVPAdmin
- * 
- * \par \b hssSVPAdmin
- * The management of Service Profiles within a Home Subscriber Server 
- * is part of this role. This right includes the attaching, 
- * detaching and prioritisation of initial filter criteria.
- *
- * \par \b hssPSIAdmin
- * Public Service Identifier Templates and Instances 
- * management are the reason for creating this role.
- */ 
- 
+
+ * \par \b hssAdmin
+ * This role provide the user with all the possible rights. It is used to provision new users and services.
+

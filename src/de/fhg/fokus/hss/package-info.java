@@ -19,8 +19,7 @@
  * <h3>GUI Layer</h3>
  * <p>
  * The GUI Layer is realized using the Struts Web Framework. The classes for the GUI 
- * Layer are located in the <a href="action/package-summary.html">action</a> Package 
- * and in the <a href="form/package-summary.html">form</a> Package.
+ * Layer are located in the <a href="web/package-summary.html">web</a> Package.
  * </p>
  * <p>
  * The form package contains the Struts form classes, which are holding the data page
@@ -30,19 +29,16 @@
  * 
  * <h3>Business Logic Layer</h3>
  * <p>
- * The *BO classes in the <a href="model/package-summary.html">model</a> package
- * implement the business logic. They where used by the GUI layer to present data
- * and to handle the user input. 
+ * The classes from the <a href="db/op/package-summary.html">op</a> package
+ * implement the business logic for the <a href="db/model/package-summary.html">model</a> classes. These are used by the Server and the GUI layer
+ * to present data and to handle the user input. 
  * </p>
  * <p>
- * The business objects dispatch the user input either to the persistence layer
- * or the HSS server stack. They are pure Java objects
- * </p>
  * 
  * <h3>Persistence Layer</h3>
  * <p>
  * The persistence layer was implemented using the Hibernate persistence framework.
- * There are POJO's in the <a href="model/package-summary.html">model</a> package which
+ * There are POJO's in the <a href="db/model/package-summary.html">model</a> package which
  * were mapped to database tables. The use of Hibernate enables you to change 
  * the database for the HSS.
  * </p>
@@ -53,9 +49,8 @@
  * 
  * <h3>HSS Layer</h3>
  * <p>
- * This layer provides the implementation of the HSS interfaces. It is located in 
- * the <a href="server/package-summary.html">server</a> package and
- * consist of the implementation of the Cx, Sh and Zh interfaces.
+ * This layer provides the implementation of the HSS interfaces. It contains
+ * the implementation of the Cx, Sh and Zh interfaces.
  * This implementation is directly referenced by the business logic to
  * dispatch the user interactions to the diameter peer.
  * </p>

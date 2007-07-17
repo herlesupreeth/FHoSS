@@ -112,22 +112,28 @@ public class PPR {
         			UtilAVP.addUserData(request, userData);
         		}
         		else if (type == WebConstants.PPR_Apply_for_Charging_Func){
-        			// 	add only Charging Info
-        			UtilAVP.addChargingInformation(request, chgInfo);
+        			if (chgInfo != null){
+        				// 	add only Charging Info
+        				UtilAVP.addChargingInformation(request, chgInfo);
+        			}
         		}
         		else{
         			// 	add both
         			UtilAVP.addUserData(request, userData);
-        			UtilAVP.addChargingInformation(request, chgInfo);
+        			if (chgInfo != null){
+        				UtilAVP.addChargingInformation(request, chgInfo);
+        			}
         		}
         		
         		// add hopbyhop and endtoend ID into the rtr_ppr table
         		CxEvents_DAO.update_by_grp(session, grp, request.hopByHopID, request.endToEndID);
         		
-        		// send the request
-        		if (!diameterPeer.sendRequestTransactional(imsu.getDiameter_name(), request, diameterStack)){
-        			// if the host is not connected or the request cannot be sent from other reasons, delete the Cx Event from database!
-       	        	CxEvents_DAO.delete(session, request.hopByHopID, request.endToEndID);
+        		if (chgInfo != null || type != WebConstants.PPR_Apply_for_Charging_Func){
+            		// send the request
+            		if (!diameterPeer.sendRequestTransactional(imsu.getDiameter_name(), request, diameterStack)){
+            			// if the host is not connected or the request cannot be sent from other reasons, delete the Cx Event from database!
+           	        	CxEvents_DAO.delete(session, request.hopByHopID, request.endToEndID);
+            		}
         		}
         	}
 		}
