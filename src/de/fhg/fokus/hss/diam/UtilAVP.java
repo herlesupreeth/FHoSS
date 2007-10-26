@@ -588,9 +588,12 @@ public class UtilAVP {
                  authenticate.setData(av.getSipAuthenticate());
                  authDataItem.addChildAVP(authenticate);
 
-                 AVP authorization = new AVP(DiameterConstants.AVPCode.AVP_CableLabs_Digest_HA1, true, 
+                 AVP ha1 = new AVP(DiameterConstants.AVPCode.AVP_CableLabs_Digest_HA1, true, 
                  		DiameterConstants.Vendor.VCableLabs);
-                 authorization.setData(av.getSipAuthorization());
+                 ha1.setData(av.getSipAuthorization());
+                 AVP authorization = new AVP(DiameterConstants.AVPCode.AVP_CableLabs_SIP_Digest_Authenticate, true, 
+                  		DiameterConstants.Vendor.VCableLabs);
+                 authorization.addChildAVP(ha1);
                  authDataItem.addChildAVP(authorization);
             } 
             else if(((av.getAuth_scheme() & CxConstants.Auth_Scheme_HTTP_Digest_MD5) != 0)){
