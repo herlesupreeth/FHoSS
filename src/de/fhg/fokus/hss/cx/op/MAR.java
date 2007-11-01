@@ -552,7 +552,8 @@ public class MAR {
         		if (realm ==null)
         			realm = impi.getIdentity().substring(impi.getIdentity().indexOf("@")+1);
         		ha1 = MD5Util.av_HA1(impi.getIdentity().getBytes(),realm.getBytes(), secretKey);
-    			av = new AuthenticationVector(auth_scheme, realm.getBytes(), ha1);
+        		byte [] ha1_hexa = HexCodec.encode(ha1).getBytes();
+    			av = new AuthenticationVector(auth_scheme, realm.getBytes(), ha1_hexa);
     			return av;
     		case CxConstants.Auth_Scheme_HTTP_Digest_MD5:
     			// Authentication Scheme is HTTP_Digest_MD5
