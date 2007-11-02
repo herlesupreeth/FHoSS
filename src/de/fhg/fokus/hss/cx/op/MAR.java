@@ -231,7 +231,9 @@ public class MAR {
 			
 			String realm = UtilAVP.getDestinationRealm(request);
 			String uri = UtilAVP.getRequestUri(request);
+			if (uri==null ||uri.length()==0) uri = realm;
 			String method = UtilAVP.getRequestMethod(request);
+			if (method==null ||method.length()==0) method="REGISTER";
 			
 			switch (user_state){
 			
@@ -579,8 +581,9 @@ public class MAR {
     			randomAccess.setSeed(System.currentTimeMillis());
     			randomAccess.nextBytes(authenticate);
     			byte [] ha1_hex = HexCodec.encode(ha1).getBytes();
+    			byte [] authenticate_hex = HexCodec.encode(authenticate).getBytes();
     			byte [] result = MD5Util.calcResponse(ha1_hex, authenticate, method.getBytes() /*from request */,uri.getBytes() /*from request */);
-    			av = new AuthenticationVector(auth_scheme,realm, authenticate, ha1, result);
+    			av = new AuthenticationVector(auth_scheme,uri, authenticate_hex, ha1_hex, result);
     			return av;
     		case CxConstants.Auth_Scheme_NASS_Bundled:
     			// Authentication Scheme is NASS_Bundled
