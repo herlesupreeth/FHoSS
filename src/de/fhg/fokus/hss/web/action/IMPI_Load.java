@@ -158,6 +158,7 @@ public class IMPI_Load extends Action {
 			form.setOp(HexCodec.encode(impi.getOp()));
 			form.setSqn(impi.getSqn());
 			form.setIp(impi.getIp());
+			form.setDefault_auth_scheme(impi.getDefault_auth_scheme());
 		
 			int auth_scheme = impi.getAuth_scheme();
 			if ((auth_scheme & 127) == 127){
