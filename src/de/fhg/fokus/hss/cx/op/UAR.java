@@ -65,6 +65,7 @@ import de.fhg.fokus.hss.db.op.IMPI_IMPU_DAO;
 import de.fhg.fokus.hss.db.op.IMPU_DAO;
 import de.fhg.fokus.hss.db.op.IMPU_VisitedNetwork_DAO;
 import de.fhg.fokus.hss.db.op.IMSU_DAO;
+import de.fhg.fokus.hss.db.op.Preferred_SCSCF_Set_DAO;
 import de.fhg.fokus.hss.db.op.VisitedNetwork_DAO;
 import de.fhg.fokus.hss.diam.DiameterConstants;
 import de.fhg.fokus.hss.diam.UtilAVP;
@@ -168,10 +169,12 @@ public class UAR {
 						throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_AUTHORIZATION_REJECTED);
 					}
 
+					// else add capabilities
 					List cap_set_mand_list = CapabilitiesSet_DAO.get_all_from_set(session, imsu.getId_capabilities_set(), 1);
 					List cap_set_opt_list = CapabilitiesSet_DAO.get_all_from_set(session, imsu.getId_capabilities_set(), 0);
+					List pre_SCSCF_name_list = Preferred_SCSCF_Set_DAO.get_all_from_set(session, imsu.getId_preferred_scscf_set());
 					
-					UtilAVP.addServerCapabilities(response, cap_set_mand_list, cap_set_opt_list);
+					UtilAVP.addServerCapabilities(response, cap_set_mand_list, cap_set_opt_list, pre_SCSCF_name_list);
 					UtilAVP.addResultCode(response, DiameterConstants.ResultCode.DIAMETER_SUCCESS.getCode());
 					break;	
 			}
@@ -252,12 +255,12 @@ public class UAR {
 							break;
 						}
 						
-						// else add capabilities 
-						
+						// else add capabilities 					
 						List cap_set_mand_list = CapabilitiesSet_DAO.get_all_from_set(session, imsu.getId_capabilities_set(), 1);
 						List cap_set_opt_list = CapabilitiesSet_DAO.get_all_from_set(session, imsu.getId_capabilities_set(), 0);
+						List pre_SCSCF_name_list = Preferred_SCSCF_Set_DAO.get_all_from_set(session, imsu.getId_preferred_scscf_set());
 						
-						UtilAVP.addServerCapabilities(response, cap_set_mand_list, cap_set_opt_list);
+						UtilAVP.addServerCapabilities(response, cap_set_mand_list, cap_set_opt_list, pre_SCSCF_name_list);
 						UtilAVP.addExperimentalResultCode(response, 
 								DiameterConstants.ResultCode.RC_IMS_DIAMETER_FIRST_REGISTRATION.getCode(),
 								DiameterConstants.Vendor.V3GPP);

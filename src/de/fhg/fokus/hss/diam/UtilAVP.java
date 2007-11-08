@@ -59,6 +59,7 @@ import de.fhg.fokus.hss.db.model.CapabilitiesSet;
 import de.fhg.fokus.hss.db.model.ChargingInfo;
 import de.fhg.fokus.hss.db.model.IMPI;
 import de.fhg.fokus.hss.db.model.IMPU;
+import de.fhg.fokus.hss.db.model.Preferred_SCSCF_Set;
 import de.fhg.fokus.hss.db.op.IMPU_DAO;
 
 /**
@@ -342,12 +343,15 @@ public class UtilAVP {
 	}
 	
 	
-	public static void addServerCapabilities(DiameterMessage message, List mandatory_cap_list, List optional_cap_list){
+	public static void addServerCapabilities(DiameterMessage message, 
+			List mandatory_cap_list, List optional_cap_list,
+			List preferred_sever_name_list){
 		
 		AVP server_cap = new AVP(DiameterConstants.AVPCode.IMS_SERVER_CAPABILITIES, true, DiameterConstants.Vendor.V3GPP);
 		
 		Iterator it;
 		CapabilitiesSet row;
+		Preferred_SCSCF_Set prow;
 		
 		if (mandatory_cap_list != null){
 			it = mandatory_cap_list.iterator();
@@ -371,11 +375,22 @@ public class UtilAVP {
 			}
 		}
 
-		if ((mandatory_cap_list != null && mandatory_cap_list.size() > 0) || (optional_cap_list != null && optional_cap_list.size() > 0)){
+		if (preferred_sever_name_list != null ){
+			it = preferred_sever_name_list.iterator();
+			AVP server_name_avp;
+			while (it.hasNext()){
+				prow = (Preferred_SCSCF_Set) it.next();
+				server_name_avp = new AVP (DiameterConstants.AVPCode.IMS_SERVER_NAME, true, DiameterConstants.Vendor.V3GPP);
+				server_name_avp.setData(prow.getScscf_name());
+				server_cap.addChildAVP(server_name_avp);
+			}
+		}
+
+		if ((mandatory_cap_list != null && mandatory_cap_list.size() > 0) || (optional_cap_list != null && optional_cap_list.size() > 0) || (preferred_sever_name_list != null && preferred_sever_name_list.size() > 0)){
 			message.addAVP(server_cap);	
 		}
 	}
-
+	
 	public static void addResultCode(DiameterMessage message, int resultCode){
 		AVP avp = new AVP(DiameterConstants.AVPCode.RESULT_CODE, true, DiameterConstants.Vendor.DIAM);
 		avp.setData(resultCode);

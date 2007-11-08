@@ -80,7 +80,7 @@ public class Preferred_SCSCF_Set_DAO {
 	}
 	
 	public static List get_all_from_set(Session session, int id_set){
-		Query query = session.createSQLQuery("select * from preferred_scscf_set where id_set=?")
+		Query query = session.createSQLQuery("select * from preferred_scscf_set where id_set=? order by priority")
 			.addEntity(Preferred_SCSCF_Set.class);
 		query.setInteger(0, id_set);
 		return query.list();
