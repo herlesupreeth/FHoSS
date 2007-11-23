@@ -51,7 +51,7 @@ UNLOCK TABLES;
 
 /*!40000 ALTER TABLE `capabilities_set` DISABLE KEYS */;
 LOCK TABLES `capabilities_set` WRITE;
-INSERT INTO `capabilities_set` VALUES (2,1,'cap_set1',1,1),(3,1,'cap_set1',2,0);
+INSERT INTO `capabilities_set` VALUES (2,1,'cap_set1',0,0),(3,1,'cap_set1',1,0);
 UNLOCK TABLES;
 /*!40000 ALTER TABLE `capabilities_set` ENABLE KEYS */;
 
