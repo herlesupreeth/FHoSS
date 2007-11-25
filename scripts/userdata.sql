@@ -150,7 +150,7 @@ UNLOCK TABLES;
 
 /*!40000 ALTER TABLE `preferred_scscf_set` DISABLE KEYS */;
 LOCK TABLES `preferred_scscf_set` WRITE;
-INSERT INTO `preferred_scscf_set` VALUES (1,1,'scscf1','scscf.open-ims.test',0);
+INSERT INTO `preferred_scscf_set` VALUES (1,1,'scscf1','sip:scscf.open-ims.test:6060',0);
 UNLOCK TABLES;
 /*!40000 ALTER TABLE `preferred_scscf_set` ENABLE KEYS */;
 
