@@ -154,7 +154,7 @@ public class DiameterConstants
         /** constant for Push Notification Request */
         public static final int PNR = 309;
         /** constant for Multimedia Authentication Request for Zh-Interface */
-		public static final int MARzh = 903;
+		public static final int MARzh = 303;
     }
     
     public class AVPCode{
