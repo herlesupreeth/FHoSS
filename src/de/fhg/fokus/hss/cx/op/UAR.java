@@ -103,7 +103,7 @@ public class UAR {
 			}
 			VisitedNetwork visited_network = VisitedNetwork_DAO.get_by_Identity(session, visited_network_name);
 			if (visited_network == null){
-				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_UNABLE_TO_COMPLY);
+				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
 			}
 			
 			// 1. check if the identities exist in hss
