@@ -311,9 +311,11 @@ public class IMPU_Form extends ActionForm implements Serializable{
 		this.type = type;
 	}
 	public String getWildcard_psi() {
+		//logger.info(wildcard_psi);
 		return wildcard_psi;
 	}
 	public void setWildcard_psi(String wildcard_psi) {
+		//logger.info("it was "+this.wildcard_psi+"it will be"+wildcard_psi+"\n");
 		this.wildcard_psi = wildcard_psi;
 	}
 	

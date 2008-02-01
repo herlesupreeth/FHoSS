@@ -124,6 +124,7 @@ public class IMPU_Submit extends Action{
 				impu.setType(form.getType());
 				
 				impu.setWildcard_psi(form.getWildcard_psi());
+				impu.convert_wildcard_from_ims_to_sql();
 				impu.setDisplay_name(form.getDisplay_name());
 			
 				if (form.getPsi_activation()){
@@ -179,6 +180,9 @@ public class IMPU_Submit extends Action{
 			}
 			else if (nextAction.equals("refresh")){
 				IMPU impu = (IMPU) IMPU_DAO.get_by_ID(session, id);
+				// get_by_ID is used also when submiting and thats why i cant do that inside
+				// i convert here
+				//impu.convert_wildcard_from_sql_to_ims();
 				IMPU_Load.setForm(form, impu);
 
 				forward = actionMapping.findForward(WebConstants.FORWARD_SUCCESS);

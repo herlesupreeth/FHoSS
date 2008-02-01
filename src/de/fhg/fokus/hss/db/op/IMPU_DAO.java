@@ -66,10 +66,16 @@ import de.fhg.fokus.hss.main.HSSProperties;
 public class IMPU_DAO {
 	private static Logger logger = Logger.getLogger(IMPU_DAO.class);
 	public static void insert(Session session, IMPU impu){
-		session.save(impu);
+			session.save(impu);
 	}
 	
 	public static void update(Session session, IMPU impu){
+		
+		/*if (impu.getType() == CxConstants.Identity_Type_Wildcarded_PSI)
+		{
+			impu.convert_wildcard_from_ims_to_sql();
+		}*/
+		
 		if (impu.isPsi_dirtyFlag()){
 			ShNotification_DAO.insert_notif_for_PSI_Activation(session, impu);
 			impu.setPsi_dirtyFlag(false);
@@ -78,6 +84,7 @@ public class IMPU_DAO {
 			ShNotification_DAO.insert_notif_for_iFC(session, impu);
 			impu.setSp_dirtyFlag(false);
 		}
+		
 		session.saveOrUpdate(impu);
 	}	
 	
@@ -105,8 +112,9 @@ public class IMPU_DAO {
 		query = session.createSQLQuery("select * from impu where id=?")
 			.addEntity(IMPU.class);
 		query.setInteger(0, id);
-
-		return (IMPU) query.uniqueResult();
+		IMPU result = (IMPU) query.uniqueResult();
+		
+		return result;
 	}
 
 	
@@ -160,8 +168,9 @@ public class IMPU_DAO {
 		query = session.createSQLQuery("select * from impu where id_implicit_set=? limit 1")
 			.addEntity(IMPU.class);
 		query.setInteger(0, id_implicit_set);
-
-		return (IMPU) query.uniqueResult();
+		IMPU result = (IMPU) query.uniqueResult();
+				
+		return result;
 	}
 	
 	public static List get_aliases_IMPUs(Session session, int id_implicit_set, int id_sp){
@@ -269,17 +278,23 @@ public class IMPU_DAO {
 		return result;
 	}
 	
-	public static Object[] get_by_Wildcarded_Identity(Session session, String identity, int firstResult, int maxResults){
+	public static IMPU get_by_Wildcarded_Identity(Session session, String identity, int firstResult, int maxResults){
 		Query query;
-		query = session.createSQLQuery("select * from impu where identity like ?")
+		
+		query = session.createSQLQuery("select * from impu where ? like wildcard_psi limit 1")
 			.addEntity(IMPU.class);
-		query.setString(0, "%" + identity + "%");
+		query.setString(0, identity);
 
-		Object[] result = new Object[2];
-		result[0] = new Integer(query.list().size());
-		query.setFirstResult(firstResult);
-		query.setMaxResults(maxResults);
-		result[1] = query.list();
+		IMPU result = null;
+		try{
+			result = (IMPU) query.uniqueResult();
+		
+		}
+		catch(org.hibernate.NonUniqueResultException e){
+			logger.error("Query did not returned an unique result! You have a duplicate in the database!");
+			e.printStackTrace();
+		}
+		
 		return result;
 	}
 	

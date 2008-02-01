@@ -114,6 +114,8 @@ public class IMPU_Load extends Action {
 				
 				IMPU impu = (IMPU) session.load(IMPU.class, form.getId());
 				
+				impu.convert_wildcard_from_ims_to_sql();
+				
 				List implicitset_IMPUs = IMPU_DAO.get_all_from_set(session, impu.getId_implicit_set());
 				request.setAttribute("implicitset_IMPUs", implicitset_IMPUs);
 				
@@ -190,7 +192,10 @@ public class IMPU_Load extends Action {
 				form.setCan_register(false);
 			}
 			form.setType(impu.getType());
+			
+			impu.convert_wildcard_from_sql_to_ims();
 			form.setWildcard_psi(impu.getWildcard_psi());
+			impu.convert_wildcard_from_ims_to_sql();
 			
 			if (impu.getPsi_activation() == 1){
 				form.setPsi_activation(true);	

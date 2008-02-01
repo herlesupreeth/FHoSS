@@ -44,6 +44,10 @@ package de.fhg.fokus.hss.db.model;
 
 import java.io.Serializable;
 
+import org.apache.log4j.Logger;
+
+import de.fhg.fokus.hss.db.op.IMPU_DAO;
+
 
 /**
  * @author adp dot fokus dot fraunhofer dot de 
@@ -52,7 +56,7 @@ import java.io.Serializable;
 
 public class IMPU implements Serializable{
 	private static final long serialVersionUID=1L;
-	
+	private static Logger logger = Logger.getLogger(IMPU.class);
 	// Convention!!!
 	//----------------
 	// An initial value set to -2 meens a starter value, before the set methods are automatically invoked by hibernate; this value is
@@ -201,5 +205,28 @@ public class IMPU implements Serializable{
 
 	public void setSp_dirtyFlag(boolean sp_dirtyFlag) {
 		this.sp_dirtyFlag = sp_dirtyFlag;
+	}
+	
+	public void convert_wildcard_from_sql_to_ims() { 
+	// in the FORM we use * AND ?
+	// in the Database we use % and _
+		
+		if (wildcard_psi!=null)
+		{
+			wildcard_psi = wildcard_psi.replace('%', '*');
+			wildcard_psi = wildcard_psi.replace('_', '?');
+		}
+	}
+	public void convert_wildcard_from_ims_to_sql() { 
+		// in the FORM we use * AND ?
+		// in the Database we use % and _
+		
+		if (wildcard_psi!=null)
+		{
+		
+			wildcard_psi = wildcard_psi.replace('*', '%');
+			wildcard_psi = wildcard_psi.replace('?', '_');
+		
+		}
 	}
 }

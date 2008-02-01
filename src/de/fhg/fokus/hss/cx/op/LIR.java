@@ -97,7 +97,12 @@ public class LIR {
 			// 1. check that the public identity is known
 			IMPU impu = IMPU_DAO.get_by_Identity(session, publicIdentity);
 			if (impu == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN); 
+				// then lets try a Wildcarded PSI !!
+				impu = IMPU_DAO.get_by_Wildcarded_Identity(session, publicIdentity, 0, 1);
+				
+				if (impu == null) {				
+					throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
+				}
 			}
 			
 			// 2. check if public identity is PSI; if PSI then test activation
@@ -122,8 +127,15 @@ public class LIR {
 				Object [] resultRow = (Object []) it.next();
 				IMPI impi = (IMPI) resultRow[1];
 				//one impi is enough to find out the associated imsu
-				
-				scscf_name = IMSU_DAO.get_SCSCF_Name_by_IMSU_ID(session, impi.getId_imsu());
+				if (type == CxConstants.Identity_Type_Public_User_Identity)
+				{
+					// if its a user it should be registered and have a SCSCF asigned
+					scscf_name = IMSU_DAO.get_SCSCF_Name_by_IMSU_ID(session, impi.getId_imsu());
+				} else {
+					// if its a PSI we are getting the preferred is ok
+					logger.info("Alberto : PSI : getting SCSCF name!\n");
+					scscf_name = IMSU_DAO.get_SCSCF_Name_by_PSI_IMSU_ID(session, impi.getId_imsu());
+				}
 				break;
 			}
 			

@@ -130,6 +130,10 @@ public class SAR {
 
 			// 1. check that the public identity & privateIdentity are known in HSS
 			IMPU impu = IMPU_DAO.get_by_Identity(session, publicIdentity);
+			if (impu == null) {
+				impu = IMPU_DAO.get_by_Wildcarded_Identity(session, publicIdentity, 1, 1);
+				
+			}
 			IMPI impi = IMPI_DAO.get_by_Identity(session, privateIdentity);
 			if (publicIdentity != null && impu == null){
 				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN); 
@@ -139,15 +143,20 @@ public class SAR {
 			}
 			
 			// store the IMSU ID in id_imsu
-			int id_imsu;
-			if (impi == null){
-				IMPI associatedIMPI = IMPI_DAO.get_an_IMPI_for_IMPU(session, impu.getId());
-				id_imsu = associatedIMPI.getId_imsu();
-			}
-			else{
-				id_imsu = impi.getId_imsu();
-			}
+			int id_imsu=-1;
+			// this is an unsafe operation because it might happen that its not unregistered case and no IMSU
+			// sooooo ? 
 			
+			/*if (impu.getType()==CxConstants.Identity_Type_Public_User_Identity)
+			{*/
+				if (impi == null){
+					IMPI associatedIMPI = IMPI_DAO.get_an_IMPI_for_IMPU(session, impu.getId());
+					id_imsu = associatedIMPI.getId_imsu();
+				}
+				else{
+					id_imsu = impi.getId_imsu();
+				}
+			/*}*/
 			
 			IMPI_IMPU impi_impu;
 			// 2. check association
@@ -239,8 +248,10 @@ public class SAR {
 					if (impu == null){
 						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
 					}
-					
+					impu.convert_wildcard_from_sql_to_ims();
 					// store the scscf_name & orgiin_host
+					/*if (impu.getType()==CxConstants.Identity_Type_Public_User_Identity) 
+					{*/
 					privateIdentitiesList = IMPI_IMPU_DAO.get_all_IMPI_by_IMPU_ID(session, impu.getId());
 					if (privateIdentitiesList == null || privateIdentitiesList.size() == 0){
 						throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_UNABLE_TO_COMPLY);
@@ -248,10 +259,11 @@ public class SAR {
 					
 					IMPI first_IMPI = (IMPI) privateIdentitiesList.get(0);
 					IMSU_DAO.update(session, first_IMPI.getId_imsu(), serverName, originHost);
-
+					
 					// set the user_state to Unregistered
 					DB_Op.setUserState(session, first_IMPI.getId(), impu.getId_implicit_set(), 
 							CxConstants.IMPU_user_state_Unregistered, true);
+					
 					
 					//download the profile data
 					user_data = SAR.downloadUserData(privateIdentity, impu.getId_implicit_set());
@@ -265,8 +277,11 @@ public class SAR {
 					if (chargingInfo != null){
 						UtilAVP.addChargingInformation(response, chargingInfo);
 					}
-					// add a private to the response (the first private found, if more than one are available)					
+					
+//					add a private to the response (the first private found, if more than one are available)
 					UtilAVP.addUserName(response, first_IMPI.getIdentity());
+					
+					
 					
 					//AssociatedIdentities if neccessary
 					if (privateIdentitiesList.size() > 1){
@@ -280,6 +295,32 @@ public class SAR {
 					// send Sh Notifications for IMS-User-State for all of the subscribers
 					ShNotification_DAO.insert_notif_for_IMS_User_State(session, impu.getId_implicit_set(), 
 							CxConstants.IMPU_user_state_Unregistered);
+					/*} else {
+						// So its a PSI , which is only done in unregistered so a bit of processing needed
+//						download the profile data
+						logger.info("\n its here where i am\n");
+						user_data = SAR.downloadUserData(null, impu.getId_implicit_set());
+						if (user_data == null){
+							throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_UNABLE_TO_COMPLY);
+						}
+						UtilAVP.addUserData(response, user_data);
+						
+						// add charging Info
+						chargingInfo = ChargingInfo_DAO.get_by_ID(session, impu.getId_charging_info());
+						if (chargingInfo != null){
+							UtilAVP.addChargingInformation(response, chargingInfo);
+						}	
+//						result code = diameter success
+						UtilAVP.addResultCode(response, DiameterConstants.ResultCode.DIAMETER_SUCCESS.getCode());
+						
+						// its a PSI
+						logger.info("\n o god! its a f* PSI.... \n");
+						
+					}	*/
+						
+						
+					
+					impu.convert_wildcard_from_ims_to_sql();
 					break;
 					
 				case CxConstants.Server_Assignment_Type_Timeout_Deregistration:
@@ -648,6 +689,7 @@ public class SAR {
 		SP[] sp_array;
 		
 		int sp_cnt = 0;
+		
 		List queryResult = IMPU_DAO.get_all_sp_for_set(session, id_implicit_set);
 
 		Iterator it = queryResult.iterator();
@@ -689,10 +731,12 @@ public class SAR {
 		sb.append(ims_subscription_s);
 		
 		// PrivateID
-		sb.append(private_id_s);
-		sb.append(privateIdentity);
-		sb.append(private_id_e);
-		
+		/*if (privateIdentity!=null)
+		{*/
+			sb.append(private_id_s);
+			sb.append(privateIdentity);
+			sb.append(private_id_e);
+		/*}*/
 		//SP
 		for (int i = 0; i < sp_array.length; i++){
 			sb.append(service_profile_s);
@@ -729,8 +773,11 @@ public class SAR {
 					}
 					
 					sb.append(wildcarded_psi_s);
+					impu.convert_wildcard_from_sql_to_ims();
 					sb.append(impu.getWildcard_psi());
+					impu.convert_wildcard_from_ims_to_sql();
 					sb.append(wildcarded_psi_e);
+					
 				}
 				
 				if (impu.getDisplay_name() != null && !impu.getDisplay_name().equals("")){
