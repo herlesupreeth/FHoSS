@@ -133,7 +133,7 @@ public class LIR {
 					scscf_name = IMSU_DAO.get_SCSCF_Name_by_IMSU_ID(session, impi.getId_imsu());
 				} else {
 					// if its a PSI we are getting the preferred is ok
-					logger.info("Alberto : PSI : getting SCSCF name!\n");
+					logger.info("PSI : getting SCSCF name!\n");
 					scscf_name = IMSU_DAO.get_SCSCF_Name_by_PSI_IMSU_ID(session, impi.getId_imsu());
 				}
 				break;

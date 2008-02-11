@@ -186,7 +186,7 @@ public class IMSU_DAO {
 		Query query;
 		query = session.createSQLQuery("SELECT preferred_scscf_set.scscf_name " +
 										"FROM imsu INNER JOIN preferred_scscf_set " +
-										"ON preferred_scscf_set.id = id_preferred_scscf_set " +
+										"ON preferred_scscf_set.id_set = id_preferred_scscf_set " +
 										"WHERE imsu.id = ?");
 		query.setInteger(0,id_imsu);
 		return (String) query.uniqueResult();
