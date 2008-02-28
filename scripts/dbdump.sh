@@ -2,14 +2,14 @@
 #!/bin/bash
 #
 
-FILE=hssdb.sql
+FILE=hss_db.sql
 
-mysqldump hssdb -d -B --add-drop-table --add-drop-database >$FILE
+mysqldump hss_db -d -B --add-drop-table --add-drop-database >$FILE
 echo "# DB access rights" >>$FILE
-echo "grant delete,insert,select,update on hssdb.* to hss@localhost identified by 'hss';" >>$FILE
+echo "grant delete,insert,select,update on hss_db.* to hss@localhost identified by 'hss';" >>$FILE
 
 FILE=userdata.sql
-mysqldump hssdb -t -B  >>$FILE
+mysqldump hss_db -t -B  >>$FILE
 
 
 
