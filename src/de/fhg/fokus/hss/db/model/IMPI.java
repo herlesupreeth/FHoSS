@@ -57,7 +57,7 @@ public class IMPI implements Serializable{
 	// table fields
 	private int id;
 	private String identity;
-	private String k;
+	private byte[] k;
 	private int auth_scheme;
 	private int default_auth_scheme;
 	
@@ -144,14 +144,13 @@ public class IMPI implements Serializable{
 		this.ip = ip;
 	}
 
-	public String getK() {
+	public byte[] getK() {
 		return k;
 	}
 
-	public void setK(String k) {
+	public void setK(byte[] k) {
 		this.k = k;
 	}
-
 	public byte[] getAmf() {
 		return amf;
 	}

@@ -120,7 +120,10 @@ public class IMPI_Submit extends Action{
 					form.isEarly(), form.isNass_bundle(), form.isAll());	
 				
 				impi.setIdentity(form.getIdentity());
-				impi.setK(form.getSecretKey());
+				if (form.getSecretKey().length()==32) 
+					impi.setK(HexCodec.decode(form.getSecretKey()));
+				else
+					impi.setK(form.getSecretKey().getBytes());
 				impi.setAuth_scheme(auth_scheme);
 				impi.setIp(form.getIp());
 				impi.setAmf(HexCodec.decode(form.getAmf()));

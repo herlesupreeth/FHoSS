@@ -340,29 +340,8 @@ public class MAR{
     
 	public static AuthenticationVector generateAuthVector(Session session, int auth_scheme, IMPI impi){
 		
-        byte [] secretKey = HexCodec.getBytes(impi.getK(), CxConstants.Auth_Parm_Secret_Key_Size);
-        byte [] amf = impi.getAmf();
-
-        // op and generate opC	
-        byte [] op = impi.getOp();
-        
-        byte[] opC;
-		try {
-			opC = Milenage.generateOpC(secretKey, op);
-		} catch (InvalidKeyException e1) {
-			e1.printStackTrace();
-			return null;
-		}
-		
-        byte [] sqn;
-        try{
-        	sqn = HexCodec.decode(impi.getSqn());
-        }
-        catch(Exception e){
-        	e.printStackTrace();
-        	return null;
-        }
-        
+        byte [] secretKey;
+                
         switch (auth_scheme){
         
     		case  CxConstants.Auth_Scheme_MD5:
@@ -380,7 +359,7 @@ public class MAR{
     			randomAccess.setSeed(System.currentTimeMillis());
     			randomAccess.nextBytes(randBytes);
                 
-    			secretKey = impi.getK().getBytes();
+    			secretKey = impi.getK();
     			AuthenticationVector av = new AuthenticationVector(auth_scheme, randBytes, secretKey);
     			return av;
     		
@@ -389,6 +368,28 @@ public class MAR{
         
     			// Authentication Scheme is AKAv1 or AKAv2
         		logger.debug("Auth-Scheme is Digest-AKA");
+        		secretKey = HexCodec.getBytes(impi.getK(), CxConstants.Auth_Parm_Secret_Key_Size);
+                byte [] amf = impi.getAmf();
+
+                // op and generate opC	
+                byte [] op = impi.getOp();
+                
+                byte[] opC;
+        		try {
+        			opC = Milenage.generateOpC(secretKey, op);
+        		} catch (InvalidKeyException e1) {
+        			e1.printStackTrace();
+        			return null;
+        		}
+        		
+                byte [] sqn;
+                try{
+                	sqn = HexCodec.decode(impi.getSqn());
+                }
+                catch(Exception e){
+                	e.printStackTrace();
+                	return null;
+                }
         		
             	sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
     	        byte[] copySqnHe = new byte[6];

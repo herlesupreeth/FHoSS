@@ -140,7 +140,7 @@ CREATE TABLE `impi` (
   `id` int(11) NOT NULL auto_increment,
   `id_imsu` int(11) default NULL,
   `identity` varchar(255) NOT NULL default '',
-  `k` varchar(255) NOT NULL default '',
+  `k` tinyblob NOT NULL,
   `auth_scheme` int(11) NOT NULL default '0',
   `default_auth_scheme` int(11) NOT NULL default '1',
   `amf` tinyblob NOT NULL,

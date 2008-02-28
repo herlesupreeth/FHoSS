@@ -469,27 +469,7 @@ public class MAR {
 
 	public static AuthenticationVector generateAuthVector(Session session, int auth_scheme, IMPI impi, String realm, String uri, String method){
 		
-        byte [] secretKey = HexCodec.getBytes(impi.getK(), CxConstants.Auth_Parm_Secret_Key_Size);
-        byte [] amf = impi.getAmf();	
-        byte [] op = impi.getOp();
-
-        // generate opC        
-        byte[] opC;
-		try {
-			opC = Milenage.generateOpC(secretKey, op);
-		} catch (InvalidKeyException e1) {
-			e1.printStackTrace();
-			return null;
-		}
-		
-        byte [] sqn;
-        try{
-        	sqn = HexCodec.decode(impi.getSqn());
-        }
-        catch(Exception e){
-        	e.printStackTrace();
-        	return null;
-        }
+        byte [] secretKey;
         
         switch (auth_scheme){
         
@@ -509,7 +489,7 @@ public class MAR {
     			randomAccess.setSeed(System.currentTimeMillis());
     			randomAccess.nextBytes(randBytes);
                 
-    			secretKey = impi.getK().getBytes();
+    			secretKey = impi.getK();
     			AuthenticationVector av = new AuthenticationVector(auth_scheme, randBytes, secretKey);
     			return av;
     		
@@ -519,7 +499,29 @@ public class MAR {
     			// Authentication Scheme is AKAv1 or AKAv2
         		logger.debug("Auth-Scheme is Digest-AKA");
         		
-            	sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
+        		secretKey = HexCodec.getBytes(impi.getK(), CxConstants.Auth_Parm_Secret_Key_Size);
+        		byte [] amf = impi.getAmf();	
+                byte [] op = impi.getOp();
+
+                // generate opC        
+                byte[] opC;
+        		try {
+        			opC = Milenage.generateOpC(secretKey, op);
+        		} catch (InvalidKeyException e1) {
+        			e1.printStackTrace();
+        			return null;
+        		}
+        		
+                byte [] sqn;
+                try{
+                	sqn = HexCodec.decode(impi.getSqn());
+                }
+                catch(Exception e){
+                	e.printStackTrace();
+                	return null;
+                }
+        		
+        		sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
     	        byte[] copySqnHe = new byte[6];
     	        int k = 0;
     	        for (int i = 0; i < 6; i++, k++){
@@ -549,7 +551,7 @@ public class MAR {
         		logger.debug("Auth-Scheme is Digest");
         
         		byte [] ha1= null;
-        		secretKey = impi.getK().getBytes();
+        		secretKey = impi.getK();
         		
         		if (realm ==null)
         			realm = impi.getIdentity().substring(impi.getIdentity().indexOf("@")+1);
@@ -562,7 +564,7 @@ public class MAR {
         		logger.debug("Auth-Scheme is HTTP_Digest_MD5");
         
         		ha1= null;
-        		secretKey = impi.getK().getBytes();
+        		secretKey = impi.getK();
         		
         		if (realm == null)
         			realm = impi.getIdentity().substring(impi.getIdentity().indexOf("@")+1);

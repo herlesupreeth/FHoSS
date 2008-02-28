@@ -153,7 +153,10 @@ public class IMPI_Load extends Action {
 			exitCode = true;
 			form.setIdentity(impi.getIdentity());
 			form.setId_imsu(impi.getId_imsu());
-			form.setSecretKey(impi.getK());
+			if (impi.getK().length==16)
+				form.setSecretKey(HexCodec.encode(impi.getK()));
+			else 
+				form.setSecretKey(new String(impi.getK()));
 			form.setAmf(HexCodec.encode(impi.getAmf()));
 			form.setOp(HexCodec.encode(impi.getOp()));
 			form.setSqn(impi.getSqn());

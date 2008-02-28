@@ -9,7 +9,7 @@
 	</id>
 
 	<property name="identity" type="string" not-null="true"/>
-	<property name="k" type="string" not-null="true"/>
+	<property name="k" type="binary" not-null="true"/>
 	<property name="auth_scheme" type="int" not-null="true"/>
 	<property name="default_auth_scheme" type="int" not-null="true"/>
 	<property name="amf" type="binary" not-null="true"/>

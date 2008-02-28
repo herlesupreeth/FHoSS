@@ -125,5 +125,20 @@ public class HexCodec
     	}
     	return null;
     }
+
+    public static byte [] getBytes(byte[] s, int len){
+    	int s_len = s.length;
+    	byte[] result = new byte[len];
+    	
+    	if (s_len <= len){
+    		for (int i = 0; i < s_len; i++)
+    			result[i] = s[i];
+    		/*for (int i=s_len; i < len; i++){
+    			result[i] = 0;
+    		}*/
+    		return result;
+    	}
+    	return null;
+    }
     
 }

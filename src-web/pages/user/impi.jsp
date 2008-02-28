@@ -311,7 +311,9 @@ function disable_other_boxes(){
 					</tr>
 					<tr>
 						<td align="center"> 
-							<b> Mandatory fields were marked with "*" </b>
+							<b> Mandatory fields were marked with "*".<br>
+							The Secret Key in this form is considered in hex representation if its value is 16 bytes long or
+							else in ASCII representation.</b>
 						</td>
 					</tr>	
 					<tr>
