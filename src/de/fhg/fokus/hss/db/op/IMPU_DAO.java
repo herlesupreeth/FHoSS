@@ -132,7 +132,7 @@ public class IMPU_DAO {
 		Query query;
 		query = session.createSQLQuery("select * from impu" +
 				"	inner join impu_visited_network on impu_visited_network.id_impu=impu.id" +
-				" where impu_visited_network.id_visited_network=?")
+				" where impu_visited_network.id_visited_network=? limit 0,1")
 				.addEntity("impu", IMPU.class);
 		query.setInteger(0, id_vn);
 		return query.list();
@@ -276,6 +276,19 @@ public class IMPU_DAO {
 		}
 
 		return result;
+	}
+	
+	public static Object[] get_by_Incomplete_Identity(Session session, String identity, int firstResult, int maxResults) {
+		Query query;
+		query = session.createSQLQuery("select * from impu where identity like ?")
+			.addEntity(IMPU.class);
+		query.setString(0, "%" + identity + "%");
+		Object[] result = new Object[2];
+		result[0] = new Integer(query.list().size());
+		query.setFirstResult(firstResult);
+		query.setMaxResults(maxResults);
+		result[1] = query.list();
+		return result;		
 	}
 	
 	public static IMPU get_by_Wildcarded_Identity(Session session, String identity, int firstResult, int maxResults){

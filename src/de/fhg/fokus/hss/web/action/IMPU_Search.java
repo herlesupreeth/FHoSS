@@ -95,7 +95,7 @@ public class IMPU_Search extends Action{
 				uniqueResult = IMPU_DAO.get_by_ID(session, Integer.parseInt(form.getImpu_id()));
 			}
 			else if (form.getIdentity() != null && !form.getIdentity().equals("")){
-				uniqueResult = IMPU_DAO.get_by_Wildcarded_Identity(session, form.getIdentity(), firstResult, rowsPerPage);
+				queryResult = IMPU_DAO.get_by_Incomplete_Identity(session, form.getIdentity(), firstResult, rowsPerPage);
 			}
 			else if (form.getId_impu_implicitset() != null && !form.getId_impu_implicitset().equals("")){
 				queryResult = IMPU_DAO.get_all_from_set(session, Integer.parseInt(form.getId_impu_implicitset()), firstResult, rowsPerPage);
