@@ -95,11 +95,11 @@ public class HSSContainer {
 		diamStack = new DiameterStack(this);
 		
 		// CxEvents Worker
-		CxEventsWorker cxEventsWorker = new CxEventsWorker(diamStack, 10);
+		CxEventsWorker cxEventsWorker = new CxEventsWorker(diamStack, HSSProperties.CX_EVENT_CHECK_INTERVAL);
 		cxEventsWorker.start();
 		
 		// ShEvents Worker
-		ShEventsWorker shEventsWorker = new ShEventsWorker(diamStack, 10);
+		ShEventsWorker shEventsWorker = new ShEventsWorker(diamStack, HSSProperties.SH_NOTIF_CHECK_INTERVAL);
 		shEventsWorker.start();
 		
 

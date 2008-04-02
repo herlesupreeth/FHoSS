@@ -53,6 +53,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 
 import de.fhg.fokus.hss.cx.CxConstants;
+import de.fhg.fokus.hss.db.model.CxEvents;
 import de.fhg.fokus.hss.db.model.IMPI;
 import de.fhg.fokus.hss.db.model.IMPU;
 import de.fhg.fokus.hss.db.model.SP;
@@ -80,8 +81,34 @@ public class IMPU_DAO {
 			ShNotification_DAO.insert_notif_for_PSI_Activation(session, impu);
 			impu.setPsi_dirtyFlag(false);
 		}
-		else if (HSSProperties.iFC_NOTIF_ENABLED && impu.isSp_dirtyFlag()){
-			ShNotification_DAO.insert_notif_for_iFC(session, impu);
+		else if (impu.isSp_dirtyFlag()){
+			if (HSSProperties.iFC_NOTIF_ENABLED) 
+				ShNotification_DAO.insert_notif_for_iFC(session, impu);
+			if (HSSProperties.AUTO_PPR_ENABLED) {
+				
+				if (impu.getUser_state() == CxConstants.IMPU_user_state_Registered || impu.getUser_state() == 
+						CxConstants.IMPU_user_state_Unregistered){
+											
+					// we process the request only if the user is in Registered or Unregistered state
+					int id_impi = IMPU_DAO.get_a_registered_IMPI_ID(session, impu.getId());
+					if (id_impi != -1){
+						int grp = CxEvents_DAO.get_max_grp(session);
+						// we have only a PPR message for the implicit set!
+						CxEvents rtr_ppr = new CxEvents();
+						rtr_ppr.setId_impi(id_impi);
+						rtr_ppr.setId_implicit_set(impu.getId_implicit_set());
+						rtr_ppr.setId_impu(impu.getId());
+						// type for PPR is 2
+						rtr_ppr.setType(2);
+						rtr_ppr.setSubtype(0);// user-data
+						rtr_ppr.setGrp(grp);
+						CxEvents_DAO.insert(session, rtr_ppr);
+					}
+				}
+				else{
+					logger.warn("IMPU: " + impu.getIdentity() + " is not registered! PPR Aborted!");						
+				}
+			}
 			impu.setSp_dirtyFlag(false);
 		}
 		

@@ -72,6 +72,11 @@ public class HSSProperties {
 	public static int L = 32;
 	
 	public static boolean iFC_NOTIF_ENABLED = false;
+	public static boolean AUTO_PPR_ENABLED = false;
+	
+	public static int CX_EVENT_CHECK_INTERVAL = 10;
+	public static int SH_NOTIF_CHECK_INTERVAL = 10;
+	
 	private static String fileName = "hss.properties";
 	
 	static {
@@ -90,6 +95,9 @@ public class HSSProperties {
 			delta = Integer.parseInt(props.getProperty("delta"));
 			L = Integer.parseInt(props.getProperty("L"));
 			iFC_NOTIF_ENABLED = Boolean.valueOf(props.getProperty("iFC_NOTIF_ENABLED")).booleanValue();
+			AUTO_PPR_ENABLED = Boolean.valueOf(props.getProperty("AUTO_PPR_ENABLED")).booleanValue();
+			CX_EVENT_CHECK_INTERVAL = Integer.parseInt(props.getProperty("CX_EVENT_CHECK_INTERVAL"));
+			SH_NOTIF_CHECK_INTERVAL = Integer.parseInt(props.getProperty("SH_NOTIF_CHECK_INTERVAL"));
 		}
 		catch (FileNotFoundException e) {
 			LOGGER.error("FileNotFoundException !", e);
