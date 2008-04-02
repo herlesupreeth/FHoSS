@@ -94,6 +94,7 @@ public class PPR {
         	if (impu.getUser_state() == CxConstants.IMPU_user_state_Not_Registered || impu.getUser_state() == CxConstants.IMPU_user_state_Auth_Pending){
         		logger.error("Implicit Registration Set: " + id_implicit_set + " is in Not-Registered state!");
         		logger.error("PPR aborted!");
+   	        	CxEvents_DAO.delete(session, grp);
         	}
         	else{
         		IMPI impi = IMPI_DAO.get_by_ID(session, id_impi);

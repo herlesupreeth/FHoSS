@@ -89,6 +89,12 @@ public class CxEvents_DAO {
 		query.executeUpdate();
 	}
 	
+	public static void delete(Session session, int grp){
+		Query query = session.createSQLQuery("delete from cx_events where grp=?");
+		query.setLong(0, grp);
+		query.executeUpdate();
+	}
+
 	public static void delete(Session session, long hopbyhop, long endtoend){
 		Query query = session.createSQLQuery("delete from cx_events where hopbyhop=? and endtoend=?");
 		query.setLong(0, hopbyhop);
