@@ -136,9 +136,10 @@ public class HexCodec
     		/*for (int i=s_len; i < len; i++){
     			result[i] = 0;
     		}*/
-    		return result;
+    	} else {
+    		System.arraycopy(s, 0, result, 0, len);
     	}
-    	return null;
+		return result;
     }
     
 }
