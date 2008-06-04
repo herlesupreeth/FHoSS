@@ -1,0 +1,6 @@
+fhoss (0.2-svn${svn:Revision}) unstable; urgency=low
+
+  * Initial debian package
+
+ -- Sebastian Felis <felis@nw.neclab.eu>  Fri, 11 Apr 2008 10:29:32 +0200
+
