@@ -560,12 +560,9 @@ public class UtilAVP {
                 String sip = av.getIp();
                 if (sip != null)
                 {
-                	byte fIpLen = 6;
-                	int poz = 0,k = 2;
-                	byte [] result = new byte[fIpLen] ;
-                	result[0] = 0;
-                	result[1] = 1;
-  
+                	byte fIpLen = 4;
+                	int poz = 0,k = 0;
+                	byte [] result = new byte[fIpLen] ; 
                 	for (int i = 0; i< sip.length() ; i++)
                 		if (sip.charAt(i) == '.' && k < fIpLen)
                 		{
