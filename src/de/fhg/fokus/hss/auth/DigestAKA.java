@@ -44,6 +44,10 @@
 package de.fhg.fokus.hss.auth;
 
 import java.net.Inet4Address;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+import java.security.Key;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -309,18 +313,103 @@ public class DigestAKA
         else if ((auth_scheme & CxConstants.Auth_Scheme_AKAv2) != 0){
            	// AKAv2
            	logger.debug("Authentication-Scheme: AKAv2!");
-           	byte xresV2[] =  new byte[xres.length + ck.length + ik.length];
+           	byte xresikck[] =  new byte[xres.length + ck.length + ik.length];
            	k = 0;
            	for (int i = 0; i < xres.length; i++, k++)
-          		xresV2[k] = xres[i];
+          		xresikck[k] = xres[i];
            	for (int i = 0; i < ik.length; i++, k++)
-           		xresV2[k] = ik[i];
+           		xresikck[k] = ik[i];
            	for (int i = 0; i < ck.length; i++, k++)
-           		xresV2[k] = ck[i];
-            	
-           	authenticationVector = new AuthenticationVector(auth_scheme, nonce, xresV2, ck, ik);
+           		xresikck[k] = ck[i];
+            
+			byte xresv2[] = bin2base64(getHMacMD5(xresikck,"http-digest-akav2-password".getBytes()));
+			byte ikv2[]	= getHMacMD5(ik,"http-digest-akav2-integritykey".getBytes());
+			byte ckv2[]	= getHMacMD5(ck,"http-digest-akav2-cipherkey".getBytes());
+           	authenticationVector = new AuthenticationVector(auth_scheme, nonce, xresv2, ckv2, ikv2);
         }
     	return authenticationVector;
     }
+
+    private static byte[] base64=String.valueOf("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/").getBytes();
+    private static byte[] bin2base64( byte[] from)
+    {
+    	if (from==null||from.length==0) return new byte[0];
+    	int i,k;
+    	int triplets,rest;
+    	byte[] out;
+    	int ptr=0;
+    	int len = from.length;
+    	triplets = len/3;
+    	rest = len%3;
+    	out = new byte[ triplets * 4 + 8 ];
+    	
+    	ptr = 0;
+    	for(i=0;i<triplets*3;i+=3){
+    		k = (from[i]&0xFC) / 4;
+    		out[ptr++]=base64[k];
+
+    		k = (from[i]&0x03) * 16;
+    		k += (from[i+1]&0xF0)/16;
+    		out[ptr++]=base64[k];
+
+    		k = (from[i+1]&0x0F)*4;
+    		k += (from[i+2]&0xC0)/64;
+    		out[ptr++]=base64[k];
+
+    		k = (from[i+2]&0x3F);
+    		out[ptr++]=base64[k];
+    	}
+    	i=triplets*3;
+    	switch(rest){
+    		case 0:
+    			break;
+    		case 1:
+    			k = (from[i]&0xFC)/4;
+    			out[ptr++]=base64[k];
+
+    			k = (from[i]&0x03)*16;
+    			out[ptr++]=base64[k];
+
+    			out[ptr++]='=';
+
+    			out[ptr++]='=';
+    			break;
+    		case 2:
+    			k = (from[i]&0xFC)/4;
+    			out[ptr++]=base64[k];
+
+    			k = (from[i]&0x03)*16;
+    			k +=(from[i+1]&0xF0)/16;
+    			out[ptr++]=base64[k];
+
+    			k = (from[i+1]&0x0F)*4;
+    			out[ptr++]=base64[k];
+
+    			out[ptr++]='=';
+    			break;
+    	}    	
+        byte[] x = new byte[ptr];
+        System.arraycopy(out,0,x,0,ptr);
+    	return x;
+    }    
+
+	private static byte[] getHMacMD5(byte[] secret, byte[] data)
+    {
+		Key key = new SecretKeySpec(secret, 0, secret.length, "HMacMD5");
+		Mac mac;
+		try {
+			mac = Mac.getInstance("HmacMD5");
+			mac.init(key);
+			mac.update(data);
+			return mac.doFinal();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+    }    
     
 }
