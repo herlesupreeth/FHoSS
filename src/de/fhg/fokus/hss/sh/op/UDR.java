@@ -79,7 +79,6 @@ import de.fhg.fokus.hss.diam.DiameterConstants;
 import de.fhg.fokus.hss.diam.UtilAVP;
 import de.fhg.fokus.hss.sh.ShConstants;
 import de.fhg.fokus.hss.sh.ShExperimentalResultException;
-import de.fhg.fokus.hss.sh.ShFinalResultException;
 
 import de.fhg.fokus.hss.sh.data.*;
 /**

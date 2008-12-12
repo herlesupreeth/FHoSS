@@ -100,7 +100,7 @@ public class PNR {
 		
 		// add Auth-Session-State and Vendor-Specific-Application-ID
 		UtilAVP.addAuthSessionState(request, DiameterConstants.AVPValue.ASS_No_State_Maintained);
-		UtilAVP.addVendorSpecificApplicationID(request, DiameterConstants.Vendor.V3GPP, DiameterConstants.Application.Cx);
+		UtilAVP.addVendorSpecificApplicationID(request, DiameterConstants.Vendor.V3GPP, DiameterConstants.Application.Sh);
 		
 		boolean dbException = false;
 		try{
