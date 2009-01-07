@@ -1,6 +1,7 @@
 /*
   *  Copyright (C) 2004-2007 FhG Fokus
-  *  Parts by Instrumentacion y Componentes S.A. (Inycom). Contact at: ims at inycom dot es
+  *
+  * Developed by Instrumentacion y Componentes S.A. (Inycom). Contact at: ims at inycom dot es
   *
   * This file is part of Open IMS Core - an open source IMS CSCFs & HSS
   * implementation
@@ -42,54 +43,54 @@
   *
   */
 
-package de.fhg.fokus.hss.sh;
+package de.fhg.fokus.hss.db.model;
+
+import java.io.Serializable;
 
 /**
- * This class has been modified by Instrumentacion y Componentes S.A. (ims at inycom dot es) to support the DSAI
- * Information Element according to release 7 (DSAI_value).
- *
- * @author adp dot fokus dot fraunhofer dot de
- * Adrian Popescu / FOKUS Fraunhofer Institute
- * @author Instrumentacion y Componentes S.A (Inycom) for modifications (ims at inycom dot es)
+ * @author Instrumentacion y Componentes S.A (Inycom).
+ * Contact at: ims at inycom dot es
  *
  */
 
-public class ShConstants {
+public class DSAI implements Serializable {
+	private static final long serialVersionUID=1L;
 
-	// Data-Reference Constants
-	public static final int Data_Ref_Repository_Data = 0;
-	public static final int Data_Ref_IMS_Public_Identity = 10;
-	public static final int Data_Ref_IMS_User_State = 11;
-	public static final int Data_Ref_SCSCF_Name = 12;
-	public static final int Data_Ref_iFC = 13;
-	public static final int Data_Ref_Location_Info = 14;
-	public static final int Data_Ref_User_State = 15;
-	public static final int Data_Ref_Charging_Info = 16;
-	public static final int Data_Ref_MSISDN = 17;
-	public static final int Data_Ref_PSI_Activation = 18;
-	public static final int Data_Ref_DSAI = 19;
-	public static final int Data_Ref_Aliases_Repository_Data = 20;
+	// Fields
 
+	private int id;
 
-	// Send-Data-Indication
-	public static final int User_Data_Not_Requested = 0;
-	public static final int User_Data_Requested = 1;
+	private String dsai_tag;
 
-	// Subs-Req-Type
-	public static final int Subs_Req_Type_Subscribe = 0;
-	public static final int Subs_Req_Type_UnSubscribe = 1;
+	// Constructors
 
-	// Identity-Set
-	public static final int Identity_Set_All_Identities = 0;
-	public static final int Identity_Set_Registered_Identities = 1;
-	public static final int Identity_Set_Implicit_Identities = 2;
-	public static final int Identity_Set_Alias_Identities = 3;
+	/** default constructor */
+	public DSAI() {
+	}
 
-	// DSAI_value
-	public static final String DSAI_value_Inactive_Name = "Inactive";
-	public static final String DSAI_value_Active_Name = "Active";
-	public static final int DSAI_value_Inactive = 1;
-	public static final int DSAI_value_Active = 0;
+	/** full constructor */
+	public DSAI(int id, String dsai_tag) {
+		this.id = id;
+		this.dsai_tag = dsai_tag;
+
+	}
+
+	// Property accessors
+	public int getId() {
+		return this.id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getDsai_tag() {
+		return this.dsai_tag;
+	}
+
+	public void setDsai_tag(String dsai_tag) {
+		this.dsai_tag = dsai_tag;
+	}
 
 
 }

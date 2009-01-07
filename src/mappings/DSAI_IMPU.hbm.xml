@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+
+<hibernate-mapping>
+<class name="de.fhg.fokus.hss.db.model.DSAI_IMPU" table="dsai_impu">
+
+	<id name="id">
+		<generator class="native"/>
+	</id>
+	<property name="id_dsai" type="int" not-null="true"/>
+	<property name="id_impu" type="int" not-null="true"/>
+	<property name="dsai_value" type="int" not-null="true"/>
+
+</class>
+</hibernate-mapping>

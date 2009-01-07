@@ -3,6 +3,8 @@
  *
  * Copyright (C) 2004-2006 FhG Fokus
  *
+ * Parts by Instrumentacion y Componentes S.A. (Inycom). Contact at: ims at inycom dot es
+ *
  * This file is part of Open IMS Core - an open source IMS CSCFs & HSS
  * implementation
  *
@@ -54,7 +56,13 @@ import org.apache.log4j.Logger;
 /**
  * It contains some variables which describe the HSS properties.Further it reads
  * the values for those variables from a property file.
+ * <p>
+ * This class has been modified by Instrumentacion y Componentes S.A (ims at inycom dot es)
+ * to support the erasing of expired Subscriptions from Sh_Subscription table (variable expiry_time_lim).
+ *
  * @author Andre Charton (dev -at- open-ims dot org)
+ * @author Instrumentacion y Componentes S.A (Inycom)
+ * for modifications (ims at inycom dot es)
  */
 
 public class HSSProperties {
@@ -76,6 +84,8 @@ public class HSSProperties {
 	
 	public static int CX_EVENT_CHECK_INTERVAL = 10;
 	public static int SH_NOTIF_CHECK_INTERVAL = 10;
+
+	public static int Expiry_time_lim = -1;  // If this parameter is -1, unlimited subscribtions are allowed
 	
 	private static String fileName = "hss.properties";
 	
@@ -98,6 +108,7 @@ public class HSSProperties {
 			AUTO_PPR_ENABLED = Boolean.valueOf(props.getProperty("AUTO_PPR_ENABLED")).booleanValue();
 			CX_EVENT_CHECK_INTERVAL = Integer.parseInt(props.getProperty("CX_EVENT_CHECK_INTERVAL"));
 			SH_NOTIF_CHECK_INTERVAL = Integer.parseInt(props.getProperty("SH_NOTIF_CHECK_INTERVAL"));
+			Expiry_time_lim = Integer.parseInt(props.getProperty("expiry_time_lim"));
 		}
 		catch (FileNotFoundException e) {
 			LOGGER.error("FileNotFoundException !", e);

@@ -33,12 +33,12 @@
   * fact and have to agree to check out carefully before installing,
   * using and extending the Open Source IMS Core System, if related
   * patents and licenses may become applicable to the intended usage
-  * context. 
+  * context.
   *
   * You should have received a copy of the GNU General Public License
   * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
-  * 
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  *
   */
 
 package de.fhg.fokus.hss.db.model;
@@ -46,13 +46,13 @@ package de.fhg.fokus.hss.db.model;
 import java.io.Serializable;
 
 /**
- * @author adp dot fokus dot fraunhofer dot de 
+ * @author adp dot fokus dot fraunhofer dot de
  * Adrian Popescu / FOKUS Fraunhofer Institute
  */
 
 public class ShSubscription implements Serializable {
 	private static final long serialVersionUID=1L;
-	
+
 	private int id;
 	private int id_application_server;
 	private Integer id_impu;
@@ -60,7 +60,8 @@ public class ShSubscription implements Serializable {
 	private String service_indication;
 	private String dsai_tag;
 	private String server_name;
-	private int expires;
+	//	 expires parameter changed from int to long type
+	private long expires;
 
 	public ShSubscription(){}
 
@@ -72,11 +73,11 @@ public class ShSubscription implements Serializable {
 		this.data_ref = data_ref;
 	}
 
-	public int getExpires() {
+	public long getExpires() {
 		return expires;
 	}
 
-	public void setExpires(int expires) {
+	public void setExpires(long expires) {
 		this.expires = expires;
 	}
 
@@ -131,6 +132,6 @@ public class ShSubscription implements Serializable {
 		this.server_name = server_name;
 	}
 
-	
-	
+
+
 }

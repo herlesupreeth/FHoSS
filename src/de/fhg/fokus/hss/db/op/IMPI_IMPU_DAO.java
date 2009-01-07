@@ -1,6 +1,8 @@
 /*
   *  Copyright (C) 2004-2007 FhG Fokus
   *
+  *  Parts by Instrumentacion y Componentes S.A. (Inycom). Contact at: ims at inycom dot es
+  *
   * This file is part of Open IMS Core - an open source IMS CSCFs & HSS
   * implementation
   *
@@ -33,12 +35,12 @@
   * fact and have to agree to check out carefully before installing,
   * using and extending the Open Source IMS Core System, if related
   * patents and licenses may become applicable to the intended usage
-  * context. 
+  * context.
   *
   * You should have received a copy of the GNU General Public License
   * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
-  * 
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  *
   */
 
 package de.fhg.fokus.hss.db.op;
@@ -57,13 +59,18 @@ import de.fhg.fokus.hss.db.model.IMPI_IMPU;
 import de.fhg.fokus.hss.db.model.IMPU;
 
 /**
- * @author adp dot fokus dot fraunhofer dot de 
+ * This class has been modified by Instrumentacion y Componentes S.A (ims at inycom dot es)
+ * to support the DSAI Information Element according to Release 7.
+ *
+ * @author adp dot fokus dot fraunhofer dot de
  * Adrian Popescu / FOKUS Fraunhofer Institute
+ * @author Instrumentacion y Componentes S.A (Inycom)
+ * for modifications (ims at inycom dot es)
  */
 
 public class IMPI_IMPU_DAO {
 	private static Logger logger = Logger.getLogger(IMPI_IMPU_DAO.class);
-	
+
 	public static void insert(Session session, int id_impi, int id_impu, int user_state){
 		IMPI_IMPU impi_impu = new IMPI_IMPU();
 		impi_impu.setId_impi(id_impi);
@@ -71,7 +78,7 @@ public class IMPI_IMPU_DAO {
 		impi_impu.setUser_state(user_state);
 		session.save(impi_impu);
 	}
-	
+
 	public static IMPI_IMPU get_by_IMPI_and_IMPU_ID(Session session, int id_impi, int id_impu){
 		Query query;
 		query = session.createSQLQuery("select * from impi_impu where id_impi=? and id_impu=?")
@@ -90,18 +97,18 @@ public class IMPI_IMPU_DAO {
 				.addEntity("impu", IMPU.class);
 		query.setInteger(0, id_impi);
 		return query.list();
-		
+
 /*		Iterator it = queryResult.iterator();
-		List<IMPU> result = new LinkedList<IMPU>(); 
+		List<IMPU> result = new LinkedList<IMPU>();
 		while (it.hasNext()){
 			IMPI_IMPU row = (IMPI_IMPU)it.next();
 			result.add(row.getImpu());
 		}
-		
+
 		return result;
-*/		
+*/
 	}
-	
+
 	public static List get_all_registered_IMPU_by_IMPI_ID(Session session, int id_impi){
 		Query query;
 
@@ -113,22 +120,22 @@ public class IMPI_IMPU_DAO {
 		return query.list();
 
 	}
-	
+
 	public static int get_Registered_IMPUs_count_for_IMSU_ID(Session session, int id_imsu){
 		Query query;
 
 		query = session.createSQLQuery("select count(*) from impi_impu" +
 				"	inner join impi on impi.id=impi_impu.id_impi" +
 				" where impi.id_imsu=? and (impi_impu.user_state=1 or impi_impu.user_state=2)");
-		
+
 		query.setInteger(0, id_imsu);
 		BigInteger result = (BigInteger) query.uniqueResult();
 		if (result == null)
 			return 0;
 		return result.intValue();
-	}	
-	
-	
+	}
+
+
 /*	public static List getJoinByIMPI(Session session, int id_impi){
 		Query query;
 		query = session.createQuery(
@@ -145,16 +152,16 @@ public class IMPI_IMPU_DAO {
 
 	public static List get_join_by_IMPU_ID(Session session, int id_impu){
 		Query query;
-		
+
 		query = session.createSQLQuery(
-					"select * from impi_impu " + 
+					"select * from impi_impu " +
 					"	inner join impi on impi_impu.id_impi = impi.id  where impi_impu.id_impu=? ")
 						.addEntity(IMPI_IMPU.class)
 						.addEntity(IMPI.class);
 		query.setInteger(0, id_impu);
 		return query.list();
-	} 
-	
+	}
+
 	public static int delete_by_IMPI_ID(Session session, int id_impi){
 		Query query;
 		query = session.createSQLQuery("delete from impi_impu where id_impi=?");
@@ -169,7 +176,7 @@ public class IMPI_IMPU_DAO {
 		query.setInteger(1, id_impu);
 		return query.executeUpdate();
 	}
-	
+
 
 	public static int delete_by_IMPU_ID(Session session, int id_impu){
 		Query query;
@@ -177,7 +184,7 @@ public class IMPI_IMPU_DAO {
 		query.setInteger(0, id_impu);
 		return query.executeUpdate();
 	}
-	
+
 	public static List get_all_IMPU_of_IMSU_with_User_State(Session session, int id_imsu, short user_state){
 		Query query;
 		query = session.createSQLQuery(
@@ -189,7 +196,7 @@ public class IMPI_IMPU_DAO {
 		query.setInteger(0, id_imsu);
 		query.setShort(1, user_state);
 		return query.list();
-	}	
+	}
 
 	public static List get_all_IMPI_by_IMPU_ID(Session session, int id_impu){
 		Query query;
@@ -200,21 +207,21 @@ public class IMPI_IMPU_DAO {
 					.addEntity(IMPI.class);
 		query.setInteger(0, id_impu);
 		return query.list();
-		
+
 		/*
 		if (resultList == null || resultList.size() == 0){
 			return null;
 		}
-		
+
 		List<IMPI> impiList = new ArrayList<IMPI>();
 		Iterator it = resultList.iterator();
 		while (it.hasNext()){
 			IMPI impi = (IMPI) it.next();
 			impiList.add(impi);
 		}
-		
+
 		return impiList;*/
-	}	
+	}
 
 /*	public static List<IMPU> get_all_IMPU_by_IMPI(Session session, int id_impi){
 		Query query;
@@ -236,10 +243,10 @@ public class IMPI_IMPU_DAO {
 			IMPU impu = (IMPU) resultRow[2];
 			impuList.add(impu);
 		}
-		
+
 		return impuList;
 	}*/
-	
+
 	public static List<IMPU> get_all_Default_IMPU_of_Set_by_IMPI(Session session, int id_impi){
 		Query query;
 		query = session.createSQLQuery(
@@ -250,7 +257,7 @@ public class IMPI_IMPU_DAO {
 					.addEntity(IMPU.class);
 		query.setInteger(0, id_impi);
 		List resultList = query.list();
-		
+
 		if (resultList == null || resultList.size() == 0){
 			return null;
 		}
@@ -259,9 +266,9 @@ public class IMPI_IMPU_DAO {
 		Iterator it = resultList.iterator();
 		int previousSet = -1;
 		int currentSet = -1;
-		
+
 		while (it.hasNext()){
-			
+
 			IMPU impu = (IMPU) it.next();
 			currentSet = impu.getId_implicit_set();
 			if (currentSet != previousSet){
@@ -269,10 +276,10 @@ public class IMPI_IMPU_DAO {
 				previousSet = currentSet;
 			}
 		}
-		
+
 		return impuList;
-	} 
-	
+	}
+
 /*	public static List get_all_Default_IMPU(Session session, int id_impi){
 		Query query;
 		query = session.createSQLQuery("select * from impi_impu inner join impi on impi.id=impi_impu.id_impi" +
@@ -295,6 +302,29 @@ public class IMPI_IMPU_DAO {
 		BigInteger result = (BigInteger)query.uniqueResult();
 		return result.intValue();
 	}
-	
-	
+
+
+	/**
+	 * This method returns all registered IMPI associated to the IMPU given
+	 * <p>
+	 * Method developed by Instrumentacion y Componentes S.A (Inycom) (ims at inycom dot es)
+	 * to support the DSAI Information Element
+	 *
+	 * @param session	Hibernate session
+	 * @param id_impu	IMPU identifier
+	 * @return List of IMPI
+	 */
+	public static IMPI get_registered_IMPI_by_IMPU_ID(Session session, int id_impu){
+		Query query;
+
+		query = session.createSQLQuery("select impi.* from impi impi, impi_impu impi_impu"+
+				" where impi_impu.id_impu=? and impi.id=impi_impu.id_impi"+
+				" and (impi_impu.user_state=1 or impi_impu.user_state=2)")
+				.addEntity("impi", IMPI.class);
+		query.setInteger(0, id_impu);
+		return (IMPI) query.uniqueResult();
+
+	}
+
+
 }

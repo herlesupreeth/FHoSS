@@ -63,7 +63,6 @@ import de.fhg.fokus.hss.db.model.IMPI;
 import de.fhg.fokus.hss.db.model.IMPI_IMPU;
 import de.fhg.fokus.hss.db.model.IMPU;
 import de.fhg.fokus.hss.db.model.IMSU;
-import de.fhg.fokus.hss.db.model.SP;
 import de.fhg.fokus.hss.db.model.SPT;
 import de.fhg.fokus.hss.db.model.SP_IFC;
 import de.fhg.fokus.hss.db.model.TP;
@@ -71,6 +70,7 @@ import de.fhg.fokus.hss.db.op.ApplicationServer_DAO;
 import de.fhg.fokus.hss.db.op.ChargingInfo_DAO;
 import de.fhg.fokus.hss.db.op.DB_Op;
 import de.fhg.fokus.hss.db.op.IMPI_DAO;
+import de.fhg.fokus.hss.db.op.IFC_DAO;
 import de.fhg.fokus.hss.db.op.IMPI_IMPU_DAO;
 import de.fhg.fokus.hss.db.op.IMPU_DAO;
 import de.fhg.fokus.hss.db.op.IMSU_DAO;
@@ -84,8 +84,13 @@ import de.fhg.fokus.hss.diam.UtilAVP;
 import de.fhg.fokus.hss.db.hibernate.*;
 
 /**
+ * This class has been modified by Instrumentacion y Componentes S.A (ims at inycom dot es)
+ * to support the DSAI concept according to Release 7
+ *
  * @author adp dot fokus dot fraunhofer dot de 
  * Adrian Popescu / FOKUS Fraunhofer Institute
+ * @author Instrumentacion y Componentes S.A (Inycom)
+ * for modifications (ims at inycom dot es)
  */
 
 public class SAR {
@@ -144,19 +149,13 @@ public class SAR {
 			
 			// store the IMSU ID in id_imsu
 			int id_imsu=-1;
-			// this is an unsafe operation because it might happen that its not unregistered case and no IMSU
-			// sooooo ? 
-			
-			/*if (impu.getType()==CxConstants.Identity_Type_Public_User_Identity)
-			{*/
-				if (impi == null){
-					IMPI associatedIMPI = IMPI_DAO.get_an_IMPI_for_IMPU(session, impu.getId());
-					id_imsu = associatedIMPI.getId_imsu();
-				}
-				else{
-					id_imsu = impi.getId_imsu();
-				}
-			/*}*/
+			if (impi == null){
+				IMPI associatedIMPI = IMPI_DAO.get_an_IMPI_for_IMPU(session, impu.getId());
+				id_imsu = associatedIMPI.getId_imsu();
+			}
+			else{
+				id_imsu = impi.getId_imsu();
+			}
 			
 			IMPI_IMPU impi_impu;
 			// 2. check association
@@ -250,8 +249,6 @@ public class SAR {
 					}
 					impu.convert_wildcard_from_sql_to_ims();
 					// store the scscf_name & orgiin_host
-					/*if (impu.getType()==CxConstants.Identity_Type_Public_User_Identity) 
-					{*/
 					privateIdentitiesList = IMPI_IMPU_DAO.get_all_IMPI_by_IMPU_ID(session, impu.getId());
 					if (privateIdentitiesList == null || privateIdentitiesList.size() == 0){
 						throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_UNABLE_TO_COMPLY);
@@ -685,45 +682,74 @@ public class SAR {
 
 	public static String downloadUserData(String privateIdentity, int id_implicit_set){
 		Session session = HibernateUtil.getCurrentSession();
-		List<IMPU> [] impu_array;
-		SP[] sp_array;
+		List initial_impus_list = IMPU_DAO.get_all_from_set(session, id_implicit_set); //List of IMPUs that belong to the same implicit set
+		Iterator iter = initial_impus_list.iterator();
+		List<List> ifcs_list = new ArrayList<List>();    // List of list of iFCs associated to each IMPU
+		List<Integer> Sps = new ArrayList<Integer>(); // List of SP id
+		List<List<IMPU>> impus_list = new ArrayList<List<IMPU>>();   // "initial_impus_list" re-formatted into a matrix-like list
+		while (iter.hasNext()){
+			IMPU impu = (IMPU) iter.next();
+			List<IMPU> aux = new ArrayList<IMPU>(); // Insert every IMPU in a List format
+			aux.add(impu);				//
+			impus_list.add(aux);	    // Insert the list "aux" into the "impus_list" matrix
+			List aux2= IFC_DAO.get_all_IFCs_by_IMPU_ID_and_DSAI_Value_Active(session, impu.getId());
+			ifcs_list.add(aux2);
+			Sps.add(impu.getId_sp());  // We only store the SP id, instead of the SP object
+		}
 		
-		int sp_cnt = 0;
-		
-		List queryResult = IMPU_DAO.get_all_sp_for_set(session, id_implicit_set);
+/*
+We will handle 3 Lists:
+impus_list,  Where we have the impus in a matrix (each position of the list is another list of IMPUs; Initially there is only one element in each position)
+ifcs_list, in each position of this list we have the active ifcs associated to the IMPU/s which are exactly in the same position of the impus_list
+Sps, in each position of this list we have the SP_id of the IMPU/s which are exactly in the same position of the impus_list
 
-		Iterator it = queryResult.iterator();
-		int last_id_sp = -1; 
-		while (it.hasNext()){
-			SP sp = null;
-			Object [] row = (Object[]) it.next();
-			sp = (SP) row[0];
-			int current_id_sp = sp.getId();
-			if (current_id_sp != last_id_sp){
-				sp_cnt++;
-				last_id_sp = current_id_sp;
-			}
-		}
-		
-		sp_array = new SP[sp_cnt];
-		impu_array = new ArrayList[sp_cnt]; 
-		it = queryResult.iterator();
-		last_id_sp = -1;
-		int idx = -1;
-		while (it.hasNext()){
-			Object [] row = (Object []) it.next();
-			SP sp = (SP)row[0];
-			IMPU impu = (IMPU) row[1];
+The main idea is looking inside the different positions of the ifcs_list and check if there are two positions of the list which have exactly the same iFCs;
+If this is the case (and if they have also the same SP_id) we can group the IMPUs which are in these two positions.
+
+If we have grouped two IMPUs in the position of the first IMPU which is being compared, we will delete from the three lists the position of the second IMPU
+(since we needn't comparing that position anylonger).
+Otherwise, we will jump to the next position on the lists to go on comparing.
+*/
 			
-			int current_id_sp = sp.getId();
-			if (current_id_sp != last_id_sp){
-				last_id_sp = current_id_sp;
-				idx++;
-				sp_array[idx] = sp;
-				impu_array[idx] = new ArrayList();
+		List<IMPU> export;
+		int j;
+		for (int i=0; i < (ifcs_list.size()); i++){
+			List Ifc_copy = (List) ifcs_list.get(i);
+			j=i+1;
+			while (j < ifcs_list.size())
+			{
+				boolean exit= false;
+				List Ifc_copy2 = (List) ifcs_list.get(j);
+				if ((Ifc_copy2.size()!= Ifc_copy.size() || (Sps.get(i)!=Sps.get(j))) ){
+					//Check if the ifc Lists have not the same number of elements or if the SPs they belong to are different
+					//In that case they cannot be associated
+					exit=true;
 			}
-			impu_array[idx].add(impu);
+				if (exit==false) {
+					for (int k=0; k<Ifc_copy2.size(); k++){
+						if (!(Ifc_copy.contains(Ifc_copy2.get(k)))){
+							// Check if all ifcs are the same in 2 different positions of the main list. If not, they cannot be associated
+								exit= true;
+								break;
 		}
+					}
+				}
+				if (exit==false){
+					export =  impus_list.get(i);
+					export.add((impus_list.get(j)).get(0));
+					impus_list.remove(j);
+					ifcs_list.remove(j);
+					Sps.remove(j);
+					impus_list.remove(i);	// Remove the position of the list where we are going to insert the new list of IMPUs
+					impus_list.add(i, export);	// Add the new list of IMPUs
+				}
+				else{
+					j++; //if we don't change anything we jump to the next position.
+				}
+			}
+		}
+
+		//
 
 		// begin to write the data in the buffer
 		StringBuffer sb = new StringBuffer();
@@ -731,18 +757,17 @@ public class SAR {
 		sb.append(ims_subscription_s);
 		
 		// PrivateID
-		/*if (privateIdentity!=null)
-		{*/
 			sb.append(private_id_s);
 			sb.append(privateIdentity);
 			sb.append(private_id_e);
-		/*}*/
+
 		//SP
-		for (int i = 0; i < sp_array.length; i++){
+
+		for (int i = 0; i < impus_list.size(); i++){
 			sb.append(service_profile_s);
 			// PublicIdentity 					=> 1 to n
-			
-			it = impu_array[i].iterator();
+			List impu_array = (List) impus_list.get(i);
+			Iterator it = impu_array.iterator();
 			while (it.hasNext()){
 				IMPU impu = (IMPU)it.next();
 				sb.append(public_id_s);
@@ -795,18 +820,22 @@ public class SAR {
 			
 			// InitialFilterCriteria 			=> 0 to n
 			
-			List list_ifc = SP_IFC_DAO.get_all_SP_IFC_by_SP_ID(session, sp_array[i].getId());
+			//	List list_ifc = SP_IFC_DAO.get_all_SP_IFC_by_SP_ID(session, sp_array[i].getId());
+			List list_ifc = (List) ifcs_list.get(i);
 			if (list_ifc != null && list_ifc.size() > 0){
 				Iterator it_ifc;
 				it_ifc = list_ifc.iterator();
-				Object[] crt_row;
+				//Object[] crt_row;
 				
 				while (it_ifc.hasNext()){
 					sb.append(ifc_s);
-					crt_row = (Object[]) it_ifc.next();
+				/*	crt_row = (Object[]) it_ifc.next();
 					SP_IFC crt_sp_ifc= (SP_IFC) crt_row[0];
-					IFC crt_ifc = (IFC) crt_row[1];
+					IFC crt_ifc = (IFC) crt_row[1]; */
 					
+					IFC crt_ifc = (IFC) it_ifc.next();
+					SP_IFC crt_sp_ifc= SP_IFC_DAO.get_by_SP_and_IFC_ID(session, Sps.get(i), crt_ifc.getId());
+
 					if (crt_ifc.getId_application_server() == -1 || crt_sp_ifc.getPriority() == -1){
 						// error, application server and priority are mandatory!
 						logger.error("Application Server ID or SP_IFC priority value is not defined!\n Aborting...");
@@ -978,7 +1007,9 @@ public class SAR {
 			
 			
 			// Extension						=> 0 to 1
-			List all_IDs = SP_Shared_IFC_Set_DAO.get_all_shared_IFC_set_IDs_by_SP_ID(session, sp_array[i].getId());
+			//List all_IDs = SP_Shared_IFC_Set_DAO.get_all_shared_IFC_set_IDs_by_SP_ID(session, sp_array[i].getId());
+			int sp_id= Sps.get(i);
+			List all_IDs = SP_Shared_IFC_Set_DAO.get_all_shared_IFC_set_IDs_by_SP_ID(session, sp_id);
 			if (all_IDs != null && all_IDs.size() > 0){
 				sb.append(extension_s);
 				Iterator all_IDs_it = all_IDs.iterator();

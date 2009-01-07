@@ -9,64 +9,68 @@
 	<!-- ================================================ Form Bean Definitions -->
 
 	<form-beans>
-		<form-bean name="DeleteForm" type="de.fhg.fokus.hss.web.form.DeleteForm"/>		
-		
+		<form-bean name="DeleteForm" type="de.fhg.fokus.hss.web.form.DeleteForm"/>
+
 		<!-- IMPU -->
 		<form-bean name="IMPU_Form" type="de.fhg.fokus.hss.web.form.IMPU_Form"/>
 		<form-bean name="IMPU_SearchForm" type="de.fhg.fokus.hss.web.form.IMPU_SearchForm"/>
 
-		<!-- IMPI -->		
+		<!-- IMPI -->
 		<form-bean name="IMPI_Form" type="de.fhg.fokus.hss.web.form.IMPI_Form"/>
 		<form-bean name="IMPI_SearchForm" type="de.fhg.fokus.hss.web.form.IMPI_SearchForm"/>
 
-		<!-- IMSU -->		
+		<!-- IMSU -->
 		<form-bean name="IMSU_Form" type="de.fhg.fokus.hss.web.form.IMSU_Form"/>
 		<form-bean name="IMSU_SearchForm" type="de.fhg.fokus.hss.web.form.IMSU_SearchForm"/>
 
-		<!-- Service-Profile -->		
+		<!-- Service-Profile -->
 		<form-bean name="SP_Form" type="de.fhg.fokus.hss.web.form.SP_Form"/>
 		<form-bean name="SP_SearchForm" type="de.fhg.fokus.hss.web.form.SP_SearchForm"/>
 
-		<!-- Applicatrion-Server -->		
+		<!-- Applicatrion-Server -->
 		<form-bean name="AS_Form" type="de.fhg.fokus.hss.web.form.AS_Form"/>
 		<form-bean name="AS_SearchForm" type="de.fhg.fokus.hss.web.form.AS_SearchForm"/>
 
-		<!-- Trigger-Point -->		
+		<!-- Trigger-Point -->
 		<form-bean name="TP_Form" type="de.fhg.fokus.hss.web.form.TP_Form"/>
 		<form-bean name="TP_SearchForm" type="de.fhg.fokus.hss.web.form.TP_SearchForm"/>
 
-		<!-- Initial-Filter Criteria (iFC) -->		
+		<!-- Initial-Filter Criteria (iFC) -->
 		<form-bean name="IFC_Form" type="de.fhg.fokus.hss.web.form.IFC_Form"/>
 		<form-bean name="IFC_SearchForm" type="de.fhg.fokus.hss.web.form.IFC_SearchForm"/>
 
-		<!-- Shared-iFC -->		
+		<!-- Shared-iFC -->
 		<form-bean name="S_IFC_Form" type="de.fhg.fokus.hss.web.form.S_IFC_Form"/>
 		<form-bean name="S_IFC_SearchForm" type="de.fhg.fokus.hss.web.form.S_IFC_SearchForm"/>
 
-		<!-- Charging-Info Set -->		
+		<!-- DSAI -->
+		<form-bean name="DSAI_Form" type="de.fhg.fokus.hss.web.form.DSAI_Form"/>
+		<form-bean name="DSAI_SearchForm" type="de.fhg.fokus.hss.web.form.DSAI_SearchForm"/>
+
+		<!-- Charging-Info Set -->
 		<form-bean name="CS_Form" type="de.fhg.fokus.hss.web.form.CS_Form"/>
 		<form-bean name="CS_SearchForm" type="de.fhg.fokus.hss.web.form.CS_SearchForm"/>
 
-		<!-- Visited Network -->		
+		<!-- Visited Network -->
 		<form-bean name="VN_Form" type="de.fhg.fokus.hss.web.form.VN_Form"/>
 		<form-bean name="VN_SearchForm" type="de.fhg.fokus.hss.web.form.VN_SearchForm"/>
 
-		<!-- Capabilities -->		
+		<!-- Capabilities -->
 		<form-bean name="Cap_Form" type="de.fhg.fokus.hss.web.form.Cap_Form"/>
 		<form-bean name="Cap_SearchForm" type="de.fhg.fokus.hss.web.form.Cap_SearchForm"/>
 
-		<!-- Capabilities Set -->		
+		<!-- Capabilities Set -->
 		<form-bean name="CapS_Form" type="de.fhg.fokus.hss.web.form.CapS_Form"/>
 		<form-bean name="CapS_SearchForm" type="de.fhg.fokus.hss.web.form.CapS_SearchForm"/>
 
-		<!-- Preferred S-CSCF Set -->		
+		<!-- Preferred S-CSCF Set -->
 		<form-bean name="PrefS_Form" type="de.fhg.fokus.hss.web.form.PrefS_Form"/>
 		<form-bean name="PrefS_SearchForm" type="de.fhg.fokus.hss.web.form.PrefS_SearchForm"/>
 
-		<!-- SPT -->		
+		<!-- SPT -->
 		<form-bean name="SPT_Form" type="de.fhg.fokus.hss.web.form.SPT_Form"/>
 
-		<!-- GBA & USS -->		
+		<!-- GBA & USS -->
 		<form-bean name="GBA_USS_Form" type="de.fhg.fokus.hss.web.form.GBA_USS_Form"/>
 		<form-bean name="USS_Form" type="de.fhg.fokus.hss.web.form.USS_Form"/>
 	</form-beans>
@@ -76,7 +80,7 @@
 
 	<global-exceptions>
 		<exception handler="de.fhg.fokus.hss.HssExceptionHandler"
-			key="reason.error.all" type="java.lang.Exception" path="/error.jsp" />
+			key="reason.error.all" type="java.lang.Exception" path="/pages/errorPage.jsp" />
 	</global-exceptions>
 
 
@@ -94,7 +98,7 @@
 			<forward name="success" path="/pages/user/impu.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/IMPU_Submit" name="IMPU_Form" type="de.fhg.fokus.hss.web.action.IMPU_Submit" input="/IMPU_Load.do" validate="true">
 			<forward name="success" path="/pages/user/impu.jsp" />
 			<forward name="failure" path="/pages/user/impu.jsp"/>
@@ -105,29 +109,29 @@
 			<forward name="success" path="/pages/user/impu_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-				
+
 		<action path="/IMPU_Delete" name="DeleteForm" type="de.fhg.fokus.hss.web.action.IMPU_Delete" validate="false">
 			<forward name="success" path="/IMPU_Search.do" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
 
-		<!-- IMPI -->		
+		<!-- IMPI -->
 		<action path="/IMPI_Load" name="IMPI_Form" type="de.fhg.fokus.hss.web.action.IMPI_Load" validate="false">
 			<forward name="success" path="/pages/user/impi.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/IMPI_Submit" name="IMPI_Form" type="de.fhg.fokus.hss.web.action.IMPI_Submit" input="/IMPI_Load.do" validate="true">
 			<forward name="success" path="/pages/user/impi.jsp" />
 			<forward name="failure" path="/pages/user/impi.jsp"/>
-			<forward name="delete" path="/pages/user/impi_search.jsp" />						
+			<forward name="delete" path="/pages/user/impi_search.jsp" />
 		</action>
 
 		<action path="/IMPI_Search" name="IMPI_SearchForm" type="de.fhg.fokus.hss.web.action.IMPI_Search" validate="false">
 			<forward name="success" path="/pages/user/impi_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-				
+
 		<action path="/IMPI_Delete" name="DeleteForm" type="de.fhg.fokus.hss.web.action.IMPI_Delete" validate="false">
 			<forward name="success" path="/IMPI_Search.do" />
 			<forward name="success_impi_impu" path="/IMPI_Load.do" />
@@ -139,24 +143,24 @@
 			<forward name="success" path="/pages/user/imsu.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/IMSU_Submit" name="IMSU_Form" type="de.fhg.fokus.hss.web.action.IMSU_Submit" input="/IMSU_Load.do" validate="true">
 			<forward name="success" path="/pages/user/imsu.jsp" />
 			<forward name="failure" path="/pages/user/imsu.jsp"/>
-			<forward name="delete" path="/pages/user/imsu_search.jsp" />			
+			<forward name="delete" path="/pages/user/imsu_search.jsp" />
 		</action>
 
 		<action path="/IMSU_Search" name="IMSU_SearchForm" type="de.fhg.fokus.hss.web.action.IMSU_Search" validate="false">
 			<forward name="success" path="/pages/user/imsu_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-				
+
 		<!-- Service-Profile -->
 		<action path="/SP_Load" name="SP_Form" type="de.fhg.fokus.hss.web.action.SP_Load" validate="false">
 			<forward name="success" path="/pages/services/sp.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/SP_Submit" name="SP_Form" type="de.fhg.fokus.hss.web.action.SP_Submit" input="/SP_Load.do" validate="true">
 			<forward name="success" path="/pages/services/sp.jsp" />
 			<forward name="delete" path="/pages/services/sp_search.jsp" />
@@ -167,13 +171,13 @@
 			<forward name="success" path="/pages/services/sp_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-				
+
 		<!-- Application Server -->
 		<action path="/AS_Load" name="AS_Form" type="de.fhg.fokus.hss.web.action.AS_Load" validate="false">
 			<forward name="success" path="/pages/services/as.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/AS_Submit" name="AS_Form" type="de.fhg.fokus.hss.web.action.AS_Submit" input="/AS_Load.do" validate="true">
 			<forward name="success" path="/pages/services/as.jsp" />
 			<forward name="delete" path="/pages/services/as_search.jsp" />
@@ -184,13 +188,13 @@
 			<forward name="success" path="/pages/services/as_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-				
+
 		<!-- Trigger Point -->
 		<action path="/TP_Load" name="TP_Form" type="de.fhg.fokus.hss.web.action.TP_Load" validate="false">
 			<forward name="success" path="/pages/services/tp.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/TP_Submit" name="TP_Form" type="de.fhg.fokus.hss.web.action.TP_Submit" input="/TP_Load.do" validate="true">
 			<forward name="success" path="/pages/services/tp.jsp" />
 			<forward name="delete" path="/pages/services/tp_search.jsp" />
@@ -201,16 +205,16 @@
 			<forward name="success" path="/pages/services/tp_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-				
+
 		<!-- iFC -->
 		<action path="/IFC_Load" name="IFC_Form" type="de.fhg.fokus.hss.web.action.IFC_Load" validate="false">
 			<forward name="success" path="/pages/services/ifc.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/IFC_Submit" name="IFC_Form" type="de.fhg.fokus.hss.web.action.IFC_Submit" input="/IFC_Load.do" validate="true">
 			<forward name="success" path="/pages/services/ifc.jsp" />
-			<forward name="delete" path="/pages/services/ifc_search.jsp" />			
+			<forward name="delete" path="/pages/services/ifc_search.jsp" />
 			<forward name="failure" path="/pages/services/ifc.jsp"/>
 		</action>
 
@@ -218,16 +222,16 @@
 			<forward name="success" path="/pages/services/ifc_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-				
+
 		<!-- Shared iFC -->
 		<action path="/S_IFC_Load" name="S_IFC_Form" type="de.fhg.fokus.hss.web.action.S_IFC_Load" validate="false">
 			<forward name="success" path="/pages/services/s_ifc.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/S_IFC_Submit" name="S_IFC_Form" type="de.fhg.fokus.hss.web.action.S_IFC_Submit" input="/S_IFC_Load.do" validate="true">
 			<forward name="success" path="/pages/services/s_ifc.jsp" />
-			<forward name="delete" path="/pages/services/s_ifc_search.jsp" />						
+			<forward name="delete" path="/pages/services/s_ifc_search.jsp" />
 			<forward name="failure" path="/pages/services/s_ifc.jsp"/>
 		</action>
 
@@ -235,13 +239,30 @@
 			<forward name="success" path="/pages/services/s_ifc_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-				
+
+			<!-- DSAI -->
+		<action path="/DSAI_Load" name="DSAI_Form" type="de.fhg.fokus.hss.web.action.DSAI_Load" validate="false">
+			<forward name="success" path="/pages/services/dsai.jsp" />
+			<forward name="failure" path="/pages/errorPage.jsp"/>
+		</action>
+
+		<action path="/DSAI_Submit" name="DSAI_Form" type="de.fhg.fokus.hss.web.action.DSAI_Submit" input="/DSAI_Load.do" validate="true">
+			<forward name="success" path="/pages/services/dsai.jsp" />
+			<forward name="delete" path="/pages/services/dsai_search.jsp" />
+			<forward name="failure" path="/pages/services/dsai.jsp"/>
+		</action>
+
+		<action path="/DSAI_Search" name="DSAI_SearchForm" type="de.fhg.fokus.hss.web.action.DSAI_Search" validate="true" input="/pages/errorPage.jsp">
+			<forward name="success" path="/pages/services/dsai_search_result.jsp" />
+			<forward name="failure" path="/pages/errorPage.jsp"/>
+		</action>
+
 		<!-- Charging-Info Set -->
 		<action path="/CS_Load" name="CS_Form" type="de.fhg.fokus.hss.web.action.CS_Load" validate="false">
 			<forward name="success" path="/pages/network/charging_set.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/CS_Submit" name="CS_Form" type="de.fhg.fokus.hss.web.action.CS_Submit" input="/CS_Load.do" validate="true">
 			<forward name="success" path="/pages/network/charging_set.jsp" />
 			<forward name="delete" path="/pages/network/charging_set_search.jsp" />
@@ -252,16 +273,16 @@
 			<forward name="success" path="/pages/network/charging_set_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-				
+
 		<!-- Visited Network -->
 		<action path="/VN_Load" name="VN_Form" type="de.fhg.fokus.hss.web.action.VN_Load" validate="false">
 			<forward name="success" path="/pages/network/visited_network.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/VN_Submit" name="VN_Form" type="de.fhg.fokus.hss.web.action.VN_Submit" input="/VN_Load.do" validate="true">
 			<forward name="success" path="/pages/network/visited_network.jsp" />
-			<forward name="delete" path="/pages/network/visited_network_search.jsp" />									
+			<forward name="delete" path="/pages/network/visited_network_search.jsp" />
 			<forward name="failure" path="/pages/network/visited_network.jsp"/>
 		</action>
 
@@ -275,16 +296,16 @@
 			<forward name="success" path="/pages/network/capability.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
-		<action path="/Cap_Submit" name="Cap_Form" type="de.fhg.fokus.hss.web.action.Cap_Submit" 
+
+		<action path="/Cap_Submit" name="Cap_Form" type="de.fhg.fokus.hss.web.action.Cap_Submit"
 			input="/Cap_Load.do" validate="true">
-			
+
 			<forward name="success" path="/pages/network/capability.jsp" />
-			<forward name="delete" path="/pages/network/capability_search.jsp" />									
+			<forward name="delete" path="/pages/network/capability_search.jsp" />
 			<forward name="failure" path="/pages/network/capability.jsp"/>
 		</action>
 
-		<action path="/Cap_Search" name="Cap_SearchForm" type="de.fhg.fokus.hss.web.action.Cap_Search" 
+		<action path="/Cap_Search" name="Cap_SearchForm" type="de.fhg.fokus.hss.web.action.Cap_Search"
 			validate="false">
 			<forward name="success" path="/pages/network/capability_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
@@ -295,12 +316,12 @@
 			<forward name="success" path="/pages/network/capability_set.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
-		<action path="/CapS_Submit" name="CapS_Form" type="de.fhg.fokus.hss.web.action.CapS_Submit" 
+
+		<action path="/CapS_Submit" name="CapS_Form" type="de.fhg.fokus.hss.web.action.CapS_Submit"
 			input="/CapS_Load.do" validate="true">
-			
+
 			<forward name="success" path="/pages/network/capability_set.jsp" />
-			<forward name="delete" path="/pages/network/capability_set_search.jsp" />									
+			<forward name="delete" path="/pages/network/capability_set_search.jsp" />
 			<forward name="failure" path="/pages/network/capability_set.jsp"/>
 		</action>
 
@@ -314,10 +335,10 @@
 			<forward name="success" path="/pages/network/preferred_scscf_set.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/PrefS_Submit" name="PrefS_Form" type="de.fhg.fokus.hss.web.action.PrefS_Submit" input="/PrefS_Load.do" validate="true">
 			<forward name="success" path="/pages/network/preferred_scscf_set.jsp" />
-			<forward name="delete" path="/pages/network/preferred_scscf_set_search.jsp" />									
+			<forward name="delete" path="/pages/network/preferred_scscf_set_search.jsp" />
 			<forward name="failure" path="/pages/network/preferred_scscf_set.jsp"/>
 		</action>
 
@@ -325,13 +346,13 @@
 			<forward name="success" path="/pages/network/preferred_scscf_set_search_result.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<!-- GBA & USS -->
 		<action path="/GBA_USS_Load" name="GBA_USS_Form" type="de.fhg.fokus.hss.web.action.GBA_USS_Load" validate="false">
 			<forward name="success" path="/pages/user/gba_uss.jsp" />
 			<forward name="failure" path="/pages/errorPage.jsp"/>
 		</action>
-		
+
 		<action path="/GBA_USS_Submit" name="GBA_USS_Form" type="de.fhg.fokus.hss.web.action.GBA_USS_Submit" input="/GBA_USS_Load.do" validate="true">
 			<forward name="success" path="/pages/user/gba_uss.jsp" />
 			<forward name="failure" path="/pages/user/gba_uss.jsp" />
@@ -368,13 +389,13 @@
 			value="/WEB-INF/validator-rules.xml,/WEB-INF/validation.xml" />
 	</plug-in>
 
-	<!-- 
+	<!--
 		<plug-in className="de.gedas.bp.util.HibernatePlugIn">
 		<set-property property="configFilePath"
 		value="hibernate.cfg.xml" />
 		<set-property property="storedInServletContext" value="true" />
 		</plug-in>
-		
+
 	-->
 </struts-config>
 

@@ -1,22 +1,22 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
     "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
-    
+
 <hibernate-mapping>
 <class name="de.fhg.fokus.hss.db.model.ShSubscription" table="sh_subscription">
-	
+
 	<id name="id">
 		<generator class="native"/>
 	</id>
 
 	<property name="id_application_server" type="int" not-null="true"/>
 	<property name="id_impu" type="int" not-null="true"/>
-	<property name="data_ref" type="int" not-null="true"/>		
-	
-	<property name="service_indication" type="string" not-null="false"/>		
-	<property name="dsai_tag" type="string" not-null="false"/>		
-	<property name="server_name" type="string" not-null="false"/>		
-	<property name="expires" type="int" not-null="false"/>		
-		
+	<property name="data_ref" type="int" not-null="true"/>
+
+	<property name="service_indication" type="string" not-null="false"/>
+	<property name="dsai_tag" type="string" not-null="false"/>
+	<property name="server_name" type="string" not-null="false"/>
+	<property name="expires" type="long" not-null="false"/>
+
 </class>
 </hibernate-mapping>

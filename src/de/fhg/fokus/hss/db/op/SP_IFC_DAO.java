@@ -33,12 +33,12 @@
   * fact and have to agree to check out carefully before installing,
   * using and extending the Open Source IMS Core System, if related
   * patents and licenses may become applicable to the intended usage
-  * context. 
+  * context.
   *
   * You should have received a copy of the GNU General Public License
   * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
-  * 
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  *
   */
 
 package de.fhg.fokus.hss.db.op;
@@ -57,12 +57,12 @@ import de.fhg.fokus.hss.db.model.SP_IFC;
 import de.fhg.fokus.hss.main.HSSProperties;
 
 /**
- * @author adp dot fokus dot fraunhofer dot de 
+ * @author adp dot fokus dot fraunhofer dot de
  * Adrian Popescu / FOKUS Fraunhofer Institute
  */
 public class SP_IFC_DAO {
 	private static Logger logger = Logger.getLogger(SP_IFC_DAO.class);
-	
+
 	public static void insert(Session session, SP_IFC sp_ifc){
 		if (HSSProperties.iFC_NOTIF_ENABLED){
 			IFC ifc = IFC_DAO.get_by_ID(session, sp_ifc.getId_ifc());
@@ -70,18 +70,14 @@ public class SP_IFC_DAO {
 		}
 		session.save(sp_ifc);
 	}
-	
-/*	public static void update(Session session, SP_IFC sp_ifc){
-		session.saveOrUpdate(sp_ifc);
-	}	
-*/	
+
 	public static SP_IFC get_by_SP_and_IFC_ID(Session session, int id_sp, int id_ifc){
 		Query query;
 		query = session.createSQLQuery("select * from sp_ifc where id_sp=? and id_ifc=?")
 			.addEntity(SP_IFC.class);
 		query.setInteger(0, id_sp);
 		query.setInteger(1, id_ifc);
-		
+
 		SP_IFC result = null;
 		try{
 			result = (SP_IFC) query.uniqueResult();
@@ -90,10 +86,10 @@ public class SP_IFC_DAO {
 			logger.error("Query did not returned an unique result! You have a duplicate in the database!");
 			e.printStackTrace();
 		}
-		
+
 		return result;
 	}
-	
+
 	public static List get_IFC_by_SP_ID(Session session, int id_sp){
 		Query query;
 		query = session.createSQLQuery(
@@ -123,10 +119,10 @@ public class SP_IFC_DAO {
 				"select * from sp_ifc " +
 				"		where sp_ifc.id_sp = ? and sp_ifc.priority = ?")
 				.addEntity(SP_IFC.class);
-		
+
 		query.setInteger(0, id_sp);
 		query.setInteger(1, priority);
-		
+
 		SP_IFC result = null;
 		try{
 			result = (SP_IFC) query.uniqueResult();
@@ -137,26 +133,26 @@ public class SP_IFC_DAO {
 		}
 		return result;
 	}
-	
-		
+
+
 	public static int get_Unreg_Serv_Count(Session session, int id_sp){
-		
+
 		Query query;
 		query = session.createSQLQuery(
 				"select count(*) from sp_ifc" +
 				"	inner join sp on sp.id=sp_ifc.id_sp" +
-				"	inner join ifc on ifc.id=sp_ifc.id_ifc" + 
+				"	inner join ifc on ifc.id=sp_ifc.id_ifc" +
 				"		where sp.id=? and (ifc.profile_part_ind=? or ifc.profile_part_ind=?)");
 		query.setInteger(0, id_sp);
 		query.setInteger(1, CxConstants.Profile_Part_Indicator_UnRegistered);
 		query.setInteger(2, CxConstants.Profile_Part_Indicator_Any);
-		
+
 		BigInteger result = (BigInteger)query.uniqueResult();
 		if (result == null)
 			return 0;
 		return result.intValue();
 	}
-	
+
 	public static List get_all_IFC_by_SP_ID(Session session, int id_sp){
 		Query query;
 		query = session.createSQLQuery(
@@ -166,7 +162,7 @@ public class SP_IFC_DAO {
 						.addEntity(IFC.class);
 		query.setInteger(0, id_sp);
 		return query.list();
-	}	
+	}
 
 	public static List get_all_SP_IFC_by_SP_ID(Session session, int id_sp){
 		Query query;
@@ -178,19 +174,19 @@ public class SP_IFC_DAO {
 						.addEntity(IFC.class);
 		query.setInteger(0, id_sp);
 		return query.list();
-	}	
-	
+	}
+
 	public static int delete_by_SP_and_IFC_ID(Session session, int id_sp, int id_ifc){
 		if (HSSProperties.iFC_NOTIF_ENABLED){
 			IFC ifc = IFC_DAO.get_by_ID(session, id_ifc);
 			ShNotification_DAO.insert_notif_for_iFC(session, ifc, id_sp);
 		}
-		
+
 		Query query;
 		query = session.createSQLQuery("delete from sp_ifc where id_sp=? and id_ifc=?");
 		query.setInteger(0, id_sp);
 		query.setInteger(1, id_ifc);
 		return query.executeUpdate();
-	}	
-	
+	}
+
 }

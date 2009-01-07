@@ -1,6 +1,8 @@
 /*
   *  Copyright (C) 2004-2007 FhG Fokus
   *
+  * Developed by Instrumentacion y Componentes S.A. (Inycom). Contact at: ims at inycom dot es
+  *
   * This file is part of Open IMS Core - an open source IMS CSCFs & HSS
   * implementation
   *
@@ -43,7 +45,7 @@
 
 package de.fhg.fokus.hss.web.action;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -57,79 +59,85 @@ import org.apache.struts.action.ActionMapping;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 
-import de.fhg.fokus.hss.db.model.SP;
-import de.fhg.fokus.hss.db.op.IFC_DAO;
-import de.fhg.fokus.hss.db.op.SP_DAO;
-import de.fhg.fokus.hss.db.op.SP_IFC_DAO;
-import de.fhg.fokus.hss.db.op.SP_Shared_IFC_Set_DAO;
-import de.fhg.fokus.hss.db.op.Shared_IFC_Set_DAO;
+import de.fhg.fokus.hss.db.model.DSAI;
+import de.fhg.fokus.hss.db.op.DSAI_DAO;
 import de.fhg.fokus.hss.db.hibernate.*;
-import de.fhg.fokus.hss.web.form.SP_Form;
+import de.fhg.fokus.hss.web.form.DSAI_SearchForm;
 import de.fhg.fokus.hss.web.util.WebConstants;
 
 /**
- * @author adp dot fokus dot fraunhofer dot de
- * Adrian Popescu / FOKUS Fraunhofer Institute
+ * @author Instrumentacion y Componentes S.A (Inycom).
+ * Contact at: ims at inycom dot es
+ *
  */
 
 
-public class SP_Load extends Action {
-	private static Logger logger = Logger.getLogger(SP_Load.class);
+public class DSAI_Search extends Action{
+	private static Logger logger = Logger.getLogger(DSAI_Search.class);
+
+	/**
+	 *
+	 * <p>
+	 * Method developed by Instrumentacion y Componentes S.A (Inycom) (ims at inycom dot es)
+	 * to...
+	 *
+	 * @param actionMapping
+	 * @param actionForm
+	 * @param request
+	 * @param response
+	 * @return forward
+	 */
 
 	public ActionForward execute(ActionMapping actionMapping, ActionForm actionForm,
 			HttpServletRequest request, HttpServletResponse reponse) {
 
-		SP_Form form = (SP_Form) actionForm;
-		int id = form.getId();
-		List attached_ifc_list;
-		List attached_shared_ifc_list;
-
-		List select_ifc = new ArrayList();
-		List select_shared_ifc = new ArrayList();
+		DSAI_SearchForm form = (DSAI_SearchForm) actionForm;
+		Object [] queryResult = null;
+		DSAI uniqueResult = null;
 		ActionForward forward = null;
+
+		int rowsPerPage = Integer.parseInt(form.getRowsPerPage());
+		int currentPage = Integer.parseInt(form.getCrtPage()) - 1;
+		int firstResult = currentPage * rowsPerPage;
 
 		boolean dbException = false;
 		try{
 			Session session = HibernateUtil.getCurrentSession();
 			HibernateUtil.beginTransaction();
 
-			// load
-			SP sp = SP_DAO.get_by_ID(session, id);
-			SP_Load.setForm(form, sp);
-
-			// set select_ifc & select_shared_ifc
-			select_ifc = IFC_DAO.get_all(session);
-			form.setSelect_ifc(select_ifc);
-
-			select_shared_ifc = Shared_IFC_Set_DAO.get_all_Sets(session);
-			form.setSelect_shared_ifc(select_shared_ifc);
-
-			attached_ifc_list = SP_IFC_DAO.get_all_IFC_by_SP_ID(session, id);
-			attached_shared_ifc_list = SP_Shared_IFC_Set_DAO.get_all_Shared_IFC_by_SP_ID(session, id);
-
-			if (attached_ifc_list != null){
-				request.setAttribute("attached_ifc_list", attached_ifc_list);
+			if (form.getId_dsai() != null && !form.getId_dsai().equals("")){
+				uniqueResult = DSAI_DAO.get_by_ID(session, Integer.parseInt(form.getId_dsai()));
+			}
+			else if (form.getDsai_tag() != null && !form.getDsai_tag().equals("")){
+				queryResult = DSAI_DAO.get_by_Wildcarded_Tag(session, form.getDsai_tag(), firstResult, rowsPerPage);
 			}
 			else{
-				request.setAttribute("attached_ifc_list", new ArrayList());
+				queryResult = DSAI_DAO.get_all(session, firstResult, rowsPerPage);
 			}
 
-			if (attached_shared_ifc_list != null){
-				request.setAttribute("attached_shared_ifc_list", attached_shared_ifc_list);
+			int maxPages = 1;
+			if (queryResult != null){
+				// more than one result
+				maxPages = ((((Integer)queryResult[0]).intValue() - 1) / rowsPerPage) + 1;
+				request.setAttribute("resultList", (List)queryResult[1]);
 			}
-			else{
-				request.setAttribute("attached_shared_ifc_list", new ArrayList());
+			else {
+				List list = new LinkedList();
+				if (uniqueResult != null){
+					list.add(uniqueResult);
+				}
+				request.setAttribute("resultList", list);
 			}
 
-			if (SP_Load.testForDelete(session, form.getId())){
-				request.setAttribute("deleteDeactivation", "false");
+			if (currentPage > maxPages){
+				currentPage = 0;
 			}
-			else{
-				request.setAttribute("deleteDeactivation", "true");
-			}
+
+			request.setAttribute("maxPages", String.valueOf(maxPages));
+			request.setAttribute("currentPage", String.valueOf(currentPage));
+			request.setAttribute("rowPerPage", String.valueOf(rowsPerPage));
 
 			forward = actionMapping.findForward(WebConstants.FORWARD_SUCCESS);
-			forward = new ActionForward(forward.getPath() + "?id=" + id);
 		}
 		catch(DatabaseException e){
 			logger.error("Database Exception occured!\nReason:" + e.getMessage());
@@ -153,32 +161,5 @@ public class SP_Load extends Action {
 		}
 
 		return forward;
-	}
-
-
-	public static boolean testForDelete(Session session, int id){
-		List result = SP_IFC_DAO.get_all_IFC_by_SP_ID(session, id);
-		if (result != null && result.size() > 0){
-			return false;
-		}
-		result = SP_Shared_IFC_Set_DAO.get_all_Shared_IFC_by_SP_ID(session, id);
-		if (result != null && result.size() > 0){
-			return false;
-		}
-
-		return true;
-	}
-
-	public static boolean setForm(SP_Form form, SP sp){
-		boolean exitCode = false;
-
-		if (sp != null){
-			exitCode = true;
-			form.setId(sp.getId());
-			form.setName(sp.getName());
-			form.setCn_service_auth(sp.getCn_service_auth());
-
-		}
-		return exitCode;
 	}
 }

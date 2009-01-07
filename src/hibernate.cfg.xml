@@ -22,6 +22,9 @@
 		<mapping resource="mappings/CapabilitiesSet.hbm.xml"/>
 		<mapping resource="mappings/Capability.hbm.xml"/>
 		<mapping resource="mappings/ChargingInfo.hbm.xml"/>
+		<mapping resource="mappings/DSAI_IMPU.hbm.xml"/>
+		<mapping resource="mappings/DSAI_IFC.hbm.xml"/>
+		<mapping resource="mappings/DSAI.hbm.xml"/>
 		<mapping resource="mappings/IFC.hbm.xml"/>
 		<mapping resource="mappings/IMPI_IMPU.hbm.xml"/>
 		<mapping resource="mappings/IMPI.hbm.xml"/>

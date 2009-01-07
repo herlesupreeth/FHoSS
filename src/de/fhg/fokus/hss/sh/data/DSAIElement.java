@@ -12,6 +12,10 @@ public class DSAIElement {
 	private String tag = null;
 	private int value = -1;
 	
+	public DSAIElement(){
+
+	}
+	
 	public String toString(){
 		StringBuffer sBuffer = new StringBuffer();
 		
