@@ -209,6 +209,7 @@ public class DiameterConstants
         public static final int IMS_SUPPORTED_APPLICATIONS = 631;
         public static final int IMS_ASSOCIATED_IDENTITIES = 632;
         public static final int IMS_ORIGINATING_REQUEST = 633;
+        public static final int IMS_UAR_FLAGS                  = 637;
         
         // Sh AVPs
         public static final int IMS_PUBLIC_IDENTITY_SH = 601;
@@ -269,6 +270,9 @@ public class DiameterConstants
     	
     	// Authentication-Session-State
     	public static final int ASS_No_State_Maintained = 1;
+    	
+    	// UAR Flags
+    	public static final int UAR_Flag_Emergency = 1;
     }
     
     public enum ResultCode{

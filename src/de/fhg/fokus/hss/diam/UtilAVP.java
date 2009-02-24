@@ -114,6 +114,15 @@ public class UtilAVP {
 		return 0;
 	}
 
+	public static int getUARFlags(DiameterMessage message){
+		AVP avp = message.findAVP(DiameterConstants.AVPCode.IMS_UAR_FLAGS, false, 
+				DiameterConstants.Vendor.V3GPP);		
+		if (avp != null){
+			return avp.getIntData();
+		}
+		return 0;
+	}
+	
 	public static String getVisitedNetwork(DiameterMessage message){
 		AVP avp = message.findAVP(DiameterConstants.AVPCode.IMS_VISITED_NETWORK_IDENTIFIER, true, 
 				DiameterConstants.Vendor.V3GPP);

@@ -121,8 +121,12 @@ public class UAR {
 				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_IDENTITIES_DONT_MATCH);
 			}
 			
-			// 3. check for IMPU if is barred
-			if (impu.getBarring() == 1){
+			// 3. check for IMPU if is barred or it is an Emergency Registration
+			boolean Em_Reg = (UtilAVP.getUARFlags(request) & DiameterConstants.AVPValue.UAR_Flag_Emergency)!=0;
+			if(Em_Reg)
+				logger.debug(": Emergency Registration from "+publicIdentity+"/"+privateIdentity);
+						
+			if ((!Em_Reg) && (impu.getBarring() == 1)){
 				List impuList = IMPU_DAO.get_others_from_set(session, impu.getId(), impu.getId_implicit_set());
 				if (impuList == null || impuList.size() == 0){
 					throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_AUTHORIZATION_REJECTED);
@@ -143,13 +147,16 @@ public class UAR {
 			
 			// 4. check the User Authorization Type
 			int authorizationType = UtilAVP.getUserAuthorizationType(request); 
+			IMPU_VisitedNetwork impu_visited_network;
 			switch (authorizationType){
-			
+				/*request for registration or without User-Authorization-Type AVP*/
 				case DiameterConstants.AVPValue.UAT_Registration:
-					IMPU_VisitedNetwork impu_visited_network = 
-						IMPU_VisitedNetwork_DAO.get_by_IMPU_and_VisitedNetwork_ID(session, impu.getId(), visited_network.getId());
-					if (impu_visited_network == null){
-						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
+					/* if Emergency Registration skip roaming agreements */
+					if(!Em_Reg){
+						impu_visited_network = IMPU_VisitedNetwork_DAO.get_by_IMPU_and_VisitedNetwork_ID(session, impu.getId(), visited_network.getId());
+						if (impu_visited_network == null){
+							throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
+						}
 					}
 					if (impu.getCan_register() == 0){
 						throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_AUTHORIZATION_REJECTED);
@@ -160,11 +167,14 @@ public class UAR {
 					break;
 					
 				case DiameterConstants.AVPValue.UAT_Registration_and_Capabilities:
-					impu_visited_network = 
-						IMPU_VisitedNetwork_DAO.get_by_IMPU_and_VisitedNetwork_ID(session, impu.getId(), visited_network.getId());
-					if (impu_visited_network == null){
-						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
+					/* if Emergency Registration skip roaming agreements */
+					if(!Em_Reg){
+						impu_visited_network = 	IMPU_VisitedNetwork_DAO.get_by_IMPU_and_VisitedNetwork_ID(session, impu.getId(), visited_network.getId());
+						if (impu_visited_network == null){
+							throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
+						}
 					}
+							
 					if (impu.getCan_register() == 0){
 						throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_AUTHORIZATION_REJECTED);
 					}
@@ -176,7 +186,13 @@ public class UAR {
 					
 					UtilAVP.addServerCapabilities(response, cap_set_mand_list, cap_set_opt_list, pre_SCSCF_name_list);
 					UtilAVP.addResultCode(response, DiameterConstants.ResultCode.DIAMETER_SUCCESS.getCode());
-					break;	
+					/* if Emergency Registration, skip further checks */
+					if(Em_Reg){
+						HibernateUtil.commitTransaction();
+						HibernateUtil.closeSession();
+						return response;	
+					}
+					break;
 			}
 
 			
