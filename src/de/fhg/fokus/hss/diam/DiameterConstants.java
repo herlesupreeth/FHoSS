@@ -1,7 +1,7 @@
 /*
  * $Id: Constants.java 119 2007-02-06 16:48:35 +0000 (Tue, 06 Feb 2007) adp $
  *
- * Copyright (C) 2004-2006 FhG Fokus
+ * Copyright (C) 2004-2009 FhG Fokus
  *
  * This file is part of Open IMS Core - an open source IMS CSCFs & HSS
  * implementation
@@ -91,6 +91,10 @@ package de.fhg.fokus.hss.diam;
  * It contains all the possible values for Application, Vendor, Command Code, AVP Code, Authentication Scheme
  *
  * @author Andre Charton (dev -at- open-ims dot org)
+ * 
+ * @author andreea dot ancuta dot onofrei at fokus dot fraunhofer dot de 
+ * Andreea Ancuta Onofrei / FOKUS Fraunhofer Institute
+ *
  */
 
 public class DiameterConstants

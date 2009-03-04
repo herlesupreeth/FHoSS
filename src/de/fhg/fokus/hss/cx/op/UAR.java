@@ -1,5 +1,5 @@
 /*
-  *  Copyright (C) 2004-2007 FhG Fokus
+  *  Copyright (C) 2004-2009 FhG Fokus
   *
   * This file is part of Open IMS Core - an open source IMS CSCFs & HSS
   * implementation
@@ -74,6 +74,8 @@ import de.fhg.fokus.hss.db.hibernate.*;
 /**
  * @author adp dot fokus dot fraunhofer dot de 
  * Adrian Popescu / FOKUS Fraunhofer Institute
+ * @author andreea dot ancuta dot onofrei at fokus dot fraunhofer dot de 
+ * Andreea Ancuta Onofrei / FOKUS Fraunhofer Institute
  */
 public class UAR {
 	private static Logger logger = Logger.getLogger(UAR.class);
