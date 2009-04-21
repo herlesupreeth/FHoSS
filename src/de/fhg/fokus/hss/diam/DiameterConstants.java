@@ -166,6 +166,12 @@ public class DiameterConstants
     	// Diameter AVPs
         public static final int USER_NAME = 1;
         public static final int FRAMED_IP_ADDRESS = 8;
+    	public static final int DIGEST_REALM = 104;
+    	public static final int DIGEST_QOP = 110;
+    	public static final int DIGEST_ALGORITHM = 111;
+    	public static final int DIGEST_AUTH_PARAM = 117;
+    	public static final int DIGEST_DOMAIN = 119;
+    	public static final int DIGEST_HA1 = 121;
     	public static final int AUTH_APPLICATION_ID = 258;
         public static final int VENDOR_SPECIFIC_APPLICATION_ID = 260;
         public static final int SESSION_ID = 263;
@@ -213,6 +219,7 @@ public class DiameterConstants
         public static final int IMS_SUPPORTED_APPLICATIONS = 631;
         public static final int IMS_ASSOCIATED_IDENTITIES = 632;
         public static final int IMS_ORIGINATING_REQUEST = 633;
+    	public static final int IMS_SIP_DIGEST_AUTHENTICATE = 635;
         public static final int IMS_UAR_FLAGS                  = 637;
         
         // Sh AVPs

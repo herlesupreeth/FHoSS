@@ -155,6 +155,9 @@ public class MAR {
 					else if (data.equals(CxConstants.Auth_Scheme_Digest_Name)){
 						auth_scheme = CxConstants.Auth_Scheme_Digest;
 					}
+					else if (data.equals(CxConstants.Auth_Scheme_SIP_Digest_Name)){
+						auth_scheme = CxConstants.Auth_Scheme_SIP_Digest;
+					}
 					else if (data.equals(CxConstants.Auth_Scheme_HTTP_Digest_MD5_Name)){
 						auth_scheme = CxConstants.Auth_Scheme_HTTP_Digest_MD5;
 					}
@@ -559,6 +562,20 @@ public class MAR {
         		byte [] ha1_hexa = HexCodec.encode(ha1).getBytes();
     			av = new AuthenticationVector(auth_scheme, realm.getBytes(), ha1_hexa);
     			return av;
+
+    		case CxConstants.Auth_Scheme_SIP_Digest:
+    			// Authentication Scheme is SIP Digest
+        		logger.debug("Auth-Scheme is SIP Digest");
+        
+        		secretKey = impi.getK();
+        		
+        		if (realm ==null)
+        			realm = impi.getIdentity().substring(impi.getIdentity().indexOf("@")+1);
+        		ha1 = MD5Util.av_HA1(impi.getIdentity().getBytes(),realm.getBytes(), secretKey);
+        		ha1_hexa = HexCodec.encode(ha1).getBytes();
+    			av = new AuthenticationVector(auth_scheme, realm.getBytes(), ha1_hexa);
+    			return av;
+
     		case CxConstants.Auth_Scheme_HTTP_Digest_MD5:
     			// Authentication Scheme is HTTP_Digest_MD5
         		logger.debug("Auth-Scheme is HTTP_Digest_MD5");

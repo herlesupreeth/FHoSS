@@ -74,10 +74,10 @@ public class IMPI implements Serializable{
 	public IMPI(){}
 
 	public static int generateAuthScheme(boolean akav1, boolean akav2, boolean md5, boolean digest, 
-			boolean http_digest, boolean early, boolean nass_bundle, boolean all){
+			boolean sip_digest, boolean http_digest, boolean early, boolean nass_bundle, boolean all){
 		
 		if (all){
-			return 127;
+			return 255;
 		}
 		else{
 			int result = 0;
@@ -93,6 +93,9 @@ public class IMPI implements Serializable{
 			}
 			if (digest){
 				result |= CxConstants.Auth_Scheme_Digest; 
+			}
+			if (sip_digest){
+				result |= CxConstants.Auth_Scheme_SIP_Digest; 
 			}
 			if (http_digest){
 				result |= CxConstants.Auth_Scheme_HTTP_Digest_MD5; 

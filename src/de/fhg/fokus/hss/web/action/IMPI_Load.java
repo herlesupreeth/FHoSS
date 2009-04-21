@@ -164,7 +164,7 @@ public class IMPI_Load extends Action {
 			form.setDefault_auth_scheme(impi.getDefault_auth_scheme());
 		
 			int auth_scheme = impi.getAuth_scheme();
-			if ((auth_scheme & 127) == 127){
+			if ((auth_scheme & 255) == 255){
 				form.setAll(true);
 			}
 			else{
@@ -182,6 +182,10 @@ public class IMPI_Load extends Action {
 
 				if ((auth_scheme & CxConstants.Auth_Scheme_Digest) != 0){
 					form.setDigest(true);
+				}
+				
+				if ((auth_scheme & CxConstants.Auth_Scheme_SIP_Digest) != 0){
+					form.setSip_digest(true);
 				}
 				
 				if ((auth_scheme & CxConstants.Auth_Scheme_HTTP_Digest_MD5) != 0){

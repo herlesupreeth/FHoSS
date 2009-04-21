@@ -84,6 +84,7 @@ function disable_other_boxes(){
 		document.IMPI_Form.aka2.disabled=true;
 		document.IMPI_Form.md5.disabled=true;
 		document.IMPI_Form.digest.disabled=true;
+		document.IMPI_Form.sip_digest.disabled=true;
 		document.IMPI_Form.http_digest.disabled=true;		
 		document.IMPI_Form.early.disabled=true;
 		document.IMPI_Form.nass_bundle.disabled=true;		
@@ -94,6 +95,7 @@ function disable_other_boxes(){
 		document.IMPI_Form.aka2.disabled=false;
 		document.IMPI_Form.md5.disabled=false;
 		document.IMPI_Form.digest.disabled=false;
+		document.IMPI_Form.sip_digest.disabled=false;
 		document.IMPI_Form.http_digest.disabled=false;		
 		document.IMPI_Form.early.disabled=false;
 		document.IMPI_Form.nass_bundle.disabled=false;		
@@ -163,7 +165,7 @@ function disable_other_boxes(){
 						</tr>
 						<tr bgcolor="#FFCC66">
 							<td>
-								Digest-AKAv1
+								Digest-AKAv1 (3GPP)
 							</td>
 							<td>
 								<html:checkbox property="aka1" styleClass="inputbox"/> 
@@ -171,7 +173,7 @@ function disable_other_boxes(){
 						</tr>
 						<tr bgcolor="#FFCC66">
 							<td>
-								Digest-AKAv2
+								Digest-AKAv2 (3GPP)
 							</td>
 							<td>
 								<html:checkbox property="aka2" styleClass="inputbox"/>
@@ -179,7 +181,7 @@ function disable_other_boxes(){
 						</tr>
 						<tr bgcolor="#FFCC66">
 							<td>
-								Digest-MD5
+								Digest-MD5 (FOKUS)
 							</td>
 							<td>
 								<html:checkbox property="md5" styleClass="inputbox"/> 
@@ -188,7 +190,7 @@ function disable_other_boxes(){
 
 						<tr bgcolor="#FFCC66">
 							<td>
-								Digest
+								Digest (CableLabs)
 							</td>
 							<td>
 								<html:checkbox property="digest" styleClass="inputbox"/> 
@@ -197,7 +199,16 @@ function disable_other_boxes(){
 
 						<tr bgcolor="#FFCC66">
 							<td>
-								HTTP Digest
+								SIP Digest (3GPP)
+							</td>
+							<td>
+								<html:checkbox property="sip_digest" styleClass="inputbox"/> 
+							</td>
+						</tr>
+									
+						<tr bgcolor="#FFCC66">
+							<td>
+								HTTP Digest (ETSI)
 							</td>
 							<td>
 								<html:checkbox property="http_digest" styleClass="inputbox"/> 
@@ -206,7 +217,7 @@ function disable_other_boxes(){
 									
 						<tr bgcolor="#FFCC66">
 							<td>
-								Early-IMS 
+								Early-IMS (3GPP)
 							</td>
 							<td>
 								<html:checkbox property="early" styleClass="inputbox"/> 
@@ -215,7 +226,7 @@ function disable_other_boxes(){
 
 						<tr bgcolor="#FFCC66">
 							<td>
-								NASS Bundled
+								NASS Bundled (ETSI)
 							</td>
 							<td>
 								<html:checkbox property="nass_bundle" styleClass="inputbox"/> 

@@ -553,6 +553,9 @@ public class UtilAVP {
             	case CxConstants.Auth_Scheme_Digest:
             		authScheme.setData(CxConstants.Auth_Scheme_Digest_Name);
             		break;
+            	case CxConstants.Auth_Scheme_SIP_Digest:
+            		authScheme.setData(CxConstants.Auth_Scheme_SIP_Digest_Name);
+            		break;
             	case CxConstants.Auth_Scheme_HTTP_Digest_MD5:
             		authScheme.setData(CxConstants.Auth_Scheme_HTTP_Digest_MD5_Name);
             		break;
@@ -617,6 +620,22 @@ public class UtilAVP {
                  AVP authorization = new AVP(DiameterConstants.AVPCode.AVP_CableLabs_SIP_Digest_Authenticate, true, 
                   		DiameterConstants.Vendor.VCableLabs);
                  authorization.addChildAVP(ha1);
+                 authDataItem.addChildAVP(authorization);
+            } 
+            else if(((av.getAuth_scheme() & CxConstants.Auth_Scheme_SIP_Digest) != 0)){
+                 AVP ha1 = new AVP(DiameterConstants.AVPCode.DIGEST_HA1, true, 
+                 		DiameterConstants.Vendor.DIAM);
+                 ha1.setData(av.getSipAuthorization());
+
+                 AVP authorization = new AVP(DiameterConstants.AVPCode.IMS_SIP_DIGEST_AUTHENTICATE, true, 
+                  		DiameterConstants.Vendor.V3GPP);
+                 authorization.addChildAVP(ha1);
+
+                 AVP authenticate = new AVP(DiameterConstants.AVPCode.DIGEST_REALM, true, 
+                 		DiameterConstants.Vendor.DIAM);
+                 authenticate.setData(av.getSipAuthenticate());
+                 authorization.addChildAVP(authenticate);
+
                  authDataItem.addChildAVP(authorization);
             } 
             else if(((av.getAuth_scheme() & CxConstants.Auth_Scheme_HTTP_Digest_MD5) != 0)){

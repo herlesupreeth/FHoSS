@@ -88,6 +88,7 @@ public class IMPI_Form extends ActionForm implements Serializable{
 	private boolean aka2;
 	private boolean md5;
 	private boolean digest;
+	private boolean sip_digest;
 	private boolean http_digest;
 	private boolean early;
 	private boolean nass_bundle; 
@@ -132,6 +133,7 @@ public class IMPI_Form extends ActionForm implements Serializable{
     	this.aka2 = false;
     	this.md5 = false;
     	this.digest = false;
+    	this.sip_digest = false;
     	this.http_digest = false;
     	this.early = false;
     	this.nass_bundle = false;
@@ -172,12 +174,12 @@ public class IMPI_Form extends ActionForm implements Serializable{
             		actionErrors.add("identity", new ActionMessage("impi_form.error.identity"));
             	}
             
-            	int auth_scheme = IMPI.generateAuthScheme(aka1, aka2, md5, digest, http_digest, early, nass_bundle, all);	
+            	int auth_scheme = IMPI.generateAuthScheme(aka1, aka2, md5, digest, sip_digest, http_digest, early, nass_bundle, all);	
             	if ((auth_scheme & default_auth_scheme) == 0){
             		actionErrors.add("", new ActionMessage(""));
             	}
             
-            	if (!(this.aka1 || this.aka2 || this.md5 || this.digest || this.http_digest || this.early || this.nass_bundle || this.all )){
+            	if (!(this.aka1 || this.aka2 || this.md5 || this.digest || this.sip_digest || this.http_digest || this.early || this.nass_bundle || this.all )){
             		actionErrors.add("auth_scheme", new ActionMessage("impi_form.error.auth_scheme"));
             	}
             	if (secretKey == null || secretKey.equals("")){
@@ -408,6 +410,14 @@ public class IMPI_Form extends ActionForm implements Serializable{
 
 	public void setDigest(boolean digest) {
 		this.digest = digest;
+	}
+
+	public boolean isSip_digest() {
+		return sip_digest;
+	}
+
+	public void setSip_digest(boolean sip_digest) {
+		this.sip_digest = sip_digest;
 	}
 
 	public boolean isHttp_digest() {

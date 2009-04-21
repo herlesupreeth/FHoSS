@@ -116,8 +116,8 @@ public class IMPI_Submit extends Action{
 					// update
 					impi = IMPI_DAO.get_by_ID(session, id);
 				}
-				auth_scheme = IMPI.generateAuthScheme(form.isAka1(), form.isAka2(), form.isMd5(), form.isDigest(), form.isHttp_digest(),
-					form.isEarly(), form.isNass_bundle(), form.isAll());	
+				auth_scheme = IMPI.generateAuthScheme(form.isAka1(), form.isAka2(), form.isMd5(), form.isDigest(), form.isSip_digest(),
+                                    form.isHttp_digest(), form.isEarly(), form.isNass_bundle(), form.isAll());	
 				
 				impi.setIdentity(form.getIdentity());
 				if (form.getSecretKey().length()==32) 
@@ -146,7 +146,7 @@ public class IMPI_Submit extends Action{
 					IMPI_DAO.update(session, impi);
 				}
 				
-				if ((auth_scheme & 127) == 127){
+				if ((auth_scheme & 255) == 255){
 					form.setAll(true);
 					form.setAka1(false);
 					form.setAka2(false);
