@@ -66,7 +66,8 @@ public class DiameterStack implements EventListener, TransactionListener {
 	public DiameterStack(HSSContainer hssContainer){
 		this.hssContainer = hssContainer;
 		
-		diameterPeer = new DiameterPeer("DiameterPeerHSS.xml");
+		diameterPeer = new DiameterPeer();
+        diameterPeer.configure("DiameterPeerHSS.xml", true);
 		diameterPeer.enableTransactions(10, 1);
 		diameterPeer.addEventListener(this);
 		
