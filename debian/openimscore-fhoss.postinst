@@ -1,0 +1,175 @@
+#!/bin/sh -e
+# postinst script for OpenIMSCore
+#
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+#################################################################################
+# Initialization & global vars
+#################################################################################
+#DDOMAIN : Default domain name
+DDOMAIN="open-ims\.test"
+#DSDOMAIN : Default domain name with slashes
+DSDOMAIN="open-ims\\\.test"
+#DEFAULTIP : Default IP Address
+DEFAULTIP="127\.0\.0\.1"
+
+#HSS_CONFFILES : HSS configuration files to edit
+cd /usr/share/java/fhoss-0.2/
+HSS_CONFFILES="DiameterPeerHSS.xml hss.properties"
+#HSS_SQLFILES : HSS SQL files to edit
+HSS_SQLFILES="sql_files/userdata.sql sql_files/hss_db.sql"
+
+#################################################################################
+#COPYING CONFIG FILES AND RUNNABLE SCRIPTS
+#################################################################################
+printf "\n\nCopying configuration file\n..."
+[ -f DiameterPeerHSS.xml.default ] && cp DiameterPeerHSS.xml.default DiameterPeerHSS.xml || cp DiameterPeerHSS.xml DiameterPeerHSS.xml.default
+[ -f hss.properties.default ] && cp hss.properties.default hss.properties || cp hss.properties hss.properties.default
+[ -f sql_files/userdata.sql.default ] && cp sql_files/userdata.sql.default sql_files/userdata.sql || cp sql_files/userdata.sql sql_files/userdata.sql.default
+[ -f sql_files/hss_db.sql.default ] && cp sql_files/hss_db.sql.default sql_files/hss_db.sql || cp sql_files/hss_db.sql sql_files/hss_db.sql.default
+[ -f /usr/sbin/fhoss.sh.default ] && cp /usr/sbin/fhoss.sh.default /usr/sbin/fhoss.sh || cp /usr/sbin/fhoss.sh /usr/sbin/fhoss.sh.default
+
+#Log Directory
+mkdir -p /var/log/OpenIMSCore
+#Give all permissions to Log Files & Directory
+chmod 777 /var/log/OpenIMSCore -R
+printf "... [Done]\n"
+
+#Looking for java
+printf "Looking for java ... "
+#Get variable
+db_get openimscore-fhoss/where_is_java
+printf " ... java is in $RET\n"
+#Modifying java in hss startup file : fhoss.sh
+sed -i -e "s;__JAVA__;$RET;g" /usr/sbin/fhoss.sh
+
+#################################################################################
+#CONFIGURATION OF DOMAIN
+#################################################################################
+printf "\n\nConfiguration of Domain\n"
+
+#Domain name
+printf "Domain Name to use: "
+#Get variable
+db_get openimscore-fhoss/domain_to_use
+domainname=$RET
+printf "$domainname\n"
+
+#IP Address
+printf "IP Adress to use: "
+#Get variable
+db_get openimscore-fhoss/ip_to_use
+ip_address=$RET
+printf "$ip_address\n"
+
+# input domain is to be slashed for cfg regexes 
+slasheddomain=`echo $domainname | sed 's/\./\\\\\\\\\./g'`
+
+printf "Apply this Domain and IP to all configuration files ...\n"
+printf "HSS Configuration files\n"
+for i in $HSS_CONFFILES 
+do
+	sed -i -e "s/$DDOMAIN/$domainname/g" $i
+	sed -i -e "s/$DSDOMAIN/$slasheddomain/g" $i
+	sed -i -e "s/$DEFAULTIP/$ip_address/g" $i
+	printf " --> $i done\n" 
+done
+printf "HSS SQL files\n"
+for i in $HSS_SQLFILES 
+do
+	sed -i -e "s/$DDOMAIN/$domainname/g" $i
+	sed -i -e "s/$DSDOMAIN/$slasheddomain/g" $i
+	sed -i -e "s/$DEFAULTIP/$ip_address/g" $i
+	printf " --> $i done\n" 
+
+done
+
+#################################################################################
+#CONFIGURATION OF DNS
+#################################################################################
+#Get variable
+db_get openimscore-fhoss/dns_ip_to_use
+dns_ip=$RET
+#Is it the first time we edit resolv.conf ?
+printf "Is it the first time we edit resolv.conf ? "
+if [ -f /etc/resolv.conf.imsback ]; then
+	printf "No\n"
+	printf "Reverting the .imsback file\n"
+	mv /etc/resolv.conf.imsback /etc/resolv.conf
+else
+	printf "Yes\n"
+fi
+#Adding dns resolution in /etc/resolv.conf
+[ -f /etc/resolv.conf ] || touch /etc/resolv.conf
+cp /etc/resolv.conf /etc/resolv.conf.imsback
+printf "\nAdding to /etc/resolv.conf \n"
+echo "######################" |  tee -a /etc/resolv.conf
+echo "#Added for OpenIMSCore" |  tee -a /etc/resolv.conf
+echo "domain $domainname" |  tee -a /etc/resolv.conf
+echo "nameserver $dns_ip" |  tee -a /etc/resolv.conf
+echo "######################" |  tee -a /etc/resolv.conf
+
+#################################################################################
+#SQL DATA
+#################################################################################
+printf "\n\nSQL Data\n"
+#Get variable
+db_get openimscore-fhoss/sql_password
+if [ "$RET" != "" ]
+then
+	SQL_PASSWORD="-p$RET"
+else
+	SQL_PASSWORD=""
+fi
+#Get variable
+db_get openimscore-fhoss/sql_data
+if [ "$RET" = "yes" ]
+then
+	printf "Starting MySQL...\n"
+	/etc/init.d/mysql start
+	printf " -->Some data will be inserted in MySQL database."
+	echo "hss database configuration"
+	mysql -uroot $SQL_PASSWORD < sql_files/hss_db.sql
+	echo "hss userdata"
+	mysql -uroot $SQL_PASSWORD < sql_files/userdata.sql
+fi
+
+#################################################################################
+#ADDING USERS TO HSS
+#################################################################################
+printf "\n\nAdding users to hss\n"
+#Get variable
+db_get openimscore-fhoss/sql_password
+if [ "$RET" != "" ]
+then
+	SQL_PASSWORD="-m $RET"	#MySQL password is $RET
+else
+	SQL_PASSWORD="-n"	#No password for MySQL
+fi
+#Get variable
+db_get openimscore-fhoss/adding_user
+for i in $RET
+do
+	sh /usr/sbin/fhoss-add-imscore-user.sh -u $i -a -c -r $domainname $SQL_PASSWORD 2>/dev/null
+done
+
+#################################################################################
+#RUNNING SERVICES
+#################################################################################
+printf "\n\nRunning services\n"
+
+#hss
+printf "Run HSS at start and/or now ? ... "
+#Get variable
+db_get openimscore-fhoss/hss_config
+printf "$RET ...\n"
+if echo "$RET" | grep -q "yes"
+then
+	#DEBHELPER#
+fi
+
+
+printf "\nEnd of configuration script\n"
+db_stop

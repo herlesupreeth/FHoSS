@@ -1,0 +1,165 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: Source: openimscore-fhoss@packages.debian.org\n"
+"POT-Creation-Date: 2009-06-29 17:32+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: text
+#. Description
+#: ../openimscore-fhoss.templates:1001
+msgid "Welcome !"
+msgstr ""
+
+#. Type: text
+#. Description
+#: ../openimscore-fhoss.templates:1001
+msgid "Welcome in the configuration script for OpenIMSCore."
+msgstr ""
+
+#. Type: text
+#. Description
+#: ../openimscore-fhoss.templates:1001
+msgid ""
+"This script will help you to get a working copy of OpenIMSCore You can run "
+"this script again by using the following command :"
+msgstr ""
+
+#. Type: text
+#. Description
+#: ../openimscore-fhoss.templates:1001
+msgid "\"sudo dpkg-reconfigure openimscore-fhoss\""
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:2001
+msgid "Where is java ?"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:2001
+msgid ""
+"Please, provide the java command location. If java was not installed before, "
+"it will be installed now. If you do not know where java will installed, you "
+"would have to run 'sudo dpkg-reconfigure fhoss' afterward in order to "
+"configure it."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:3001
+msgid "What is the domain name ?"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:3001
+msgid "OpenIMSCore is using a domain name, please provide it."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:4001
+msgid "What is the IP address for this domain name ?"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:4001
+msgid "In order to listen on this domain name, you must provide an IP address."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:5001
+msgid "What is the public IP address for your Domain Name Server ?"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:5001
+msgid ""
+"Your domain name server can give you adresses of each CSCF or HSS in the "
+"network. You must configure it."
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../openimscore-fhoss.templates:6001
+msgid "Do you want to configure MySQL ?"
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../openimscore-fhoss.templates:6001
+msgid ""
+"MySQL is a database server. The OpenIMSCore system use different databases. "
+"If you do not have already added data to MySQL, you should do it now."
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../openimscore-fhoss.templates:6001
+msgid ""
+"If you already have data (if you are running 'sudo dpkg-reconfigure fhoss'), "
+"you should answer no."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:7001
+msgid "Users name ?"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:7001
+msgid ""
+"You can add user to the HSS database. If no more user to add, left empty. "
+"Separate different users by <space>."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:7001
+msgid ""
+"If a user is already in database, please do not add it anymore (a user can "
+"already be in database if you run 'sudo dpkg-reconfigure fhoss')."
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:8001
+msgid "What is the MySQL password for root ?"
+msgstr ""
+
+#. Type: string
+#. Description
+#: ../openimscore-fhoss.templates:8001
+msgid "The root MySQL password is needed in order to continue."
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../openimscore-fhoss.templates:9001
+msgid "Do you want to start HSS automatically"
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../openimscore-fhoss.templates:9001
+msgid "The HSS service can be started automatically with the machine."
+msgstr ""

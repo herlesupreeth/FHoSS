@@ -1,0 +1,5 @@
+#!/bin/sh -e
+# prerm script for OpenIMSCore - FHoSS
+#
+
+#DEBHELPER#

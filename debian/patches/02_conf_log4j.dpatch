@@ -1,0 +1,29 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 02_conf_log4j.dpatch by  <arnaud1.morin@orange-ftgroup.com>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: conf files patch
+
+@DPATCH@
+
+diff -Nru fhoss-601.orig/config/log4j.properties fhoss-601/config/log4j.properties
+--- fhoss-601.orig/config/log4j.properties	2008-11-17 10:39:59.000000000 +0100
++++ fhoss-601/config/log4j.properties	2009-02-20 14:50:03.000000000 +0100
+@@ -12,7 +12,7 @@
+ 
+ # LOGFILE is set to be a File appender using a PatternLayout.
+ log4j.appender.LOGFILE=org.apache.log4j.FileAppender
+-log4j.appender.LOGFILE.File=logs/hss.server.log
++log4j.appender.LOGFILE.File=/var/log/OpenIMSCore/hss.server.log
+ log4j.appender.LOGFILE.Append=true
+ log4j.appender.LOGFILE.Threshold=WARN
+ log4j.appender.LOGFILE.layout=org.apache.log4j.PatternLayout
+@@ -21,7 +21,7 @@
+ # LOGFILE2 
+ log4j.appender.LOGFILE2=org.apache.log4j.DailyRollingFileAppender
+ # Required! Specify here the path to the log file
+-log4j.appender.LOGFILE2.File=logs/hss.activities.log
++log4j.appender.LOGFILE2.File=/var/log/OpenIMSCore/hss.activities.log
+ log4j.appender.LOGFILE2.Append=true
+ log4j.appender.LOGFILE2.Threshold=DEBUG
+ log4j.appender.LOGFILE2.DatePattern='.'yyyy-MM-dd-HH

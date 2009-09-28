@@ -1,6 +1,12 @@
-fhoss (0.2-svn${svn:Revision}) unstable; urgency=low
+openimscore-fhoss (680~ppa1) lenny; urgency=low
+
+  * New release, see SVN for changes
+
+ -- Arnaud Morin <arnaud1.morin@orange-ftgroup.com>  Mon, 29 Jun 2009 15:54:58 +0200
+
+openimscore-fhoss (601-0ubuntu1) lenny; urgency=low
 
   * Initial debian package
 
- -- Sebastian Felis <felis@nw.neclab.eu>  Fri, 11 Apr 2008 10:29:32 +0200
+ -- Arnaud Morin <arnaud1.morin@orange-ftgroup.com>  Fri, 11 Apr 2008 10:29:32 +0200
 

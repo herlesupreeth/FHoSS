@@ -1,0 +1,62 @@
+Template: openimscore-fhoss/welcome
+Type: text
+_Description: Welcome !
+ Welcome in the configuration script for OpenIMSCore.
+ .
+ This script will help you to get a working copy of OpenIMSCore
+ You can run this script again by using the following command :
+ .
+ "sudo dpkg-reconfigure openimscore-fhoss"
+
+Template: openimscore-fhoss/where_is_java
+Type: string
+Default: /usr/bin/java
+_Description: Where is java ?
+ Please, provide the java command location. If java was not installed before, it will be installed now. If you do not know where java will installed, you would have to run 'sudo dpkg-reconfigure fhoss' afterward in order to configure it.
+
+Template: openimscore-fhoss/domain_to_use
+Type: string
+Default: open-ims.test
+_Description: What is the domain name ?
+ OpenIMSCore is using a domain name, please provide it.
+
+Template: openimscore-fhoss/ip_to_use
+Type: string
+_Description: What is the IP address for this domain name ?
+ In order to listen on this domain name, you must provide an IP address.
+
+Template: openimscore-fhoss/dns_ip_to_use
+Type: string
+_Description: What is the public IP address for your Domain Name Server ?
+ Your domain name server can give you adresses of each CSCF or HSS in the network. You must configure it.
+
+Template: openimscore-fhoss/sql_data
+Type: select
+Choices: yes, no
+Default: yes
+_Description: Do you want to configure MySQL ?
+ MySQL is a database server. The OpenIMSCore system use different databases.
+ If you do not have already added data to MySQL, you should do it now. 
+ .
+ If you already have data (if you are running 'sudo dpkg-reconfigure fhoss'), you should answer no.
+
+Template: openimscore-fhoss/adding_user
+Type: string
+_Description: Users name ?
+ You can add user to the HSS database. If no more user to add, left empty.
+ Separate different users by <space>. 
+ .
+ If a user is already in database, please do not add it anymore (a user can already be in database if you run 'sudo dpkg-reconfigure fhoss').
+
+Template: openimscore-fhoss/sql_password
+Type: string
+Default: root
+_Description: What is the MySQL password for root ?
+ The root MySQL password is needed in order to continue.
+
+Template: openimscore-fhoss/hss_config
+Type: select
+Choices: yes, no
+Default: yes
+_Description: Do you want to start HSS automatically
+ The HSS service can be started automatically with the machine.

@@ -1,21 +1,21 @@
-Source: fhoss
+Source: openimscore-fhoss
 Section: net
 Priority: extra
-Maintainer: Sebastian Felis <felis@nw.neclab.eu>
-Build-Depends: debhelper (>= 5), sun-java5-jdk (>= 1.5.0), docbook-to-man (>= 2.0.0)
-Standards-Version: 3.7.2
+Maintainer: Arnaud Morin <arnaud1.morin@orange-ftgroup.com>
+Build-Depends: debhelper (>= 5), sun-java6-jdk, ant, docbook-to-man (>= 2.0.0), dpatch, po-debconf
+Standards-Version: 3.7.3
 
-Package: fhoss
+Package: openimscore-fhoss
 Architecture: any
-Depends: sun-java5-jre (>= 1.5.0), debconf, mysql-server, mysql-client
+Depends: sun-java6-jre, debconf, mysql-server, mysql-client
 Description: HSS part of Open IMS Core called FHoSS
  This package includes Home Subscriber Server from Fraunhofer FOKUS, called
  FHoSS and is part of the Open IMS Core. See http://www.openimscore.org for more
  details.
 
-Package: fhoss-doc
+Package: openimscore-fhoss-doc
 Architecture: any
-Depends: fhoss
+Depends: openimscore-fhoss
 Description: Documentation of Home Subscriber Server, part of Open IMS Core, called FHoSS
  This package includes the documentation of the Home Subscriber Server the
  Fraunhofer FOKUS, called FHoSS and is part of the Open IMS Core. See

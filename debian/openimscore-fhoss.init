@@ -1,0 +1,170 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          openimscore-fhoss
+# Required-Start:    $local_fs $remote_fs
+# Required-Stop:     $local_fs $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Manage OSIMS FHoSS function
+### END INIT INFO
+
+#
+# Author: Arnaud Morin <arnaud1.morin@orange-ftgroup.com>
+# Actual version 1.0.1
+# Version-history:
+#	1.0.1		2008-11-21	Arnaud Morin
+#	1.0.0		2007-12-15	David Blaisonneau
+
+# Do NOT "set -e"
+
+# DAEMON VALUES
+DESC="OpenSource IMS Core - HSS"
+NAME=hss
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+#JAVA_BIN=/usr/bin/java
+JAVA_BIN=java
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+EXECPATH=/usr/sbin
+LIBPATH=$EXECPATH/lib
+LIBLOG4J=log4j.properties
+PIDFILE=/var/run/$NAME.pid
+#SCRIPTNAME=/etc/init.d/osims_$NAME
+SCRIPTNAME=$EXECPATH/fhoss.sh
+HSSCLASS=de.fhg.fokus.hss.main.HSSContainer
+VERBOSE=yes
+
+# Read configuration variable file if it is present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# Load the VERBOSE setting and other rcS variables
+[ -f /etc/default/rcS ] && . /etc/default/rcS
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+VERBOSE=YES
+
+getCurrentPID()
+{
+        PID=$(ps -ef |  grep $JAVA_BIN | grep $HSSCLASS | cut -c10-15)
+	echo $PID
+}
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{
+	# Return
+	#   0 if daemon has been started
+	#   1 if daemon was already running
+	#   2 if daemon could not be started
+
+	PID=$(getCurrentPID)
+	[ "$PID" != "" ] && echo -n "...Already running (pid: $PID)..." && return 1
+	
+	# --make-pidfile in order to create pid automaticaly
+	# --background in order to run in background
+	start-stop-daemon --start --quiet --background --make-pidfile --pidfile $PIDFILE --exec $SCRIPTNAME
+	
+	#Wait for deamon
+	sleep 3
+
+	#Verification
+	PID=$(getCurrentPID)
+	[ "$PID" = "" ]  && return 2
+
+	echo $PID > $PIDFILE
+	return 0
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+	# Return
+	#   0 if daemon has been stopped
+	#   1 if daemon was already stopped
+	#   2 if daemon could not be stopped
+	#   other if a failure occurred
+
+	PID=$(getCurrentPID)
+	[ "$PID" = "" ] && echo -n "Not running" && return 1
+
+	kill -9 $PID 2>&1 > /dev/null
+	sleep 3
+
+	PID=$(getCurrentPID)
+	[ "$PID" = "" ] || return 2
+
+	rm -f $PIDFILE
+	return 0
+}
+
+#
+# Function that return status of the daemon/service
+#
+do_status()
+{
+	# Return
+	#   0 if daemon is NOT running
+	#   1 if daemon is running
+	PID=$(getCurrentPID)
+	[ "$PID" = "" ] && return 0
+	return 1
+}
+
+if [ "$USER" != root ]
+then
+	echo "Please, run $SCRIPTNAME as root using 'sudo $SCRIPTNAME' command" >&2
+fi
+case "$1" in
+  start)
+	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+	do_start
+	case "$?" in
+		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+	esac
+	;;
+  stop)
+	[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+	do_stop
+	case "$?" in
+		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+	esac
+	;;
+  status)
+	log_daemon_msg "Process running ??? $DESC" "$NAME"
+	do_status
+	case "$?" in
+		0) log_end_msg 1 ;;
+		*) log_end_msg 0 ;;
+	esac
+	;;
+  restart)
+        [ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+        do_stop
+        case "$?" in
+                0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+                2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+        esac
+	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+        do_start
+        case "$?" in
+                0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+                2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+        esac
+	;;
+  *)
+	echo "Usage: $SCRIPTNAME {start|stop|status|restart}" >&2
+	exit 3
+	;;
+esac
+
+:
+

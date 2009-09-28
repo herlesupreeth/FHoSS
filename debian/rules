@@ -9,15 +9,17 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+include /usr/share/dpatch/dpatch.make
+
 ANT=ant
 
 CFLAGS = -Wall -g
-PROPERTIES=-Dpath.deploy=$(CURDIR)/debian/fhoss/usr/share/java/fhoss-0.2 \
-	-Dpath.doc=$(CURDIR)/debian/fhoss-doc/usr/share/doc/fhoss \
-	-Dpath.config=$(CURDIR)/debian/fhoss/etc/fhoss
+PROPERTIES=-Dpath.deploy=$(CURDIR)/debian/openimscore-fhoss/usr/share/java/fhoss-0.2 \
+	-Dpath.doc=$(CURDIR)/debian/openimscore-fhoss-doc/usr/share/doc/fhoss \
+	-Dpath.config=$(CURDIR)/debian/openimscore-fhoss/usr/share/java/fhoss-0.2
 
 configure: configure-stamp
-configure-stamp:
+configure-stamp: patch
 	dh_testdir
 	# Add here commands to configure the package.
 
@@ -29,17 +31,18 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	# Add here commands to compile the package.
+	PATH=/usr/lib/jvm/java-6-sun/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games; \
 	$(ANT) $(PROPERTIES) compile
-	#docbook-to-man debian/fhoss.sgml > fhoss.1
 
 	touch $@
 	@REVISION=`svn info|grep Revision|awk '{print $$2}'`; \
 	echo "svn:Revision=$$REVISION" > $(CURDIR)/debian/substvars
 
-clean:
+clean: unpatch
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
+	debconf-updatepo
 
 	# Add here commands to clean up after the build process.
 	$(ANT) $(PROPERTIES) cleanall
@@ -53,7 +56,7 @@ install: build
 	dh_clean -k 
 	dh_installdirs
 
-	# Add here commands to install the package into debian/fhoss.
+	# Add here commands to install the package into debian/openimscore-fhoss.
 	$(ANT) $(PROPERTIES) deploy jdoc 
 
 

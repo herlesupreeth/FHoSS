@@ -1,3 +1,4 @@
-etc/fhoss
+etc/openimscore/fhoss
 usr/share/java
 usr/share/doc
+usr/sbin
