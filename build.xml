@@ -87,6 +87,8 @@
 			<fileset dir="scripts" >
 				<include name="startup.sh" />
 				<include name="shutdown.sh" />
+				<include name="startup.cmd" />
+				<include name="cpappend.cmd" />
 			</fileset>			
 		</copy>
 		

@@ -16,8 +16,8 @@ rem --------------------------------------------------------------
 ECHO Building Classpath
 
 SET JARS=
-FOR  %%i IN (..\lib\*.jar) DO call cpappend.cmd %%~fi
-
+FOR  %%i IN (.\lib\*.jar) DO call cpappend.cmd %%~fi
+set JARS=%JARS%;.
 ECHO USING: %JARS%
 
 
@@ -30,11 +30,11 @@ rem Starten
 rem --------------------------------------------------------------
 
 pushd %CD%
-cd.. 
+REM cd.. 
 if "%JARS%" == "" (
-	%JAVA_HOME%\bin\java.exe %PROPERTIES% de.fhg.fokus.hss.main.HssServer %1 %2 %3 %4 %5 %6 %7 %8 %9
+	%JAVA_HOME%\bin\java.exe %PROPERTIES% de.fhg.fokus.hss.main.HSSContainer %1 %2 %3 %4 %5 %6 %7 %8 %9
 ) else (
-	%JAVA_HOME%\bin\java.exe %PROPERTIES% -cp %JARS% de.fhg.fokus.hss.main.HssServer %1 %2 %3 %4 %5 %6 %7 %8 %9
+	%JAVA_HOME%\bin\java.exe %PROPERTIES% -cp %JARS% de.fhg.fokus.hss.main.HSSContainer %1 %2 %3 %4 %5 %6 %7 %8 %9
 )
 popd
 goto fertig
