@@ -183,7 +183,7 @@ public class TP_Submit extends Action{
 							break;
 
 						case CxConstants.SPT_Type_Method:
-							spt.setMethod("");
+							spt.setMethod("INVITE");
 							break;
 
 						case CxConstants.SPT_Type_SessionCase:
