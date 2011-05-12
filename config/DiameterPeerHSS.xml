@@ -19,6 +19,7 @@
 	<Auth id="16777216" vendor="10415"/><!-- 3GPP Cx -->
 	<Auth id="16777216" vendor="4491"/><!-- CableLabs Cx -->
 	<Auth id="16777216" vendor="13019"/><!-- ETSI/TISPAN Cx -->
+	<Auth id="16777216" vendor="0"/><!-- ETSI/TISPAN Cx -->
 	<Auth id="16777217" vendor="10415"/><!-- 3GPP Sh -->
 	<Auth id="16777221" vendor="10415"/>
 
