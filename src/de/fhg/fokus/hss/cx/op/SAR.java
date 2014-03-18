@@ -117,9 +117,36 @@ public class SAR {
 			int userDataAlreadyAvailable = UtilAVP.getUserDataAlreadyAvailable(request);
 		
 			// 0. check for missing of mandatory AVPs
-			if (vendorSpecificAppID == null || authSessionState == null || originHost == null || originRealm == null ||
-				destinationRealm == null || serverName == null || serverAssignmentType == -1 || 
-				userDataAlreadyAvailable == -1){
+			if (vendorSpecificAppID == null) {
+                                logger.warn("Missing Vendor-Specific-Application-ID");
+				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+			}
+			if (authSessionState == null) {
+                                logger.warn("Missing Auth-Session-State");
+				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+			}
+			if (originHost == null) {
+                                logger.warn("Missing Origin-Host");
+				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+			}
+			if (originRealm == null) {
+                                logger.warn("Missing Origin-Realm");
+				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+			}
+			if (destinationRealm == null) {
+                                logger.warn("Missing Destination-Realm");
+				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+			}
+			if (serverName == null) {
+                                logger.warn("Missing Server-Name");
+				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+			}
+			if (serverAssignmentType == -1) {
+                                logger.warn("Missing Server-Assignment-Type");
+				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+			}
+			if (userDataAlreadyAvailable == -1) {
+                                logger.warn("Missing User-Data-Already-Available");
 				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
@@ -214,6 +241,9 @@ public class SAR {
 					// set the registration state on all impu from the same implicitset
 					DB_Op.setUserState(session, impi.getId(), impu.getId_implicit_set(), 
 							CxConstants.IMPU_user_state_Registered, true);
+					
+                                        // Assign this S-CSCF to this subscriber
+                                        IMSU_DAO.update(session, impi.getId_imsu(), serverName, originHost);
 					UtilAVP.addUserName(response, privateIdentity);
 					
 					//download the profile data

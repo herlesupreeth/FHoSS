@@ -102,20 +102,27 @@ public class MAR {
 			
 			String publicIdentity = UtilAVP.getPublicIdentity(request);
 			String privateIdentity = UtilAVP.getUserName(request);
-			if (publicIdentity == null || privateIdentity == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
+			if (publicIdentity == null){
+                            logger.warn("Missing Public-Identity AVP");
+                            throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
+			}
+			if (privateIdentity == null){
+                            logger.warn("Missing User-Name AVP");
+                            throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
 			}
 
 			// 1. check if the identities exist in HSS
 			IMPU impu = IMPU_DAO.get_by_Identity(session, publicIdentity);
 			IMPI impi = IMPI_DAO.get_by_Identity(session, privateIdentity);
 			if (impu == null || impi == null){
+                                logger.warn("User not found in HSS DB");
 				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
 			}
 			
 			// 2. check association
 			IMPI_IMPU impi_impu = IMPI_IMPU_DAO.get_by_IMPI_and_IMPU_ID(session, impi.getId(), impu.getId());
 			if (impi_impu == null){
+                                logger.warn("IMPI and IMPU provided are not associated");
 				throw new CxExperimentalResultException(
 						DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_IDENTITIES_DONT_MATCH);
 			}
@@ -124,6 +131,7 @@ public class MAR {
 			byte[] authorization = null;
 			AVP authDataItem = UtilAVP.getSipAuthDataItem(request);
 			if (authDataItem == null){
+                                logger.warn("SIP-Auth-Data-Item AVP not found");
 				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
@@ -178,6 +186,7 @@ public class MAR {
 			}
 			
 			if (auth_scheme == -1){
+                                logger.warn("SIP-Authentication-Scheme not found or has invalid value");
 				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
@@ -242,6 +251,7 @@ public class MAR {
 			
 				case CxConstants.IMPU_user_state_Registered:
 					if (scscf_name == null || scscf_name.equals("")) {
+                                                logger.error("User is registered but has no S-CSCF name stored - HSS database consistency error");
 						throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_UNABLE_TO_COMPLY);
 					}
 					if (!scscf_name.equals(server_name)){
