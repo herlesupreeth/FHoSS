@@ -175,7 +175,7 @@ public class MAR {
 					else if (data.equals(CxConstants.Auth_Scheme_Early_Name)){
 						auth_scheme = CxConstants.Auth_Scheme_Early;
 					}
-					else if (data.equals(CxConstants.Auth_Scheme_Unknown_Name)){
+					else if (data.equals(CxConstants.Auth_Scheme_Unknown_Name) || data.equals(CxConstants.Auth_Scheme_Unknown_Name_2)){
 						// if S- does not specify a scheme, the default one will be used!
 						auth_scheme = impi.getDefault_auth_scheme();
 					}

@@ -155,7 +155,13 @@ public class CxConstants {
 	public static final int Auth_Scheme_Early = 32;
 	public static final int Auth_Scheme_NASS_Bundled = 64;
 	public static final int Auth_Scheme_SIP_Digest = 128;
+	
+	// The TS 29.228 specification for the Cx interface requires the string
+	// "Unknown". However, FHoSS initially implemented it as "unknown", so
+	// this is preserved for backwards compatibility.
 	public static final String Auth_Scheme_Unknown_Name = "unknown";
+	public static final String Auth_Scheme_Unknown_Name_2 = "Unknown";
+	
 	public static final String Auth_Scheme_AKAv1_Name = "Digest-AKAv1-MD5";
 	public static final String Auth_Scheme_AKAv2_Name = "Digest-AKAv2-MD5";
 	public static final String Auth_Scheme_MD5_Name = "Digest-MD5";
