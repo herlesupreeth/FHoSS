@@ -96,23 +96,23 @@ public class UAR {
 			String publicIdentity = UtilAVP.getPublicIdentity(request);
 			String privateIdentity = UtilAVP.getUserName(request);
 			if (publicIdentity == null || privateIdentity == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
 			}
 			
 			String visited_network_name = UtilAVP.getVisitedNetwork(request);
 			if (visited_network_name == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			VisitedNetwork visited_network = VisitedNetwork_DAO.get_by_Identity(session, visited_network_name);
 			if (visited_network == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
+				throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
 			}
 			
 			// 1. check if the identities exist in hss
 			IMPU impu = IMPU_DAO.get_by_Identity(session, publicIdentity);
 			IMPI impi = IMPI_DAO.get_by_Identity(session, privateIdentity);
 			if (impu == null || impi == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
+				throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
 			}
 			
 			IMSU imsu = IMSU_DAO.get_by_ID(session, impi.getId_imsu());
@@ -120,7 +120,7 @@ public class UAR {
 			// 2. check association
 			IMPI_IMPU impi_impu = IMPI_IMPU_DAO.get_by_IMPI_and_IMPU_ID(session, impi.getId(), impu.getId());
 			if (impi_impu == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_IDENTITIES_DONT_MATCH);
+				throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_IDENTITIES_DONT_MATCH);
 			}
 			
 			// 3. check for IMPU if is barred or it is an Emergency Registration
@@ -157,7 +157,7 @@ public class UAR {
 					if(!Em_Reg){
 						impu_visited_network = IMPU_VisitedNetwork_DAO.get_by_IMPU_and_VisitedNetwork_ID(session, impu.getId(), visited_network.getId());
 						if (impu_visited_network == null){
-							throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
+							throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
 						}
 					}
 					if (impu.getCan_register() == 0){
@@ -173,7 +173,7 @@ public class UAR {
 					if(!Em_Reg){
 						impu_visited_network = 	IMPU_VisitedNetwork_DAO.get_by_IMPU_and_VisitedNetwork_ID(session, impu.getId(), visited_network.getId());
 						if (impu_visited_network == null){
-							throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
+							throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_ROAMING_NOT_ALLOWED);
 						}
 					}
 							
@@ -208,7 +208,7 @@ public class UAR {
 						UtilAVP.addServerName(response, serverName);
 					if (authorizationType == DiameterConstants.AVPValue.UAT_Registration){
 						UtilAVP.addExperimentalResultCode(response, 
-								DiameterConstants.ResultCode.RC_IMS_DIAMETER_SUBSEQUENT_REGISTRATION.getCode(), 
+								DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_SUBSEQUENT_REGISTRATION.getCode(), 
 								DiameterConstants.Vendor.V3GPP);
 					}
 					else if (authorizationType == DiameterConstants.AVPValue.UAT_De_Registration){
@@ -225,7 +225,7 @@ public class UAR {
 						if (serverName != null && !serverName.equals(""))						
 							UtilAVP.addServerName(response, serverName);	
 						UtilAVP.addExperimentalResultCode(response, 
-								DiameterConstants.ResultCode.RC_IMS_DIAMETER_SUBSEQUENT_REGISTRATION.getCode(),
+								DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_SUBSEQUENT_REGISTRATION.getCode(),
 								DiameterConstants.Vendor.V3GPP);
 					}
 					break;
@@ -235,7 +235,7 @@ public class UAR {
 					
 					if (authorizationType == DiameterConstants.AVPValue.UAT_De_Registration){
 						UtilAVP.addExperimentalResultCode(response, 
-								DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_IDENTITY_NOT_REGISTERED.getCode(),
+								DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_IDENTITY_NOT_REGISTERED.getCode(),
 								DiameterConstants.Vendor.V3GPP);
 					}
 					else if (authorizationType == DiameterConstants.AVPValue.UAT_Registration){
@@ -246,7 +246,7 @@ public class UAR {
 							if (serverName != null && !serverName.equals(""))						
 								UtilAVP.addServerName(response, serverName);
 							UtilAVP.addExperimentalResultCode(response, 
-									DiameterConstants.ResultCode.RC_IMS_DIAMETER_SUBSEQUENT_REGISTRATION.getCode(),
+									DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_SUBSEQUENT_REGISTRATION.getCode(),
 									DiameterConstants.Vendor.V3GPP);
 							break;
 						}
@@ -257,7 +257,7 @@ public class UAR {
 							if (serverName != null && !serverName.equals(""))						
 								UtilAVP.addServerName(response, serverName);
 							UtilAVP.addExperimentalResultCode(response, 
-									DiameterConstants.ResultCode.RC_IMS_DIAMETER_SUBSEQUENT_REGISTRATION.getCode(),
+									DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_SUBSEQUENT_REGISTRATION.getCode(),
 									DiameterConstants.Vendor.V3GPP);
 							break;
 						}
@@ -268,7 +268,7 @@ public class UAR {
 							
 							UtilAVP.addServerName(response, serverName);
 							UtilAVP.addExperimentalResultCode(response, 
-									DiameterConstants.ResultCode.RC_IMS_DIAMETER_SUBSEQUENT_REGISTRATION.getCode(),
+									DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_SUBSEQUENT_REGISTRATION.getCode(),
 									DiameterConstants.Vendor.V3GPP);
 							break;
 						}
@@ -280,7 +280,7 @@ public class UAR {
 						
 						UtilAVP.addServerCapabilities(response, cap_set_mand_list, cap_set_opt_list, pre_SCSCF_name_list);
 						UtilAVP.addExperimentalResultCode(response, 
-								DiameterConstants.ResultCode.RC_IMS_DIAMETER_FIRST_REGISTRATION.getCode(),
+								DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_FIRST_REGISTRATION.getCode(),
 								DiameterConstants.Vendor.V3GPP);
 						
 					}

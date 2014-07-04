@@ -58,7 +58,7 @@ public class ZhExperimentalResultException extends Exception{
 		this.vendor = vendor;
 	}
 
-	public ZhExperimentalResultException(DiameterConstants.ResultCode resultCode){
+	public ZhExperimentalResultException(DiameterConstants.ExperimentalResultCode resultCode){
 		super (resultCode.getName());
 		this.errorCode = resultCode.getCode();
 		this.vendor = resultCode.getVendor();

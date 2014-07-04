@@ -128,7 +128,7 @@ public class PUR {
 
 			if (vendor_specific_ID == null || auth_session_state == null || origin_host == null || origin_realm == null ||
 					dest_realm == null || user_identity == null || data_reference == -1 || user_data == null){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new ShFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 
 			Session session = HibernateUtil.getCurrentSession();
@@ -140,35 +140,35 @@ public class PUR {
 			ApplicationServer as = ApplicationServer_DAO.get_by_Diameter_Address(session, origin_host);
 
 			if (as == null){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_MODIFIED);
+				throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_MODIFIED);
 			}
 
 			if (as.getPur() == 0){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_MODIFIED);
+				throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_MODIFIED);
 			}
 
 			if ((data_reference == ShConstants.Data_Ref_Repository_Data && as.getPur_rep_data() == 0) ||
 					(data_reference == ShConstants.Data_Ref_PSI_Activation && as.getPur_psi_activation() == 0) ||
 					(data_reference == ShConstants.Data_Ref_DSAI && as.getPur_dsai() == 0) ||
 					(data_reference == ShConstants.Data_Ref_Aliases_Repository_Data && as.getPur_aliases_rep_data() == 0)){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_MODIFIED);
+				throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_MODIFIED);
 			}
 
 			// - 2 - check for user identity existence
 
 			IMPU impu = IMPU_DAO.get_by_Identity(session, user_identity);
 			if (impu == null){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_USER_UNKNOWN);
+				throw new ShFinalResultException(DiameterConstants.ResultCode.DIAMETER_USER_UNKNOWN);
 			}
 
 			// - 3 - check if the user identity apply to the Data-Reference, as specified in table 7.6.1 (TS 29.328)
 			if (data_reference == ShConstants.Data_Ref_PSI_Activation && impu.getType() != CxConstants.Identity_Type_Distinct_PSI){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
+				throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
 			}
 
 			// - 3a -
 			if (data_reference == ShConstants.Data_Ref_Aliases_Repository_Data && impu.getType() != CxConstants.Identity_Type_Public_User_Identity){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
+				throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
 			}
 
 			InputSource input = new InputSource(new ByteArrayInputStream(user_data.getBytes()));
@@ -209,20 +209,20 @@ public class PUR {
 				String dsai_tag = dsai_shdata.getTag();
 				DSAI dsai = DSAI_DAO.get_by_Dsai_tag(session, dsai_tag);
 				if (dsai==null){
-					throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
+					throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
 				}
 				else {
 					int id_impu= impu.getId();
 					int id_dsai= dsai.getId();
 					DSAI_IMPU dsai_impu= DSAI_IMPU_DAO.get_by_DSAI_and_IMPU_ID(session, id_dsai, id_impu);
 					if (dsai_impu ==null){
-						throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
+						throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
 					}
 					else {
 						ApplicationServer as_by_diameter_address = ApplicationServer_DAO.get_by_Diameter_Address(session, origin_host);
 						List ifc_list = IFC_DAO.get_all_by_AS_ID_and_IMPU_ID_and_DSAI_ID(session, as_by_diameter_address.getId(), id_impu, id_dsai);
 						if (ifc_list.isEmpty()){
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
 						}
 						else{
 							//Only save this change if dsai_value is changed
@@ -259,14 +259,14 @@ public class PUR {
 
 					if (repData != null){
 						if (repDataElement.getSqn() == 0 || (repDataElement.getSqn() - 1) != (repData.getSqn() % 65535)){
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC);
 						}
 
 						// check for Service-Data
 						if (repDataElement.getServiceData() != null){
 							if (repDataElement.getServiceData().length() > as.getRep_data_size_limit()){
 								// repository data received is more than the HSS can offer
-								throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_TOO_MUCH_DATA);
+								throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_TOO_MUCH_DATA);
 							}
 
 							// perform the update in the database
@@ -292,16 +292,16 @@ public class PUR {
 					else{
 						// repository data is not yet stored in the HSS
 						if (repDataElement.getSqn() != 0){
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC);
 						}
 
 						if (repDataElement.getServiceData() == null){
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
 						}
 
 						if (repDataElement.getServiceData().length() > as.getRep_data_size_limit()){
 							// repository data received is more than the HSS can offer
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_TOO_MUCH_DATA);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_TOO_MUCH_DATA);
 						}
 
 						// store the data into the HSS
@@ -329,14 +329,14 @@ public class PUR {
 
 					if (aliasesRepData != null){
 						if (aliasesRepDataElement.getSqn() == 0 || (aliasesRepDataElement.getSqn() - 1) != (aliasesRepData.getSqn() % 65535)){
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC);
 						}
 
 						// check for Service-Data
 						if (aliasesRepDataElement.getServiceData() != null){
 							if (aliasesRepDataElement.getServiceData().length() > as.getRep_data_size_limit()){
 								// repository data received is more than the HSS can offer
-								throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_TOO_MUCH_DATA);
+								throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_TOO_MUCH_DATA);
 							}
 
 							// perform the update in the database
@@ -362,16 +362,16 @@ public class PUR {
 					else{
 						// repository data is not yet stored in the HSS
 						if (aliasesRepDataElement.getSqn() != 0){
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC);
 						}
 
 						if (aliasesRepDataElement.getServiceData() == null){
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
 						}
 
 						if (aliasesRepDataElement.getServiceData().length() > as.getRep_data_size_limit()){
 							// repository data received is more than the HSS can offer
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_TOO_MUCH_DATA);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_TOO_MUCH_DATA);
 						}
 
 						// store the data in the HSS

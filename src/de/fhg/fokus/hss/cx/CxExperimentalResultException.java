@@ -51,13 +51,8 @@ public class CxExperimentalResultException extends Exception{
 	private int errorCode;
 	private int vendor;
 	
-	public CxExperimentalResultException(String message, int errorCode, int vendor){
-		super(message);
-		this.errorCode = errorCode;
-		this.vendor = vendor;
-	}
 
-	public CxExperimentalResultException(DiameterConstants.ResultCode resultCode){
+	public CxExperimentalResultException(DiameterConstants.ExperimentalResultCode resultCode){
 		super (resultCode.getName());
 		this.errorCode = resultCode.getCode();
 		this.vendor = resultCode.getVendor();

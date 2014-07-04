@@ -89,13 +89,13 @@ public class MAR{
 			
 			String privateIdentity = UtilAVP.getUserName(request);
 			if (privateIdentity == null){
-				throw new ZhExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
+				throw new ZhFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
 			}
 	
 			// 1. check if the identity exist in HSS
 			IMPI impi = IMPI_DAO.get_by_Identity(session, privateIdentity);
 			if (impi == null){
-				throw new ZhExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
+				throw new ZhExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
 			}
 			
 			int auth_scheme = -1;
@@ -107,11 +107,11 @@ public class MAR{
 					authDataItem.ungroup();
 				} catch (AVPDecodeException e) {
 					e.printStackTrace();
-					throw new ZhExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+					throw new ZhFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 				}
 				Vector childs = authDataItem.childs;
 				if (childs == null){
-					throw new ZhExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+					throw new ZhFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 				}
 				
 				Iterator it = childs.iterator();			
@@ -142,7 +142,7 @@ public class MAR{
 			// 3. check if the Authentication-Scheme is supported
 			if ((auth_scheme & impi.getAuth_scheme()) == 0){
 				throw new ZhExperimentalResultException(
-						DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_AUTH_SCHEME_NOT_SUPPORTED);
+						DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_AUTH_SCHEME_NOT_SUPPORTED);
 			}
 			
 			// 4. Synchronisation

@@ -119,41 +119,41 @@ public class SAR {
 			// 0. check for missing of mandatory AVPs
 			if (vendorSpecificAppID == null) {
                                 logger.warn("Missing Vendor-Specific-Application-ID");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			if (authSessionState == null) {
                                 logger.warn("Missing Auth-Session-State");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			if (originHost == null) {
                                 logger.warn("Missing Origin-Host");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			if (originRealm == null) {
                                 logger.warn("Missing Origin-Realm");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			if (destinationRealm == null) {
                                 logger.warn("Missing Destination-Realm");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			if (serverName == null) {
                                 logger.warn("Missing Server-Name");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			if (serverAssignmentType == -1) {
                                 logger.warn("Missing Server-Assignment-Type");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			if (userDataAlreadyAvailable == -1) {
                                 logger.warn("Missing User-Data-Already-Available");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
 			String publicIdentity = UtilAVP.getPublicIdentity(request);
 			String privateIdentity = UtilAVP.getUserName(request);
 			if (publicIdentity == null && privateIdentity == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+				throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
 			}
 			
 			// open db transaction
@@ -168,10 +168,10 @@ public class SAR {
 			}
 			IMPI impi = IMPI_DAO.get_by_Identity(session, privateIdentity);
 			if (publicIdentity != null && impu == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN); 
+				throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN); 
 			}
 			if (privateIdentity != null && impi == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN); 
+				throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN); 
 			}
 			
 			// store the IMSU ID in id_imsu
@@ -189,7 +189,7 @@ public class SAR {
 			if (impi != null && impu != null){
 				impi_impu = IMPI_IMPU_DAO.get_by_IMPI_and_IMPU_ID(session, impi.getId(), impu.getId());
 				if (impi_impu == null){
-					throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_IDENTITIES_DONT_MATCH);
+					throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_IDENTITIES_DONT_MATCH);
 				}
 			}
 
@@ -218,7 +218,7 @@ public class SAR {
 			int impu_type  = impu.getType();
 			if (impu_type == CxConstants.Identity_Type_Distinct_PSI || impu_type == CxConstants.Identity_Type_Wildcarded_PSI){
 				if (impu.getPsi_activation() == 0){
-					throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
+					throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
 				}
 			}
 			// 5. check the server assignment type received in the request
@@ -227,7 +227,7 @@ public class SAR {
 				case CxConstants.Server_Assignment_Type_Registration:
 				case CxConstants.Server_Assignment_Type_Re_Registration:
 					if (impi == null || impu == null){
-						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+						throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
 					}
 					
 					// clear the auth pending if neccessary
@@ -275,7 +275,7 @@ public class SAR {
 					
 				case CxConstants.Server_Assignment_Type_Unregistered_User:
 					if (impu == null){
-						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+						throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
 					}
 					impu.convert_wildcard_from_sql_to_ims();
 					// store the scscf_name & orgiin_host
@@ -355,7 +355,7 @@ public class SAR {
 				case CxConstants.Server_Assignment_Type_Deregistration_Too_Much_Data:
 				case CxConstants.Server_Assignment_Type_Administrative_Deregistration:
 					if (impi == null){
-						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+						throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
 					}
 
 					List impuList = UtilAVP.getAllIMPU(session, request);
@@ -408,7 +408,7 @@ public class SAR {
 								
 							case CxConstants.IMPU_user_state_Unregistered:
 								if (impi == null){
-									throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+									throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
 								}
 								// set the user_state to Not-Registered
 								DB_Op.setUserState(session, impi.getId(), crt_impu.getId_implicit_set(), 
@@ -440,7 +440,7 @@ public class SAR {
 				case CxConstants.Server_Assignment_Type_User_Deregistration_Store_Server_Name:		
 					// HSS decides not to keep the S-CSCF name
 					if (impi == null){
-						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+						throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
 					}	
 					impuList = UtilAVP.getAllIMPU(session, request);
 					if (impuList == null){
@@ -489,13 +489,13 @@ public class SAR {
 					}
 					
 					UtilAVP.addExperimentalResultCode(response, 
-							DiameterConstants.ResultCode.RC_IMS_DIAMETER_SUCCESS_SERVER_NAME_NOT_STORED.getCode(), 
+							DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_SUCCESS_SERVER_NAME_NOT_STORED.getCode(), 
 							DiameterConstants.Vendor.V3GPP);
 					break;
 					
 				case CxConstants.Server_Assignment_Type_No_Assignment:
 					if (impi == null || impu == null){
-						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+						throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
 					}
 					IMSU imsu = IMSU_DAO.get_by_ID(session, impi.getId_imsu());
 					String scscf_name = imsu.getScscf_name();
@@ -503,7 +503,7 @@ public class SAR {
 					if (!scscf_name.equals(serverName)){
 						if (!scscf_name.equals("")){
 							UtilAVP.addExperimentalResultCode(response, 
-									DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_IDENTITY_ALREADY_REGISTERED.getCode(), 
+									DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_IDENTITY_ALREADY_REGISTERED.getCode(), 
 									DiameterConstants.Vendor.V3GPP);	
 						}
 						else{
@@ -537,7 +537,7 @@ public class SAR {
 				case CxConstants.Server_Assignment_Type_Authentication_Failure:
 				case CxConstants.Server_Assignment_Type_Authentication_Timeout:	
 					if (impi == null || impu == null){
-						throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
+						throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_MISSING_USER_ID);
 					}
 
 					impi_impu = IMPI_IMPU_DAO.get_by_IMPI_and_IMPU_ID(session, impi.getId(), impu.getId());

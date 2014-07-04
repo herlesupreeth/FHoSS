@@ -104,11 +104,11 @@ public class MAR {
 			String privateIdentity = UtilAVP.getUserName(request);
 			if (publicIdentity == null){
                             logger.warn("Missing Public-Identity AVP");
-                            throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
+                            throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
 			}
 			if (privateIdentity == null){
                             logger.warn("Missing User-Name AVP");
-                            throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
+                            throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);	
 			}
 
 			// 1. check if the identities exist in HSS
@@ -116,7 +116,7 @@ public class MAR {
 			IMPI impi = IMPI_DAO.get_by_Identity(session, privateIdentity);
 			if (impu == null || impi == null){
                                 logger.warn("User not found in HSS DB");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
+				throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
 			}
 			
 			// 2. check association
@@ -124,7 +124,7 @@ public class MAR {
 			if (impi_impu == null){
                                 logger.warn("IMPI and IMPU provided are not associated");
 				throw new CxExperimentalResultException(
-						DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_IDENTITIES_DONT_MATCH);
+						DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_IDENTITIES_DONT_MATCH);
 			}
 			
 			int auth_scheme = -1;
@@ -132,18 +132,18 @@ public class MAR {
 			AVP authDataItem = UtilAVP.getSipAuthDataItem(request);
 			if (authDataItem == null){
                                 logger.warn("SIP-Auth-Data-Item AVP not found");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
 			try {
 				authDataItem.ungroup();
 			} catch (AVPDecodeException e) {
 				e.printStackTrace();
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			Vector childs = authDataItem.childs;
 			if (childs == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
 			Iterator it = childs.iterator();			
@@ -187,20 +187,20 @@ public class MAR {
 			
 			if (auth_scheme == -1){
                                 logger.warn("SIP-Authentication-Scheme not found or has invalid value");
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
 			// 3. check if the Authentication-Scheme is supported
 			if ((auth_scheme & impi.getAuth_scheme()) == 0){
 				throw new CxExperimentalResultException(
-						DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_AUTH_SCHEME_NOT_SUPPORTED);
+						DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_AUTH_SCHEME_NOT_SUPPORTED);
 			}
 			
 			// 4. Synchronisation
 			String scscf_name = IMSU_DAO.get_SCSCF_Name_by_IMSU_ID(session, impi.getId_imsu());
 			String server_name = UtilAVP.getServerName(request);
 			if (server_name == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
 			if (authorization != null){
@@ -234,11 +234,11 @@ public class MAR {
 			int user_state = impu.getUser_state();
 			int av_count = UtilAVP.getSipNumberAuthItems(request);
 			if (av_count == -1){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			String orig_host = UtilAVP.getOriginatingHost(request);
 			if (orig_host == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
 			String realm = UtilAVP.getDestinationRealm(request);

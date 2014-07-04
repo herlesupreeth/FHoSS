@@ -59,7 +59,7 @@ public class ShExperimentalResultException extends Exception{
 		this.vendor = vendor;
 	}
 
-	public ShExperimentalResultException(DiameterConstants.ResultCode resultCode){
+	public ShExperimentalResultException(DiameterConstants.ExperimentalResultCode resultCode){
 		super (resultCode.getName());
 		this.errorCode = resultCode.getCode();
 	}

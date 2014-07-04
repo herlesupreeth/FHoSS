@@ -50,18 +50,15 @@ import de.fhg.fokus.hss.diam.DiameterConstants;
 public class ShFinalResultException extends Exception {
 
 	private int errorCode;
-	private int vendor;
 	
 	public ShFinalResultException(String message, int errorCode, int vendor){
 		super(message);
 		this.errorCode = errorCode;
-		this.vendor = vendor;
 	}
 
 	public ShFinalResultException(DiameterConstants.ResultCode resultCode){
 		super (resultCode.getName());
 		this.errorCode = resultCode.getCode();
-		this.vendor = vendor;
 	}
 	
 	public int getErrorCode() {
@@ -72,12 +69,5 @@ public class ShFinalResultException extends Exception {
 		this.errorCode = errorCode;
 	}
 
-	public int getVendor() {
-		return vendor;
-	}
-
-	public void setVendor(int vendor) {
-		this.vendor = vendor;
-	}
 	
 }

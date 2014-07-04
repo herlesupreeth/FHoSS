@@ -69,6 +69,7 @@ import de.fhg.fokus.hss.diam.UtilAVP;
 import de.fhg.fokus.hss.main.HSSProperties;
 import de.fhg.fokus.hss.sh.ShConstants;
 import de.fhg.fokus.hss.sh.ShExperimentalResultException;
+import de.fhg.fokus.hss.sh.ShFinalResultException;
 import de.fhg.fokus.hss.sh.data.ShDataElement;
 
 /**
@@ -108,7 +109,7 @@ public class SNR {
 			if (vendor_specific_ID == null || auth_session_state == null || origin_host == null || origin_realm == null ||
 					dest_realm == null || user_identity == null || data_ref_vector == null || data_ref_vector.size() == 0 ||
 					subs_req_type == -1){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new ShFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 
 			// add Auth-Session-State and Vendor-Specific-Application-ID to Response
@@ -122,12 +123,12 @@ public class SNR {
 			// - 1 -
 			ApplicationServer application_server = ApplicationServer_DAO.get_by_Diameter_Address(session, origin_host);
 			if (application_server == null){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_NOTIFIED);
+				throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_NOTIFIED);
 			}
 
 			// check if the request is allowed for the specified application server
 			if (application_server.getSnr() == 0){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_NOTIFIED);
+				throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_NOTIFIED);
 			}
 
 			// check if the AS is allowed to subscribe to notifications for the requested data
@@ -144,19 +145,19 @@ public class SNR {
 						(crt_data_ref == ShConstants.Data_Ref_PSI_Activation && application_server.getSnr_psi_activation() == 0) ||
 						(crt_data_ref == ShConstants.Data_Ref_DSAI && application_server.getSnr_dsai() == 0) ||
 						(crt_data_ref == ShConstants.Data_Ref_Aliases_Repository_Data && application_server.getSnr_aliases_rep_data() == 0)){
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_NOTIFIED);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_NOTIFIED);
 				}
 
 				// check if the service_indication is present in the request (only for RepositoryData)
 				if ((crt_data_ref == ShConstants.Data_Ref_Aliases_Repository_Data || crt_data_ref == ShConstants.Data_Ref_Repository_Data)
 						&& (service_indication_vector == null || service_indication_vector.size() == 0)){
-					throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+					throw new ShFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 				}
 
 				//check if the server_name is present in the request (only for DSAI)
 				if ((crt_data_ref == ShConstants.Data_Ref_DSAI) && (server_name == null))
 				{
-					throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+					throw new ShFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 				}
 
 			}
@@ -164,7 +165,7 @@ public class SNR {
 			// -2- check if the IMPU or PSI from the request exists in the HSS
 			IMPU impu = IMPU_DAO.get_by_Identity(session, user_identity);
 			if (impu == null){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_USER_UNKNOWN);
+				throw new ShFinalResultException(DiameterConstants.ResultCode.DIAMETER_USER_UNKNOWN);
 			}
 
 
@@ -175,12 +176,12 @@ public class SNR {
 				if (impu.getType() != CxConstants.Identity_Type_Public_User_Identity){
 					if ((crt_data_ref == ShConstants.Data_Ref_IMS_Public_Identity) || (crt_data_ref == ShConstants.Data_Ref_IMS_User_State) ||
 							(crt_data_ref == ShConstants.Data_Ref_Aliases_Repository_Data)	){
-						throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
+						throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
 					}
 				}
 				else if (impu.getType() == CxConstants.Identity_Type_Public_User_Identity){
 					if (crt_data_ref == ShConstants.Data_Ref_PSI_Activation){
-						throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
+						throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
 					}
 				}
 				// -3a-
@@ -190,7 +191,7 @@ public class SNR {
 				// -3b-
 				if (crt_data_ref == ShConstants.Data_Ref_Aliases_Repository_Data){
 					if (impu.getType() != CxConstants.Identity_Type_Public_User_Identity){
-						throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
+						throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_OPERATION_NOT_ALLOWED);
 					}
 				}
 			}
@@ -249,7 +250,7 @@ public class SNR {
 								RepositoryData rep_data = RepositoryData_DAO.get_by_IMPU_and_ServiceIndication(
 										session, impu.getId(), crt_service_indication);
 								if (rep_data == null){
-									throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_SUBS_DATA_ABSENT);
+									throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_SUBS_DATA_ABSENT);
 								}
 							}
 							else if (crt_data_ref == ShConstants.Data_Ref_Aliases_Repository_Data){
@@ -259,7 +260,7 @@ public class SNR {
 								AliasesRepositoryData aliases_rep_data = AliasesRepositoryData_DAO.get_by_setID_and_ServiceIndication(
 										session, impu.getId_implicit_set(), crt_service_indication);
 								if (aliases_rep_data == null){
-									throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_SUBS_DATA_ABSENT);
+									throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_SUBS_DATA_ABSENT);
 								}
 							}
 						}
@@ -406,10 +407,10 @@ public class SNR {
 			UtilAVP.addExperimentalResultCode(response, e.getErrorCode(), e.getVendor());
 			e.printStackTrace();
 		}
-/*		catch(ShFinalResultException e){
+		catch(ShFinalResultException e){
 			UtilAVP.addResultCode(response, e.getErrorCode());
 			e.printStackTrace();
-		}*/
+		}
 		finally{
 			// commit transaction only when a Database exception doesn't occured
 			if (!dbException){

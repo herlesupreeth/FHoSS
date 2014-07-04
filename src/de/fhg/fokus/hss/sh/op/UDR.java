@@ -133,7 +133,7 @@ public class UDR {
 			
 			if (vendor_specific_ID == null || auth_session_state == null || origin_host == null || origin_realm == null ||
 					dest_realm == null || user_identity == null || data_ref_vector == null || data_ref_vector.size() == 0){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new ShFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
 			session = HibernateUtil.getCurrentSession();
@@ -142,11 +142,11 @@ public class UDR {
 			// -1-
 			ApplicationServer as = ApplicationServer_DAO.get_by_Diameter_Address(session, origin_host);
 			if (as == null){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_READ);
+				throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_READ);
 			}
 			
 			if (as.getUdr() == 0){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_READ);				
+				throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_READ);				
 			}
 			
 			for (int i = 0; i < data_ref_vector.size(); i++){
@@ -164,12 +164,12 @@ public class UDR {
 						(crt_data_ref == ShConstants.Data_Ref_PSI_Activation && as.getUdr_psi_activation() == 0) ||
 						(crt_data_ref == ShConstants.Data_Ref_DSAI && as.getUdr_dsai() == 0) ||
 						(crt_data_ref == ShConstants.Data_Ref_Aliases_Repository_Data && as.getUdr_aliases_rep_data() == 0)){
-							throw new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_READ);
+							throw new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_DATA_CANNOT_BE_READ);
 				}
 				// check if the service_indication is present in the request (only for RepositoryData)
 				if ((crt_data_ref == ShConstants.Data_Ref_Aliases_Repository_Data || crt_data_ref == ShConstants.Data_Ref_Repository_Data)
 						&& (service_indication_vector == null || service_indication_vector.size() == 0)){
-					throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+					throw new ShFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			
 				//	check if the server_name is present in the request (only for DSAI)
@@ -184,7 +184,7 @@ public class UDR {
 			// -2- check for user identity existence
 			IMPU impu = IMPU_DAO.get_by_Identity(session, user_identity);
 			if (impu == null){
-				throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_USER_UNKNOWN);				
+				throw new ShFinalResultException(DiameterConstants.ResultCode.DIAMETER_USER_UNKNOWN);				
 			}
 			
 			// -3-
@@ -206,7 +206,7 @@ public class UDR {
 				String crt_service_indication = UtilAVP.getServiceIndication(request);
 				
 				if (crt_data_ref == ShConstants.Data_Ref_Repository_Data && crt_service_indication == null){
-					throw new ShExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+					throw new ShFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 				}
 				
 				// get identitySet
@@ -222,7 +222,7 @@ public class UDR {
 					dsai_tag = UtilAVP.getDSAITag(request);
 					DSAI dsai = DSAI_DAO.get_by_Dsai_tag(session, dsai_tag);
 					if (dsai==null){
-						 new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
+						 new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
 					}
 				}
 
@@ -492,14 +492,14 @@ public class UDR {
 
 						DSAI dsai = DSAI_DAO.get_by_Dsai_tag(session, dsai_tag);
 						if (dsai==null){
-							new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
+							new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
 						}
 						else {
 							int id_impu= impu.getId();
 							int id_dsai= dsai.getId();
 							DSAI_IMPU dsai_impu= DSAI_IMPU_DAO.get_by_DSAI_and_IMPU_ID(session, id_dsai, id_impu);
 							if (dsai_impu ==null){
-								new ShExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
+								new ShExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_DSAI_NOT_AVAILABLE);
 							}
 						
 							DSAIElement dsai_element = new DSAIElement();

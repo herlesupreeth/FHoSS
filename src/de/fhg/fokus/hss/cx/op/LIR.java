@@ -90,7 +90,7 @@ public class LIR {
 			// get the needed AVPs
 			String publicIdentity = UtilAVP.getPublicIdentity(request);
 			if (publicIdentity == null){
-				throw new CxExperimentalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
+				throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_MISSING_AVP);
 			}
 			int originatingRequest = UtilAVP.getOriginatingRequest(request);
 			
@@ -101,7 +101,7 @@ public class LIR {
 				impu = IMPU_DAO.get_by_Wildcarded_Identity(session, publicIdentity, 0, 1);
 				
 				if (impu == null) {				
-					throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
+					throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN);
 				}
 			}
 			
@@ -109,7 +109,7 @@ public class LIR {
 			int type = impu.getType();
 			if (type == CxConstants.Identity_Type_Distinct_PSI || type == CxConstants.Identity_Type_Wildcarded_PSI){
 				if (impu.getPsi_activation() == 0){
-					throw new CxExperimentalResultException(DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN); 
+					throw new CxExperimentalResultException(DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_USER_UNKNOWN); 
 				}
 			}
 			
@@ -185,12 +185,12 @@ public class LIR {
 						}
 						else{
 							UtilAVP.addExperimentalResultCode(response,
-									DiameterConstants.ResultCode.RC_IMS_DIAMETER_UNREGISTERED_SERVICE.getCode(), DiameterConstants.Vendor.V3GPP);
+									DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_UNREGISTERED_SERVICE.getCode(), DiameterConstants.Vendor.V3GPP);
 						}
 					}
 					else{
 						UtilAVP.addExperimentalResultCode(response, 
-								DiameterConstants.ResultCode.RC_IMS_DIAMETER_ERROR_IDENTITY_NOT_REGISTERED.getCode(), DiameterConstants.Vendor.V3GPP);
+								DiameterConstants.ExperimentalResultCode.RC_IMS_DIAMETER_ERROR_IDENTITY_NOT_REGISTERED.getCode(), DiameterConstants.Vendor.V3GPP);
 					}
 					break;
 			}

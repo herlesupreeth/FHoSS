@@ -286,22 +286,7 @@ public class DiameterConstants
     	public static final int UAR_Flag_Emergency = 1;
     }
     
-    public enum ResultCode{
-    	DIAMETER_SUCCESS ("Diameter_Success", 2001, Vendor.DIAM), 							
-    	DIAMETER_REALM_NOT_SERVED("Diameter_Realm_Not_Served", 3003, Vendor.DIAM), 			
-    	DIAMETER_AUTHENTICATION_REJECTED("Diameter_Authentication_Rejected", 4001, Vendor.DIAM),
-    	DIAMETER_AUTHORIZATION_REJECTED("Diameter_Authorization_Rejected", 5003, Vendor.DIAM),
-    	DIAMETER_MISSING_AVP("Diameter_Missing_AVP", 5005, Vendor.DIAM),
-    	DIAMETER_AVP_NOT_ALLOWED("Diameter_AVP_Not_Allowed", 5008, Vendor.DIAM),
-    	DIAMETER_AVP_OCCURS_TOO_MANY_TIMES("Diameter_AVP_Occurs_Too_Many_Times", 5009, Vendor.DIAM),
-    	DIAMETER_NO_COMMON_APPLICATION("Diameter_No_Common_Application", 5010, Vendor.DIAM),
-    	DIAMETER_UNABLE_TO_COMPLY("Diameter_Unable_To_Comply", 5012, Vendor.DIAM),
-    	DIAMETER_NO_COMMON_SECURITY("Diameter_No_Common_Security", 5017, Vendor.DIAM),
-    	DIAMETER_INVALID_AVP_VALUE("Diameter_invalid_AVP_Value", 5040, Vendor.DIAM),
-
-    	/** RFC 4006 */
-    	DIAMETER_USER_UNKNOWN("Diameter_User_Unknown", 5030, Vendor.DIAM),
-    	
+    public enum ExperimentalResultCode {
 		/** 1001 to 1999	Informational			*/
 		/** 2001 to 2999	Success					*/
 		/**	2001 to 2020 Reserved for TS29.229		*/
@@ -352,12 +337,12 @@ public class DiameterConstants
 		
     	/** 5400 to 5419 Reserved for TS29.109	*/
     	
-    	ResultCode(String name, int code, int vendor){
+    	ExperimentalResultCode(String name, int code, int vendor){
     		this.name = name;
     		this.code = code;
     		this.vendor = vendor;
     	}
-    	
+
     	private String name;
     	private int code;
     	private int vendor;
@@ -371,6 +356,40 @@ public class DiameterConstants
 		public int getVendor() {
 			return vendor;
 		}
+    	    	
+    }
+    
+    public enum ResultCode{
+    	DIAMETER_SUCCESS ("Diameter_Success", 2001), 							
+    	DIAMETER_REALM_NOT_SERVED("Diameter_Realm_Not_Served", 3003), 			
+    	DIAMETER_AUTHENTICATION_REJECTED("Diameter_Authentication_Rejected", 4001),
+    	DIAMETER_AUTHORIZATION_REJECTED("Diameter_Authorization_Rejected", 5003),
+    	DIAMETER_MISSING_AVP("Diameter_Missing_AVP", 5005),
+    	DIAMETER_AVP_NOT_ALLOWED("Diameter_AVP_Not_Allowed", 5008),
+    	DIAMETER_AVP_OCCURS_TOO_MANY_TIMES("Diameter_AVP_Occurs_Too_Many_Times", 5009),
+    	DIAMETER_NO_COMMON_APPLICATION("Diameter_No_Common_Application", 5010),
+    	DIAMETER_UNABLE_TO_COMPLY("Diameter_Unable_To_Comply", 5012),
+    	DIAMETER_NO_COMMON_SECURITY("Diameter_No_Common_Security", 5017),
+    	DIAMETER_INVALID_AVP_VALUE("Diameter_invalid_AVP_Value", 5040),
+
+    	/** RFC 4006 */
+    	DIAMETER_USER_UNKNOWN("Diameter_User_Unknown", 5030);
+    	
+    	ResultCode(String name, int code){
+    		this.name = name;
+    		this.code = code;
+    	}
+
+    	private String name;
+    	private int code;
+    	
+		public int getCode() {
+			return code;
+		}
+		public String getName() {
+			return name;
+		}
+
     }
    
 }
