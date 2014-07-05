@@ -1,3 +1,10 @@
+openimscore-fhoss (1187~ppa3) precise; urgency=low
+
+  * Bugfixes for missing S-CSCF name, Unknown authentication scheme and
+    incorrect Experimental-Result-Code AVPs
+
+ -- Rob Day <rkd@rkd.me.uk>  Sat, 05 Jul 2014 17:53:17 +0000
+
 openimscore-fhoss (680~ppa1) lenny; urgency=low
 
   * New release, see SVN for changes
