@@ -46,6 +46,14 @@ package de.fhg.fokus.hss.sh.data;
 import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.LinkedHashMap;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.XMLStreamException;
 
 import org.xml.sax.*;             // The main SAX package
 import org.xml.sax.helpers.*;     // SAX helper classes
@@ -63,6 +71,9 @@ public class ShDataParser extends DefaultHandler {
 	private StringBuffer accumulator;
 	//private String element;
 
+	private Map<String, String> serviceDataNamespaceMappings = null;
+	private StringWriter serviceData = null;
+	private XMLStreamWriter echo = null;
 	private ShDataElement shData = null;
 	private PublicIdentityElement publicIdentity = null;
 	private RepositoryDataElement repositoryData = null;
@@ -140,12 +151,34 @@ public class ShDataParser extends DefaultHandler {
         accumulator = new StringBuffer();
     }
 
+    // Called at the beginning of prefix mapping
+    public void startPrefixMapping(String prefix, String uri) {
+        if (echo != null) {
+            try {
+                echo.setPrefix(prefix, uri);
+                serviceDataNamespaceMappings.put(prefix, uri);
+            } catch (XMLStreamException e) {
+                e.printStackTrace();
+                shData = null;
+            }
+        }
+    }
     // When the parser encounters plain text (not XML elements), it calls
     // this method, which accumulates them in a string buffer.
     // Note that this method may be called multiple times, even with no
     // intervening elements.
     public void characters(char[] buffer, int start, int length) {
-        accumulator.append(buffer, start, length);
+        if (echo != null) {
+            try {
+                echo.writeCharacters(buffer, start, length);
+            } catch (XMLStreamException e) {
+                e.printStackTrace();
+                shData = null;
+            }
+        }
+        else {
+            accumulator.append(buffer, start, length);
+        }
     }
 
     // At the beginning of each new element, erase any accumulated text.
@@ -153,9 +186,52 @@ public class ShDataParser extends DefaultHandler {
     public void startElement(String namespaceURL, String localName,
                              String qname, Attributes attr) {
     	accumulator.setLength(0);
-    	if (localName.equalsIgnoreCase(ShDataTags.ShData)){
+        if (echo != null) {
+            try {
+                if (!"".equals(qname)) {
+                    int prefixSepIndex = qname.indexOf(':');
+                    String prefix = prefixSepIndex > 0 ? qname.substring(0, prefixSepIndex) : "";
+                    String name = prefixSepIndex > 0 ? (qname.length() > prefixSepIndex + 1 ? qname.substring(prefixSepIndex + 1) : "") : qname;
+                    echo.writeStartElement(prefix, name, namespaceURL);
+                    for (Entry<String, String> namespaceMappingEntry : serviceDataNamespaceMappings.entrySet()) {
+                        echo.writeNamespace(namespaceMappingEntry.getKey(), namespaceMappingEntry.getValue());
+                    }
+                    serviceDataNamespaceMappings.clear();
+                } else {
+                    echo.writeStartElement(localName);
+                }
+                if (attr != null) {
+                    for (int i = 0; i < attr.getLength(); i++) {
+                        if (!"".equals(attr.getQName(i))) {
+                            int prefixSepIndex = attr.getQName(i).indexOf(':');
+                            String prefix = prefixSepIndex > 0 ? attr.getQName(i).substring(0, prefixSepIndex) : "";
+                            String name = prefixSepIndex > 0 ? (attr.getQName(i).length() > prefixSepIndex + 1 ? attr.getQName(i).substring(prefixSepIndex + 1) : "") : attr.getQName(i);
+                            echo.writeAttribute(prefix, attr.getURI(i), name, attr.getValue(i));
+                        } else {
+                            echo.writeAttribute(attr.getLocalName(i), attr.getValue(i));
+                        }
+                    }
+                }
+            } catch (XMLStreamException e) {
+                e.printStackTrace();
+                shData = null;
+            }
+        }
+    	else if (localName.equalsIgnoreCase(ShDataTags.ShData)){
     		shData = new ShDataElement();
     	}
+        else if (localName.equalsIgnoreCase(ShDataTags.ServiceData)){
+            // begin echoing unknown elements inside the servicedata element
+            serviceData = new StringWriter();
+            try {
+                XMLOutputFactory xmlof = XMLOutputFactory.newInstance();
+                echo = xmlof.createXMLStreamWriter(serviceData);
+                serviceDataNamespaceMappings = new LinkedHashMap<String, String>();
+            } catch (XMLStreamException e) {
+                e.printStackTrace();
+                shData = null;
+            }
+        }
     	else if (localName.equalsIgnoreCase(ShDataTags.PublicIdentifiers)){
     		publicIdentity = new PublicIdentityElement();
     	}
@@ -225,8 +301,34 @@ public class ShDataParser extends DefaultHandler {
     public void endElement(String namespaceURL, String localName, String qname){
     	
     	String elementContent = accumulator.toString().trim();
-    	
-    	if (localName.equals(ShDataTags.ShData)){
+
+        // catch end of ServiceData first
+        if (localName.equalsIgnoreCase(ShDataTags.ServiceData)){
+            try {
+                echo.writeEndDocument();
+                echo.close();
+            } catch (XMLStreamException e) {
+                e.printStackTrace();
+                shData = null;
+            }
+            if (repositoryData != null){
+                repositoryData.setServiceData(serviceData.toString());
+            }
+            else if (aliasesRepData != null){
+                aliasesRepData.setServiceData(serviceData.toString());
+            }
+            echo = null; // stop echoing
+            serviceData = null; // stop echoing
+        }
+        else if (echo != null) {
+            try {
+                echo.writeEndElement();
+            } catch (XMLStreamException e) {
+                e.printStackTrace();
+                shData = null;
+            }
+        }
+    	else if (localName.equals(ShDataTags.ShData)){
     	}
     	else if (localName.equals(ShDataTags.PublicIdentifiers)){
     		if (shDataExtension != null && registeredIdentities){
@@ -306,14 +408,6 @@ public class ShDataParser extends DefaultHandler {
     		}
     		else if (aliasesRepData != null){
     			aliasesRepData.setSqn(Integer.parseInt(elementContent));
-    		}
-    	}
-    	else if (localName.equalsIgnoreCase(ShDataTags.ServiceData)){
-    		if (repositoryData != null){
-    			repositoryData.setServiceData(elementContent);
-    		}
-    		else if (aliasesRepData != null){
-    			aliasesRepData.setServiceData(elementContent);
     		}
     	}
     	else if (localName.equalsIgnoreCase(ShDataTags.IFCs)){
