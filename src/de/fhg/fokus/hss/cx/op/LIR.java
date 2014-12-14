@@ -142,6 +142,7 @@ public class LIR {
 			switch (user_state){
 			
 				case CxConstants.IMPU_user_state_Registered:
+				case CxConstants.IMPU_user_state_Auth_Pending:
 					if (scscf_name == null || scscf_name.equals("")){
 						throw new CxFinalResultException(DiameterConstants.ResultCode.DIAMETER_UNABLE_TO_COMPLY);
 					}
@@ -150,7 +151,7 @@ public class LIR {
 					break;
 			
 				case CxConstants.IMPU_user_state_Unregistered:
-					
+				    
 					boolean unregistered_services = false;
 					if (SP_IFC_DAO.get_Unreg_Serv_Count(session, impu.getId_sp()) > 0){
 						unregistered_services = true;
