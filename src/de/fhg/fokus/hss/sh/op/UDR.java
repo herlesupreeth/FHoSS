@@ -228,7 +228,6 @@ public class UDR {
 
 				// add the Sh-Data to the shData object
 				addShData(shData, crt_data_ref, impu, crt_service_indication, server_name, identitySet, dsai_tag);
-				
 			}
 			// add the Sh-Data and send the result 
 			UtilAVP.addShData(response, shData.toString());
@@ -287,10 +286,12 @@ public class UDR {
 						RepositoryData repData = RepositoryData_DAO.get_by_IMPU_and_ServiceIndication(session, impu.getId(), 
 								crt_service_indication);
 						RepositoryDataElement repDataElement = new RepositoryDataElement();
-						repDataElement.setServiceData(new String(repData.getRep_data()));
-						repDataElement.setSqn(repData.getSqn());
-						repDataElement.setServiceIndication(crt_service_indication);
-						shData.addRepositoryData(repDataElement);
+						if (repData != null) {
+							repDataElement.setServiceData(new String(repData.getRep_data()));
+							repDataElement.setSqn(repData.getSqn());
+							repDataElement.setServiceIndication(crt_service_indication);
+							shData.addRepositoryData(repDataElement);
+						}
 						break;
 
 					case  ShConstants.Data_Ref_Aliases_Repository_Data:
