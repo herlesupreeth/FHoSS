@@ -151,6 +151,8 @@ public class AS_Submit extends Action{
 				as.setSnr_psi_activation(form.isSnr_psi_activation()?1:0);
 				as.setSnr_dsai(form.isSnr_dsai()?1:0);
 				as.setSnr_aliases_rep_data(form.isSnr_rep_data()?1:0);
+				as.setInclude_register_request(form.isInclude_register_request()?1:0);
+				as.setInclude_register_response(form.isInclude_register_response()?1:0);
 				
 				if (id == -1){
 					ApplicationServer_DAO.insert(session, as);

@@ -692,6 +692,8 @@ public class SAR {
 	public static final String default_handling_e="</DefaultHandling>";
 	public static final String service_info_s="<ServiceInfo>";
 	public static final String service_info_e="</ServiceInfo>";
+	public static final String include_register_request="<IncludeRegisterRequest/>";
+	public static final String include_register_response="<IncludeRegisterResponse/>";
 
 	public static final String profile_part_ind_s="<ProfilePartIndicator>";
 	public static final String profile_part_ind_e="</ProfilePartIndicator>";
@@ -1010,6 +1012,21 @@ Otherwise, we will jump to the next position on the lists to go on comparing.
 						sb.append(crt_as.getService_info());
 						sb.append(service_info_e);
 					}
+					
+					if ((crt_as.getInclude_register_request() == 1) || (crt_as.getInclude_register_response() == 1)) {
+						sb.append(extension_s);
+						
+						if (crt_as.getInclude_register_request() == 1) {
+							sb.append(include_register_request);
+						}
+					    
+						if (crt_as.getInclude_register_response() == 1) {
+							sb.append(include_register_response);
+						}
+						
+						sb.append(extension_e);
+					}
+					
 					sb.append(app_server_e);
 					
 					if (crt_ifc.getProfile_part_ind() != -1){

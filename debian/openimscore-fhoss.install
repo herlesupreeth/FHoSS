@@ -1,5 +1,6 @@
 ./scripts/hss_db.sql usr/share/java/fhoss-0.2/sql_files
 ./scripts/userdata.sql usr/share/java/fhoss-0.2/sql_files
+./scripts/hss_db_migrate_as_register.sql usr/share/java/fhoss-0.2/sql_files
 ./scripts/fhoss.sh usr/sbin/
 ./scripts/fhoss-add-imscore-user.sh usr/sbin/
 

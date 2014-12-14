@@ -114,7 +114,15 @@ function add_action_for_form(action, associated_ID) {
 					<tr bgcolor="#FFCC66">
 						<td> Rep-Data Limit </td>				
 						<td><html:text property="rep_data_size_limit" styleClass="inputtext" style="width:100px;"/> </td>
+					</tr>
+					<tr bgcolor="#FFCC66">
+						<td>Include original REGISTER request?</td>				
+						<td><html:checkbox property="include_register_request" styleClass="inputbox" /> </td>										
 					</tr>					
+					<tr bgcolor="#FFCC66">
+						<td>Include REGISTER Response?</td>				
+						<td><html:checkbox property="include_register_response" styleClass="inputbox" /> </td>										
+					</tr>
 					</table> <!-- fields-table-->		
 				</td>
 				<td>

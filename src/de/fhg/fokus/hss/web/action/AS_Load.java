@@ -183,6 +183,9 @@ public class AS_Load extends Action {
 			form.setSnr_psi_activation((as.getSnr_psi_activation() == 1));
 			form.setSnr_dsai((as.getSnr_dsai() == 1));
 			form.setSnr_aliases_rep_data((as.getSnr_rep_data() == 1));
+			form.setInclude_register_request((as.getInclude_register_request() == 1));
+			form.setInclude_register_response((as.getInclude_register_response() == 1));
+			
 		}
 		return exitCode;
 	}

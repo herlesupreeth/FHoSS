@@ -109,6 +109,8 @@ public class AS_Form extends ActionForm implements Serializable{
 	private boolean snr_psi_activation;
 	private boolean snr_dsai;
 	private boolean snr_aliases_rep_data;
+	private boolean include_register_request;
+	private boolean include_register_response;
 
 	private String nextAction;
 	private List select_default_handling;
@@ -151,6 +153,8 @@ public class AS_Form extends ActionForm implements Serializable{
     	this.snr_psi_activation = false;
     	this.snr_dsai = false;
     	this.snr_aliases_rep_data = false;
+    	this.include_register_request = false;
+    	this.include_register_response = false;
     
     	this.nextAction = null;
     	this.select_default_handling = WebConstants.select_default_handling;
@@ -538,4 +542,19 @@ public class AS_Form extends ActionForm implements Serializable{
 		this.associated_ID = associated_ID;
 	}
     
+	public boolean isInclude_register_request() {
+	    return include_register_request;
+	}
+
+	public void setInclude_register_request(boolean include_register_request) {
+	    this.include_register_request = include_register_request;
+	}
+    
+	public boolean isInclude_register_response() {
+		return include_register_response;
+	}
+
+	public void setInclude_register_response(boolean include_register_response) {
+		this.include_register_response = include_register_response;
+	}
 }

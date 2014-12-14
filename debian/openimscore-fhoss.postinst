@@ -136,6 +136,9 @@ then
 	mysql -uroot $SQL_PASSWORD < sql_files/userdata.sql
 fi
 
+printf "Performing non-destructive SQL migration to add IncludeRegisterRequest/Response...\n"
+mysql -uroot $SQL_PASSWORD < sql_files/hss_db_migrate_as_register.sql
+
 #################################################################################
 #ADDING USERS TO HSS
 #################################################################################

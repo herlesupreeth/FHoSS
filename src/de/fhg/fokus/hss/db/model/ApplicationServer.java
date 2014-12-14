@@ -87,7 +87,9 @@ public class ApplicationServer implements Serializable{
 	private int snr_psi_activation;
 	private int snr_dsai;
 	private int snr_aliases_rep_data;
-	
+	private int include_register_request;
+	private int include_register_response;
+    
 	private boolean dirtyFlag = false;
 	
 	public ApplicationServer(){
@@ -127,6 +129,8 @@ public class ApplicationServer implements Serializable{
 		this.snr_psi_activation = 0;
 		this.snr_dsai = 0;
 		this.snr_aliases_rep_data = 0;
+		this.include_register_request = 0;
+		this.include_register_response = 0;
 	}
 
 	// getters & setters
@@ -406,7 +410,23 @@ public class ApplicationServer implements Serializable{
 	public void setUdr_user_state(int udr_user_state) {
 		this.udr_user_state = udr_user_state;
 	}
+    
+	public int getInclude_register_request() {
+		return include_register_request;
+	}
 
+	public void setInclude_register_request(int include_register_request) {
+		this.include_register_request = include_register_request;
+	}
+    
+	public int getInclude_register_response() {
+		return include_register_response;
+	}
+
+	public void setInclude_register_response(int include_register_response) {
+		this.include_register_response = include_register_response;    
+	}
+    
 	public boolean isDirtyFlag() {
 		return dirtyFlag;
 	}

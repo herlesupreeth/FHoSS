@@ -43,6 +43,8 @@
 	<property name="snr_psi_activation" type="int" />
 	<property name="snr_dsai" type="int" />
 	<property name="snr_aliases_rep_data" type="int" />
-	
+	<property name="include_register_request" type="int" />
+	<property name="include_register_response" type="int" />
+		
 </class>
 </hibernate-mapping>
