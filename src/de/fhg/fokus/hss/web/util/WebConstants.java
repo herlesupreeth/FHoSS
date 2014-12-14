@@ -155,6 +155,8 @@ public class WebConstants {
 				CxConstants.Direction_of_Request_Terminating_Unregistered));
 		select_direction_of_request.add(new Tuple(CxConstants.Direction_of_Request_Originating_Unregistered_Name,
 				CxConstants.Direction_of_Request_Originating_Unregistered));
+		select_direction_of_request.add(new Tuple(CxConstants.Direction_of_Request_Originating_Cdiv_Name,
+                CxConstants.Direction_of_Request_Originating_Cdiv));
 	}
 
 	public static final int PPR_Apply_for_User_Data = 0;

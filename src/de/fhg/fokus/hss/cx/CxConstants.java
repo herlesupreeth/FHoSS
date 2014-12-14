@@ -140,10 +140,12 @@ public class CxConstants {
 	public static final int Direction_of_Request_Terminating_Registered = 1;
 	public static final int Direction_of_Request_Terminating_Unregistered = 2;
 	public static final int Direction_of_Request_Originating_Unregistered = 3;
+	public static final int Direction_of_Request_Originating_Cdiv = 4;
 	public static final String Direction_of_Request_Originating_Session_Name = "Origin - Session";
 	public static final String Direction_of_Request_Terminating_Registered_Name = "Term - Reg";
 	public static final String Direction_of_Request_Terminating_Unregistered_Name = "Term - UnReg";
 	public static final String Direction_of_Request_Originating_Unregistered_Name = "Origin - UnReg";
+	public static final String Direction_of_Request_Originating_Cdiv_Name = "Origin - Cdiv";
 	
 	// Auth_Scheme
 	public static final int Auth_Scheme_Unknown = 0;
