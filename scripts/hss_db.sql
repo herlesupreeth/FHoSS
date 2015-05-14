@@ -86,6 +86,8 @@ CREATE TABLE `application_server` (
   `snr_psi_activation` tinyint(4) NOT NULL default '0',
   `snr_dsai` tinyint(4) NOT NULL default '0',
   `snr_aliases_rep_data` tinyint(4) NOT NULL default '0',
+  `include_register_response` TINYINT NOT NULL default 0,
+  `include_register_request` TINYINT NOT NULL default 0,
   PRIMARY KEY  (`id`),
   KEY `idx_diameter_address` (`diameter_address`),
   KEY `idx_server_name` (`server_name`),
