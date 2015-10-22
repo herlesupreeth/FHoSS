@@ -38,7 +38,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `application_server` WRITE;
 /*!40000 ALTER TABLE `application_server` DISABLE KEYS */;
-INSERT INTO `application_server` VALUES (1,'default_as','sip:127.0.0.1:5065',0,'','presence.open-ims.test',1024,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+INSERT INTO `application_server` VALUES (1,'default_as','sip:127.0.0.1:5065',0,'','presence.open-ims.test',1024,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
 /*!40000 ALTER TABLE `application_server` ENABLE KEYS */;
 UNLOCK TABLES;
 
