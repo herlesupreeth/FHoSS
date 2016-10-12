@@ -361,7 +361,20 @@ public class IMPU_DAO {
 		query = session.createSQLQuery("select * from impu where id_implicit_set=?")
 			.addEntity(IMPU.class);
 		query.setInteger(0, id_set);
-		return query.list();
+		List l = query.list();
+		if (l != null && l.size() > 1){
+			Iterator it = l.iterator();
+			IMPU crt_impu;
+			while (it.hasNext()){
+				crt_impu = (IMPU) it.next();
+				if (crt_impu.getId() == crt_impu.getId_implicit_set()) {
+					it.remove();
+					l.add(0, crt_impu);
+					break;
+				}
+			}
+		}
+		return l;
 	}
 	
 	public static Object[] get_all_from_set(Session session, int id_set, int firstResult, int maxResults){
