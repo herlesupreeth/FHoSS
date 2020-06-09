@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: TreeNode.java 2 2006-11-14 22:37:20Z vingarzan $
  *
  * Copyright (C) 2004-2006 FhG Fokus
  *

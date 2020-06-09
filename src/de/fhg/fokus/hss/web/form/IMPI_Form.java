@@ -77,7 +77,8 @@ public class IMPI_Form extends ActionForm implements Serializable{
 	private static Logger logger = Logger.getLogger(IMPI_Form.class);
 	private static final long serialVersionUID=1L;
 	
-	public static final String DEFAULT_OP = HSSProperties.OPERATOR_ID;  
+	public static final String DEFAULT_OP = HSSProperties.OPERATOR_ID;
+	public static final String DEFAULT_OPC = HSSProperties.OPC;  
 	public static final String DEFAULT_AMF = HSSProperties.AMF_ID;
 	public static final String DEFAULT_SQN = "000000000000";
 	private int id;
@@ -96,6 +97,7 @@ public class IMPI_Form extends ActionForm implements Serializable{
 	private int default_auth_scheme;
 	private String amf;
 	private String op;
+	private String opc;
 	private String sqn;
 	private String ip;
 	private String line_identifier;
@@ -127,6 +129,7 @@ public class IMPI_Form extends ActionForm implements Serializable{
     	this.secretKey = null;
     	this.ip = null;
     	this.op = IMPI_Form.DEFAULT_OP;
+    	this.opc = IMPI_Form.DEFAULT_OPC;
     	this.amf = IMPI_Form.DEFAULT_AMF;
     	this.sqn = IMPI_Form.DEFAULT_SQN;
     	this.aka1 = false;
@@ -190,6 +193,9 @@ public class IMPI_Form extends ActionForm implements Serializable{
             	}
             	if (op == null || op.equals("") || op.length() != 32){
             		actionErrors.add("secret_key", new ActionMessage("impi_form.error.op"));
+            	}
+            	if (opc == null || opc.equals("") || opc.length() != 32){
+            		actionErrors.add("secret_key", new ActionMessage("impi_form.error.opc"));
             	}
             	if (sqn == null || sqn.equals("") || sqn.length() != 12){
             		actionErrors.add("secret_key", new ActionMessage("impi_form.error.sqn"));
@@ -344,6 +350,16 @@ public class IMPI_Form extends ActionForm implements Serializable{
 
 	public void setOp(String op) {
 		this.op = op;
+	}
+
+
+	public String getOpc() {
+		return opc;
+	}
+
+
+	public void setOpc(String opc) {
+		this.opc = opc;
 	}
 
 

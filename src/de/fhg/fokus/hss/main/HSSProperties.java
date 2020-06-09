@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: HSSProperties.java 612 2009-01-07 13:58:44Z vingarzan $
  *
  * Copyright (C) 2004-2006 FhG Fokus
  *
@@ -71,6 +71,7 @@ public class HSSProperties {
 	public static String TOMCAT_HOST;
 	public static String TOMCAT_PORT;
 	public static String OPERATOR_ID;
+	public static String OPC;
 	public static String AMF_ID;
 
 	// Authentication & Security settings
@@ -99,6 +100,7 @@ public class HSSProperties {
 			TOMCAT_HOST = props.getProperty("host");
 			TOMCAT_PORT = props.getProperty("port");
 			OPERATOR_ID = props.getProperty("operatorId");
+			OPC = props.getProperty("opc");
 			AMF_ID = props.getProperty("amfId");
 			USE_AK = Boolean.valueOf(props.getProperty("USE_AK")).booleanValue();
 			IND_LEN = Integer.parseInt(props.getProperty("IND_LEN"));

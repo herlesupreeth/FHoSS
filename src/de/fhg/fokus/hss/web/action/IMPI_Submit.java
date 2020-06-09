@@ -128,6 +128,7 @@ public class IMPI_Submit extends Action{
 				impi.setIp(form.getIp());
 				impi.setAmf(HexCodec.decode(form.getAmf()));
 				impi.setOp(HexCodec.decode(form.getOp()));
+				impi.setOpc(HexCodec.decode(form.getOpc()));
 				impi.setSqn(form.getSqn());
 				impi.setId_imsu(form.getId_imsu());
 				impi.setDefault_auth_scheme(form.getDefault_auth_scheme());

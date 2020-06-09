@@ -260,6 +260,7 @@ CREATE TABLE `impi` (
   `default_auth_scheme` int(11) NOT NULL default '1',
   `amf` tinyblob NOT NULL,
   `op` tinyblob NOT NULL,
+  `opc` tinyblob NOT NULL,
   `sqn` varchar(64) NOT NULL default '000000000000',
   `ip` varchar(64) NOT NULL default '',
   `line_identifier` varchar(64) NOT NULL default '',

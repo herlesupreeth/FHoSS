@@ -63,6 +63,7 @@ public class IMPI implements Serializable{
 	
 	private byte[] amf;
 	private byte[] op;
+	private byte[] opc;
 	private String sqn;
 	private String ip;
 	private Integer id_imsu;
@@ -168,6 +169,14 @@ public class IMPI implements Serializable{
 
 	public void setOp(byte[] op) {
 		this.op = op;
+	}
+
+	public byte[] getOpc() {
+		return opc;
+	}
+
+	public void setOpc(byte[] opc) {
+		this.opc = opc;
 	}
 
 	public String getSqn() {

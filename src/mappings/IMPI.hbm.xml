@@ -14,6 +14,7 @@
 	<property name="default_auth_scheme" type="int" not-null="true"/>
 	<property name="amf" type="binary" not-null="true"/>
 	<property name="op" type="binary" not-null="true"/>
+	<property name="opc" type="binary" not-null="true"/>
 	<property name="sqn" type="string" not-null="true"/>
 	<property name="ip" type="string"/>
 	<property name="id_imsu" type="java.lang.Integer" />

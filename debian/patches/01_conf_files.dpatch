@@ -144,13 +144,15 @@ diff -Nru fhoss-601.orig/scripts/fhoss-add-imscore-user.sh fhoss-601/scripts/fho
 +        auth_scheme,
 +        default_auth_scheme,
 +        amf,
-+        op)
++        op,
++        opc)
 +values( '$IMPI',
 +        (select id from hss_db.imsu where hss_db.imsu.name='<USER>_imsu'),
 +        '$PASSWORD',
 +        127,
 +        1,
 +        '0000',
++        '00000000000000000000000000000000',
 +        '00000000000000000000000000000000');
 +
 +-- add Public SIP Identity

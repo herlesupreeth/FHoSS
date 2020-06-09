@@ -266,10 +266,18 @@ function disable_other_boxes(){
 							</tr>
 							<tr bgcolor="#FFCC66">
 								<td>
-									OP*
+									OP* (Please provide either OP or OPc, not both)
 								</td>
 								<td>
 									<html:text property="op" styleClass="inputtext" style="width:300px;"/> 
+								</td>
+							</tr>
+							<tr bgcolor="#FFCC66">
+								<td>
+									OPc* (Please provide either OP or OPc, not both)
+								</td>
+								<td>
+									<html:text property="opc" styleClass="inputtext" style="width:300px;"/> 
 								</td>
 							</tr>
 							<tr bgcolor="#FFCC66">

@@ -375,9 +375,15 @@ public class MAR {
         byte [] secretKey = HexCodec.getBytes(impi.getK(), CxConstants.Auth_Parm_Secret_Key_Size);
 
         try {
-	            // get op and generate opC	
-	            byte [] op = impi.getOp();
-				byte [] opC = Milenage.generateOpC(secretKey, op);
+	            // get op and generate opC only if OPc is not present, if both are present take OP
+        		byte [] op;
+        		byte [] opC;
+	            if (HexCodec.encode(impi.getOpc()) != HSSProperties.OPC && HexCodec.encode(impi.getOp()) == HSSProperties.OPERATOR_ID) {
+	            	opC = impi.getOpc();
+	            } else {
+	            	op = impi.getOp();
+					opC = Milenage.generateOpC(secretKey, op);
+	            }	            
 				byte [] amf = impi.getAmf();
 
 		        // sqnHE - represent the SQN from the HSS
@@ -519,7 +525,11 @@ public class MAR {
                 // generate opC        
                 byte[] opC;
         		try {
-        			opC = Milenage.generateOpC(secretKey, op);
+        			if (HexCodec.encode(impi.getOpc()) != HSSProperties.OPC && HexCodec.encode(impi.getOp()) == HSSProperties.OPERATOR_ID) {
+	            		opC = impi.getOpc();
+		            } else {
+						opC = Milenage.generateOpC(secretKey, op);
+		            }
         		} catch (InvalidKeyException e1) {
         			e1.printStackTrace();
         			return null;

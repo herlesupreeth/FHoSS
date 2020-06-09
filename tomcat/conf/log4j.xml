@@ -5,7 +5,7 @@
 <!-- Log4j Configuration -->
 <!-- -->
 <!-- ===================================================================== -->
-<!-- $Id$ -->
+<!-- $Id: log4j.xml 2 2006-11-14 22:37:20Z vingarzan $ -->
 <!--
 | For more configuration infromation and examples see the Jakarta Log4j
 | owebsite: http://jakarta.apache.org/log4j
