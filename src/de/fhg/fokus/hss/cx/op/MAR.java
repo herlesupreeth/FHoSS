@@ -411,6 +411,7 @@ public class MAR {
 		        for (int i = 0; i < 16; i++, k++){
 	        		rand[k] = sipAuthorization[i]; 
 		        }
+		        logger.info("RAND is: " + HexCodec.encode(rand));
 
 		        byte[] ak = null;
 		        if (HSSProperties.USE_AK){
@@ -430,8 +431,8 @@ public class MAR {
 			        }
 			        logger.warn("USE_AK is NOT enabled and will NOT be used in Milenage algorithm!");
 		        }
-		        //System.out.println("SQN_MS is: " + codec.encode(sqnMs));
-		        //System.out.println("SQN_HE is: " + codec.encode(sqnHe));
+		        logger.info("SQN_MS is: " + HexCodec.encode(sqnMs));
+		        logger.info("SQN_HE is: " + HexCodec.encode(sqnHe));
 		        
 		        if (DigestAKA.SQNinRange(sqnMs, sqnHe, HSSProperties.IND_LEN, HSSProperties.delta, HSSProperties.L)){
 		        	logger.info("The new generated SQN value shall be accepted on the client, abort synchronization!");
