@@ -256,16 +256,9 @@ public class MAR {
 					}
 					if (!scscf_name.equals(server_name)){
 						
-						IMSU_DAO.update(session, impi.getId_imsu(), server_name, orig_host);
-						// send Sh Notifications for SCSCF_Name for all of the subscribers
-						ShNotification_DAO.insert_notif_for_SCSCFName(session, impi.getId_imsu(), server_name);									
-						
-						impu.setUser_state(CxConstants.IMPU_user_state_Auth_Pending);
-						IMPU_DAO.update(session, impu);
-						
 						UtilAVP.addPublicIdentity(response, publicIdentity);
 						UtilAVP.addUserName(response, privateIdentity);
-						List avList = MAR.generateAuthVectors(session, auth_scheme, av_count, impi, realm, uri, method);
+						List avList = MAR.generateAuthVectors(session, auth_scheme, av_count, impi, impu, realm, uri, method);
 						if (avList != null){
 							UtilAVP.addSIPNumberAuthItems(response, avList.size());
 							UtilAVP.addAuthVectors(response, avList);
@@ -275,12 +268,19 @@ public class MAR {
 							UtilAVP.addResultCode(response, 
 									DiameterConstants.ResultCode.DIAMETER_UNABLE_TO_COMPLY.getCode());
 						}
+
+						IMSU_DAO.update(session, impi.getId_imsu(), server_name, orig_host);
+						// send Sh Notifications for SCSCF_Name for all of the subscribers
+						ShNotification_DAO.insert_notif_for_SCSCFName(session, impi.getId_imsu(), server_name);
+
+						impu.setUser_state(CxConstants.IMPU_user_state_Auth_Pending);
+						IMPU_DAO.update(session, impu);
 					}
 					else{
 						UtilAVP.addPublicIdentity(response, publicIdentity);
 						UtilAVP.addUserName(response, privateIdentity);
 						
-						List avList = MAR.generateAuthVectors(session, auth_scheme, av_count, impi, realm, uri, method);
+						List avList = MAR.generateAuthVectors(session, auth_scheme, av_count, impi, impu, realm, uri, method);
 						if (avList != null){
 							UtilAVP.addSIPNumberAuthItems(response, av_count);
 							UtilAVP.addAuthVectors(response, avList);
@@ -316,7 +316,7 @@ public class MAR {
 								true);
 						UtilAVP.addPublicIdentity(response, publicIdentity);
 						UtilAVP.addUserName(response, privateIdentity);
-						List avList = MAR.generateAuthVectors(session, auth_scheme, av_count, impi, realm, uri, method);
+						List avList = MAR.generateAuthVectors(session, auth_scheme, av_count, impi, impu, realm, uri, method);
 						if (avList != null){
 							UtilAVP.addSIPNumberAuthItems(response, av_count);
 							UtilAVP.addAuthVectors(response, avList);
@@ -331,7 +331,7 @@ public class MAR {
 					else{
 						UtilAVP.addPublicIdentity(response, publicIdentity);
 						UtilAVP.addUserName(response, privateIdentity);
-						List avList = MAR.generateAuthVectors(session, auth_scheme, av_count, impi, realm, uri, method);
+						List avList = MAR.generateAuthVectors(session, auth_scheme, av_count, impi, impu, realm, uri, method);
 						if (avList != null){
 							UtilAVP.addSIPNumberAuthItems(response, av_count);
 							UtilAVP.addAuthVectors(response, avList);
@@ -385,6 +385,11 @@ public class MAR {
 					opC = Milenage.generateOpC(secretKey, op);
 	            }	            
 				byte [] amf = impi.getAmf();
+				byte [] amf_auts = new byte[amf.length];
+				// TS 33.102 v7.0.0, 6.3.3
+				for (int i = 0; i < amf_auts.length; i++){
+					amf_auts[i] = (byte) 0;
+				}
 
 		        // sqnHE - represent the SQN from the HSS
 		        // sqnMS - represent the SQN from the client side
@@ -431,27 +436,27 @@ public class MAR {
 			        }
 			        logger.warn("USE_AK is NOT enabled and will NOT be used in Milenage algorithm!");
 		        }
-		        logger.info("SQN_MS is: " + HexCodec.encode(sqnMs));
-		        logger.info("SQN_HE is: " + HexCodec.encode(sqnHe));
+		        logger.info("SQN_MS in Hex is: " + HexCodec.encode(sqnMs));
+		        logger.info("SQN_HE before sync in Hex is: " + HexCodec.encode(sqnHe));
 		        
-		        if (DigestAKA.SQNinRange(sqnMs, sqnHe, HSSProperties.IND_LEN, HSSProperties.delta, HSSProperties.L)){
-		        	logger.info("The new generated SQN value shall be accepted on the client, abort synchronization!");
-		        	k = 0;
-		        	byte[] copySqnHe = new byte[6];
-			        for (int i = 0; i < 6; i++, k++){
-		        		copySqnHe[k] = sqnHe[i]; 
-			        }
-		        	
-		            AuthenticationVector aVector = 
-		            	DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf, copySqnHe);
-		            IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqnHe));
-		            
-		            return aVector;
-		        }
+				if (DigestAKA.SQNinRange(sqnMs, sqnHe, HSSProperties.IND_LEN, HSSProperties.delta, HSSProperties.L)){
+					logger.info("The new generated SQN value shall be accepted on the client, abort synchronization!");
+					k = 0;
+					byte[] copySqnHe = new byte[6];
+					for (int i = 0; i < 6; i++, k++){
+						copySqnHe[k] = sqnHe[i];
+					}
+
+					AuthenticationVector aVector =
+					DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf_auts, copySqnHe);
+					IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqnHe));
+
+					return aVector;
+				}
 		        
 		        // perform sync
 		        
-	        	byte xmac_s[] = Milenage.f1star(secretKey, rand, opC, sqnMs, amf);
+				byte xmac_s[] = Milenage.f1star(secretKey, rand, opC, sqnMs, amf_auts);
 	        	byte mac_s[] = new byte[8];
 	        	k = 0;
 	        	for (int i = 6; i < 14; i++, k++){
@@ -467,6 +472,8 @@ public class MAR {
 	            sqnHe = sqnMs;
 	            sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
 	     		logger.info("Synchronization of SQN_HE with SQN_MS was completed successfully!");
+
+		        logger.info("SQN_HE after sync in Hex is: " + HexCodec.encode(sqnHe));
 		        
 		        byte[] copySqnHe = new byte[6];
 		        k = 0;
@@ -474,7 +481,7 @@ public class MAR {
 	        		copySqnHe[k] = sqnHe[i]; 
 		        }
 	            AuthenticationVector aVector = 
-	            	DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf, copySqnHe);
+	            	DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf_auts, copySqnHe);
 	            
 	            // update Cxdata
 	            IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqnHe));
@@ -487,7 +494,7 @@ public class MAR {
 			}
 	}
 
-	public static AuthenticationVector generateAuthVector(Session session, int auth_scheme, IMPI impi, String realm, String uri, String method){
+	public static AuthenticationVector generateAuthVector(Session session, int auth_scheme, IMPI impi, IMPU impu, String realm, String uri, String method){
 		
         byte [] secretKey;
         
@@ -545,28 +552,32 @@ public class MAR {
                 	return null;
                 }
         		
-        		sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
+				int user_state = impu.getUser_state();
+				if (user_state != CxConstants.IMPU_user_state_Registered) {
+					sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
+				}
+
     	        byte[] copySqnHe = new byte[6];
     	        int k = 0;
     	        for (int i = 0; i < 6; i++, k++){
             		copySqnHe[k] = sqn[i]; 
     	        }
     	        
-            	//System.out.println("auth:" + auth_scheme);
-            	//System.out.println("secret:" + secretKey.length);
-            	//System.out.println("opC:" + opC.length);
-            	//System.out.println("amf:" + amf.length);
-            	//System.out.println("SQN LEN:" + copySqnHe.length);
+				logger.info("auth:" + auth_scheme);
+				logger.info("secret:" + secretKey.length);
+				logger.info("opC:" + opC.length);
+				logger.info("amf:" + amf.length);
+				logger.info("SQN LEN:" + copySqnHe.length);
             	
 				av = DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf, copySqnHe);
-            	//System.out.println("authenticate:" + av.getSipAuthenticate().length);
-            	//System.out.println("auhtorization:" + av.getSipAuthorization().length);
-            	//System.out.println("ck:" + av.getConfidentialityityKey().length);
-            	//System.out.println("ik:" + av.getIntegrityKey().length);
+				logger.info("authenticate:" + av.getSipAuthenticate().length);
+				logger.info("auhtorization:" + av.getSipAuthorization().length);
+				logger.info("ck:" + av.getConfidentialityityKey().length);
+				logger.info("ik:" + av.getIntegrityKey().length);
 				
                 if (av != null){
                 	IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqn));
-                	//System.out.println("The last SQN is:" + HexCodec.encode(sqn));
+					logger.info("The last SQN is:" + HexCodec.encode(sqn));
                 }        		
             	return av;
             	
@@ -641,12 +652,12 @@ public class MAR {
 		
 	}
 	
-	public static List generateAuthVectors(Session session, int auth_scheme, int av_cnt, IMPI impi, String realm, String uri, String method){
+	public static List generateAuthVectors(Session session, int auth_scheme, int av_cnt, IMPI impi, IMPU impu, String realm, String uri, String method){
         List avList = null;
 
         AuthenticationVector av = null;
         for (long ix = 0; ix < av_cnt; ix++){
-        	av = generateAuthVector(session, auth_scheme, impi, realm, uri, method);
+			av = generateAuthVector(session, auth_scheme, impi, impu, realm, uri, method);
         	if (av == null)
         		break;
         	if (avList == null)
