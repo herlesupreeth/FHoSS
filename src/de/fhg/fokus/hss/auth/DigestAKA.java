@@ -263,6 +263,8 @@ public class DigestAKA
         byte[] randBytes = new byte[16];
     	randomAccess.setSeed(System.currentTimeMillis());
         randomAccess.nextBytes(randBytes);
+
+		logger.info("RAND: " + HexCodec.encode(randBytes) + " length: " + randBytes.length);
     	
     	byte[] mac, xres, ck, ik, autn;
     	

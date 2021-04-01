@@ -564,16 +564,16 @@ public class MAR {
     	        }
     	        
 				logger.info("auth:" + auth_scheme);
-				logger.info("secret:" + secretKey.length);
-				logger.info("opC:" + opC.length);
-				logger.info("amf:" + amf.length);
-				logger.info("SQN LEN:" + copySqnHe.length);
+				logger.info("secret:" + HexCodec.encode(secretKey) + " length: " + secretKey.length);
+				logger.info("opC:" + HexCodec.encode(opC) + " length: " + opC.length);
+				logger.info("amf:" + HexCodec.encode(amf) + " length: " + amf.length);
+				logger.info("SQN HE:" + HexCodec.encode(copySqnHe) + " length: " + copySqnHe.length);
             	
 				av = DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf, copySqnHe);
-				logger.info("authenticate:" + av.getSipAuthenticate().length);
-				logger.info("auhtorization:" + av.getSipAuthorization().length);
-				logger.info("ck:" + av.getConfidentialityityKey().length);
-				logger.info("ik:" + av.getIntegrityKey().length);
+				logger.info("authenticate:" + HexCodec.encode(av.getSipAuthenticate()) + " length: " + av.getSipAuthenticate().length);
+				logger.info("auhtorization:" + HexCodec.encode(av.getSipAuthorization()) + " length: " + av.getSipAuthorization().length);
+				logger.info("ck:" + HexCodec.encode(av.getConfidentialityityKey()) + " length: " + av.getConfidentialityityKey().length);
+				logger.info("ik:" + HexCodec.encode(av.getIntegrityKey()) + " length: " + av.getIntegrityKey().length);
 				
                 if (av != null){
                 	IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqn));
