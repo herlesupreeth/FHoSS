@@ -243,8 +243,6 @@ public class MAR{
 					return null;
 				}
 		        
-		        sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
-
 		        //byte [] nonce = new byte[32];
 		        byte [] auts = new byte[14];
 		        int k = 0;
@@ -277,23 +275,23 @@ public class MAR{
 			        }
 			        logger.warn("USE_AK is NOT enabled and will NOT be used in Milenage algorithm!");
 		        }
-		        logger.info("SQN_MS is: " + HexCodec.encode(sqnMs));
-		        logger.info("SQN_HE is: " + HexCodec.encode(sqnHe));
+		        logger.info("SQN_MS in Hex is: " + HexCodec.encode(sqnMs));
+		        logger.info("SQN_HE before sync in Hex is: " + HexCodec.encode(sqnHe));
 		        
-		        if (DigestAKA.SQNinRange(sqnMs, sqnHe, HSSProperties.IND_LEN, HSSProperties.delta, HSSProperties.L)){
-		        	logger.info("The new generated SQN value shall be accepted on the client, abort synchronization!");
-		        	k = 0;
-		        	byte[] copySqnHe = new byte[6];
-			        for (int i = 0; i < 6; i++, k++){
-		        		copySqnHe[k] = sqnHe[i]; 
-			        }
+		        // if (DigestAKA.SQNinRange(sqnMs, sqnHe, HSSProperties.IND_LEN, HSSProperties.delta, HSSProperties.L)){
+		        // 	logger.info("The new generated SQN value shall be accepted on the client, abort synchronization!");
+		        // 	k = 0;
+		        // 	byte[] copySqnHe = new byte[6];
+			    //     for (int i = 0; i < 6; i++, k++){
+		        // 		copySqnHe[k] = sqnHe[i];
+			    //     }
 		        	
-		            AuthenticationVector aVector = 
-		            	DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf_auts, copySqnHe);
-		            IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqnHe));
+		        //     AuthenticationVector aVector =
+		        //     	DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf_auts, copySqnHe);
+		        //     IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqnHe));
 		            
-		            return aVector;
-		        }
+		        //     return aVector;
+		        // }
 		        
 		        // perform sync
 		        
@@ -313,17 +311,16 @@ public class MAR{
 	            sqnHe = sqnMs;
 	            sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
 	     		logger.info("Synchronization of SQN_HE with SQN_MS was completed successfully!");
-		        
-		        byte[] copySqnHe = new byte[6];
-		        k = 0;
-		        for (int i = 0; i < 6; i++, k++){
-	        		copySqnHe[k] = sqnHe[i]; 
-		        }
+		        logger.info("SQN_HE after sync in Hex is: " + HexCodec.encode(sqnHe));
+
 	            AuthenticationVector aVector = 
-	            	DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf_auts, copySqnHe);
+					DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf_auts, sqnHe);
 	            
 	            // update Cxdata
-	            IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqnHe));
+	            if (aVector != null) {
+					sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
+					IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqnHe));
+				}
 	            return aVector;
 	            
 			} 
@@ -406,17 +403,22 @@ public class MAR{
                 	e.printStackTrace();
                 	return null;
                 }
+
+				logger.info("auth:" + auth_scheme);
+				logger.info("secret:" + HexCodec.encode(secretKey) + " length: " + secretKey.length);
+				logger.info("opC:" + HexCodec.encode(opC) + " length: " + opC.length);
+				logger.info("amf:" + HexCodec.encode(amf) + " length: " + amf.length);
+				logger.info("SQN HE:" + HexCodec.encode(sqn) + " length: " + sqn.length);
+
+				av = DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf, sqn);
+				logger.info("authenticate:" + HexCodec.encode(av.getSipAuthenticate()) + " length: " + av.getSipAuthenticate().length);
+				logger.info("auhtorization:" + HexCodec.encode(av.getSipAuthorization()) + " length: " + av.getSipAuthorization().length);
+				logger.info("ck:" + HexCodec.encode(av.getConfidentialityityKey()) + " length: " + av.getConfidentialityityKey().length);
+				logger.info("ik:" + HexCodec.encode(av.getIntegrityKey()) + " length: " + av.getIntegrityKey().length);
         		
-            	sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
-    	        byte[] copySqnHe = new byte[6];
-    	        int k = 0;
-    	        for (int i = 0; i < 6; i++, k++){
-            		copySqnHe[k] = sqn[i]; 
-    	        }
-				av = DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf, copySqnHe);
                 if (av != null){
+					sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
                 	IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqn));
-                	//System.out.println("The last SQN is:" + HexCodec.encode(sqn));
                 }        		
             	return av;
         }

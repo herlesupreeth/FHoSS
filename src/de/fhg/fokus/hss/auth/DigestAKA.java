@@ -267,6 +267,7 @@ public class DigestAKA
 		logger.info("RAND: " + HexCodec.encode(randBytes) + " length: " + randBytes.length);
     	
     	byte[] mac, xres, ck, ik, autn;
+		int k = 0;
     	
 		try {
 			mac = Milenage.f1(secretKey,randBytes, opC, sqn, amf);
@@ -274,14 +275,18 @@ public class DigestAKA
 	        xres = Milenage.f2(secretKey, randBytes, opC);
 	        ck = Milenage.f3(secretKey, randBytes, opC);
 	        ik = Milenage.f4(secretKey, randBytes, opC); 
-	        
+
+			// compute autn
 	        autn = new byte[16];
 	        if (HSSProperties.USE_AK){
 	        	byte[] ak = Milenage.f5(secretKey, randBytes, opC);
-	        	for (int i = 0; i < 6; i++){
-	            	sqn[i] = (byte) (sqn[i] ^ ak[i]);
+				for (int i = 0; i < 6; i++, k++){
+					autn[k] = (byte) (sqn[i] ^ ak[i]);
 	            }	
-	        }
+	        } else {
+				for (int i = 0; i < 6; i++, k++)
+					autn[k] = sqn[i];
+			}
 		
 		} 
 		catch (InvalidKeyException e) {
@@ -290,9 +295,6 @@ public class DigestAKA
 		}
 		
         // compute autn
-        int k = 0;
-        for (int i = 0; i < 6; i++, k++)
-        	autn[k] = sqn[i];
         for (int i = 0; i < 2; i++, k++)
           	autn[k] = amf[i];
         for (int i = 0; i < 8; i++, k++)
