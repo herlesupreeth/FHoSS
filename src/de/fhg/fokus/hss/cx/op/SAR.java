@@ -800,7 +800,7 @@ Otherwise, we will jump to the next position on the lists to go on comparing.
 			// PublicIdentity 					=> 1 to n
 			List impu_array = (List) impus_list.get(i);
 			Iterator it = impu_array.iterator();
-			// Sort IMPUs so that IMPUs with tel:xxx appear immediately after barred IMPUs
+			// Sort IMPUs so that IMPUs with sip:xxx@<DOMAIN> appear immediately after barred IMPUs
 			List<IMPU> impus_sorted = new ArrayList<IMPU>();
 			// First append all IMPUs which are barred
 			while (it.hasNext()){
@@ -814,7 +814,7 @@ Otherwise, we will jump to the next position on the lists to go on comparing.
 			while (it.hasNext()){
 				IMPU impu = (IMPU)it.next();
 				String impu_id = impu.getIdentity();
-				if (impu.getBarring() != 1 && impu_id.matches("tel:(.*)")) {
+				if (impu.getBarring() != 1 && impu_id.matches("sip:(.*)")) {
 					impus_sorted.add(impu);
 				}
 			}
@@ -823,7 +823,7 @@ Otherwise, we will jump to the next position on the lists to go on comparing.
 			while (it.hasNext()){
 				IMPU impu = (IMPU)it.next();
 				String impu_id = impu.getIdentity();
-				if (impu.getBarring() != 1 && !impu_id.matches("tel:(.*)")) {
+				if (impu.getBarring() != 1 && !impu_id.matches("sip:(.*)")) {
 					impus_sorted.add(impu);
 				}
 			}
