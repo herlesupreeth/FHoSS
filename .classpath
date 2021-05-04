@@ -16,7 +16,7 @@
 	<classpathentry kind="lib" path="lib/jta.jar"/>
 	<classpathentry kind="lib" path="lib/log4j.jar"/>
 	<classpathentry kind="lib" path="lib/mx4j-3.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/mysql-connector-java-3.1.12-bin.jar"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.49-bin.jar"/>
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
 	<classpathentry kind="lib" path="lib/xalan-2.4.0.jar"/>
 	<classpathentry kind="lib" path="lib/xerces-2.4.0.jar"/>
