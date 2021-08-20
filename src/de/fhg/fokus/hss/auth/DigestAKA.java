@@ -152,6 +152,13 @@ public class DigestAKA
 
 		return x;
 	}
+
+	public static byte[] incrementSQN(byte[] sqn) {
+		/* 33.102 C.3.4 Guide : IND + 1 */
+		long sqn_num = Long.parseLong(HexCodec.encode(sqn));
+		sqn_num = (sqn_num + 32 + 1) & 0xffffffffffffL;
+		return HexCodec.decode(String.valueOf(sqn_num));
+	}
 	
 	
 	public static byte[] getNextSQN(byte[] sqn, int a){

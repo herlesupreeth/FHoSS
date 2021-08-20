@@ -384,8 +384,7 @@ public class MAR {
 	            	op = impi.getOp();
 					opC = Milenage.generateOpC(secretKey, op);
 	            }	            
-				byte [] amf = impi.getAmf();
-				byte [] amf_auts = new byte[amf.length];
+				byte [] amf_auts = new byte[2];
 				// TS 33.102 v7.0.0, 6.3.3
 				for (int i = 0; i < amf_auts.length; i++){
 					amf_auts[i] = (byte) 0;
@@ -405,7 +404,7 @@ public class MAR {
 		        //byte [] nonce = new byte[32];
 		        byte [] auts = new byte[14];
 		        int k = 0;
-		        for (int i = sipAuthorization.length - auts.length; i < sipAuthorization.length; i++, k++){
+		        for (int i = 16; k < auts.length; i++, k++){
 	        		auts[k] = sipAuthorization[i]; 
 		        }
 		        
@@ -468,7 +467,7 @@ public class MAR {
 	               }
 
 	            sqnHe = sqnMs;
-	            sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
+	            sqnHe = DigestAKA.incrementSQN(sqnHe);
 	     		logger.info("Synchronization of SQN_HE with SQN_MS was completed successfully!");
 		        logger.info("SQN_HE after sync in Hex is: " + HexCodec.encode(sqnHe));
 
@@ -476,10 +475,7 @@ public class MAR {
 					DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf_auts, sqnHe);
 	            
 	            // update Cxdata
-				if (aVector != null) {
-					sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
 					IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqnHe));
-				}
 	            return aVector;
 	            
 			} 
@@ -558,11 +554,6 @@ public class MAR {
 				logger.info("auhtorization:" + HexCodec.encode(av.getSipAuthorization()) + " length: " + av.getSipAuthorization().length);
 				logger.info("ck:" + HexCodec.encode(av.getConfidentialityityKey()) + " length: " + av.getConfidentialityityKey().length);
 				logger.info("ik:" + HexCodec.encode(av.getIntegrityKey()) + " length: " + av.getIntegrityKey().length);
-				
-                if (av != null){
-					sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
-                	IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqn));
-                }
 
 				return av;
             	

@@ -309,7 +309,7 @@ public class MAR{
 	               }
 
 	            sqnHe = sqnMs;
-	            sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
+	            sqnHe = DigestAKA.incrementSQN(sqnHe);
 	     		logger.info("Synchronization of SQN_HE with SQN_MS was completed successfully!");
 		        logger.info("SQN_HE after sync in Hex is: " + HexCodec.encode(sqnHe));
 
@@ -317,10 +317,7 @@ public class MAR{
 					DigestAKA.getAuthenticationVector(auth_scheme, secretKey, opC, amf_auts, sqnHe);
 	            
 	            // update Cxdata
-	            if (aVector != null) {
-					sqnHe = DigestAKA.getNextSQN(sqnHe, HSSProperties.IND_LEN);
 					IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqnHe));
-				}
 	            return aVector;
 	            
 			} 
@@ -416,10 +413,7 @@ public class MAR{
 				logger.info("ck:" + HexCodec.encode(av.getConfidentialityityKey()) + " length: " + av.getConfidentialityityKey().length);
 				logger.info("ik:" + HexCodec.encode(av.getIntegrityKey()) + " length: " + av.getIntegrityKey().length);
         		
-                if (av != null){
-					sqn = DigestAKA.getNextSQN(sqn, HSSProperties.IND_LEN);
                 	IMPI_DAO.update(session, impi.getId(), HexCodec.encode(sqn));
-                }        		
             	return av;
         }
         return null;

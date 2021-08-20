@@ -59,6 +59,7 @@ public class Milenage {
     {
         kernel.init(secretKey);
         byte[] temp = new byte[16];
+        byte[] temp2 = new byte[16];
         byte[] in1 = new byte[16];
         byte[] out1 = new byte[16];
         byte[] rijndaelInput = new byte[16];
@@ -69,16 +70,19 @@ public class Milenage {
         temp = kernel.encrypt(rijndaelInput);
 
         // expand sqn and amf into 128 bit value
-        for (int i = 0; i < sqn.length; i++)
+        for (int i = 0; i < 6; i++)
         {
             in1[i] = sqn[i];
-            in1[i + 8] = sqn[i];
         }
         
-        for (int i = 0; i < amf.length; i++)
+        for (int i = 0; i < 2; i++)
         {
             in1[i + 6] = amf[i];
-            in1[i + 14] = amf[i];
+        }
+
+        for (int i = 0; i < 8; i++)
+        {
+            in1[i + 8] = in1[i];
         }
 
         /*
@@ -86,17 +90,17 @@ public class Milenage {
          * is all zeroes)
          */
 
-        for (int i = 0; i < in1.length; i++)
-            rijndaelInput[(i + 8) % 16] = (byte) (in1[i] ^ op_c[i]);
+        for (int i = 0; i < 16; i++)
+            temp2[(i + 8) % 16] = (byte) (in1[i] ^ op_c[i]);
 
         /* XOR on the value temp computed before */
 
         for (int i = 0; i < 16; i++)
-            rijndaelInput[i] ^= temp[i];
+            temp2[i] ^= temp[i];
 
-        out1 = kernel.encrypt(rijndaelInput);
+        out1 = kernel.encrypt(temp2);
         for (int i = 0; i < 16; i++)
-            out1[i] = (byte) (out1[i] ^op_c[i]);
+            out1[i] = (byte) (out1[i] ^ op_c[i]);
 
         byte[] mac = new byte[8];
         for (int i = 0; i < 8; i++)
@@ -108,16 +112,14 @@ public class Milenage {
     public static byte[] f1star(byte[] secretKey, byte[] rand, byte[] op_c, byte[] sqn,byte[] amfStar)
             throws InvalidKeyException
     {
-        //Amf amfObj= new Amf("b9b9");
-        //return f1(secretKey, rand, op_c, sqn, AMF);
-        //return fOne(secretKey, randObj, op_cObj, sqnObj, amfObj);        
         kernel.init(secretKey);
         byte[] temp = new byte[16];
+        byte[] temp2 = new byte[16];
         byte[] in1 = new byte[16];
         byte[] out1 = new byte[16];
         byte[] rijndaelInput = new byte[16];
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < rand.length && i<op_c.length; i++)
             rijndaelInput[i] = (byte) (rand[i] ^ op_c[i]);
 
         temp = kernel.encrypt(rijndaelInput);
@@ -126,31 +128,34 @@ public class Milenage {
         for (int i = 0; i < 6; i++)
         {
             in1[i] = sqn[i];
-            in1[i + 8] = sqn[i];
         }
         
         for (int i = 0; i < 2; i++)
         {
             in1[i + 6] = amfStar[i];
-            in1[i + 14] = amfStar[i];
         }
 
-        
-         /* XOR op_c and in1, rotate by r1=64, and XOR on the constant c1 (which
-         * is all zeroes)*/
-         
+        for (int i = 0; i < 8; i++)
+        {
+            in1[i + 8] = in1[i];
+        }
+
+        /*
+         * XOR op_c and in1, rotate by r1=64, and XOR on the constant c1 (which
+         * is all zeroes)
+         */
 
         for (int i = 0; i < 16; i++)
-            rijndaelInput[(i + 8) % 16] = (byte) (in1[i] ^ op_c[i]);
+            temp2[(i + 8) % 16] = (byte) (in1[i] ^ op_c[i]);
 
-         //XOR on the value temp computed before 
+        /* XOR on the value temp computed before */
 
         for (int i = 0; i < 16; i++)
-            rijndaelInput[i] ^= temp[i];
+            temp2[i] ^= temp[i];
 
-        out1 = kernel.encrypt(rijndaelInput);
+        out1 = kernel.encrypt(temp2);
         for (int i = 0; i < 16; i++)
-            out1[i] ^= op_c[i];
+            out1[i] = (byte) (out1[i] ^ op_c[i]);
 
         byte[] mac = new byte[8];
         for (int i = 0; i < 8; i++)
@@ -208,6 +213,16 @@ public class Milenage {
         temp = kernel.encrypt(rijndaelInput);
 
         /*
+         * To obtain output block OUT2: XOR OPc and TEMP, rotate by r2=0, and
+         * XOR on the constant c2 is all zeroes except that the last bit is 1).
+         */
+
+        for (int i = 0; i < 16; i++)
+            rijndaelInput[i] = (byte) (temp[i] ^ op_c[i]);
+
+        rijndaelInput[15] ^= 1;
+
+        /*
          * To obtain output block OUT3: XOR OPc and TEMP, rotate by r3=32, and
          * XOR on the constant c3 (which * is all zeroes except that the next to
          * last bit is 1).
@@ -239,6 +254,16 @@ public class Milenage {
             rijndaelInput[i] = (byte) (rand[i] ^ op_c[i]);
 
         temp = kernel.encrypt(rijndaelInput);
+
+        /*
+         * To obtain output block OUT2: XOR OPc and TEMP, rotate by r2=0, and
+         * XOR on the constant c2 is all zeroes except that the last bit is 1).
+         */
+
+        for (int i = 0; i < 16; i++)
+            rijndaelInput[i] = (byte) (temp[i] ^ op_c[i]);
+
+        rijndaelInput[15] ^= 1;
 
         /*
          * To obtain output block OUT4: XOR OPc and TEMP, rotate by r4=64, and
@@ -304,7 +329,18 @@ public class Milenage {
 
         for (int i = 0; i < 16; i++)
             rijndaelInput[i] = (byte) (rand[i] ^ op_c[i]);
+
         temp = kernel.encrypt(rijndaelInput);
+
+        /*
+         * To obtain output block OUT2: XOR OPc and TEMP, rotate by r2=0, and
+         * XOR on the constant c2 is all zeroes except that the last bit is 1).
+         */
+
+        for (int i = 0; i < 16; i++)
+            rijndaelInput[i] = (byte) (temp[i] ^ op_c[i]);
+
+        rijndaelInput[15] ^= 1;
 
         /*
          * To obtain output block OUT5: XOR OPc and TEMP, rotate by r5=96, and
@@ -319,12 +355,9 @@ public class Milenage {
 
         out = kernel.encrypt(rijndaelInput);
 
-        for (int i = 0; i < 16; i++)
-            out[i] = (byte) (out[i] ^op_c[i]);
-
         byte[] ak = new byte[6];
         for (int i = 0; i < 6; i++)
-            ak[i] = (byte) out[i];
+            ak[i] = (byte) (out[i] ^ op_c[i]);
 
         return ak;
     }
