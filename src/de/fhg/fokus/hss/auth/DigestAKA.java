@@ -155,7 +155,7 @@ public class DigestAKA
 
 	public static byte[] incrementSQN(byte[] sqn) {
 		/* 33.102 C.3.4 Guide : IND + 1 */
-		long sqn_num = Long.parseLong(HexCodec.encode(sqn));
+		long sqn_num = Long.decode("0x" + HexCodec.encode(sqn));
 		sqn_num = (sqn_num + 32 + 1) & 0xffffffffffffL;
 		return HexCodec.decode(String.valueOf(sqn_num));
 	}
