@@ -52,6 +52,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import de.fhg.fokus.hss.cx.CxConstants;
@@ -155,9 +156,10 @@ public class DigestAKA
 
 	public static byte[] incrementSQN(byte[] sqn) {
 		/* 33.102 C.3.4 Guide : IND + 1 */
-		long sqn_num = Long.decode("0x" + HexCodec.encode(sqn));
+		long sqn_num = Long.parseLong(HexCodec.encode(sqn), 16);
 		sqn_num = (sqn_num + 32 + 1) & 0xffffffffffffL;
-		return HexCodec.decode(String.valueOf(sqn_num));
+		String sqn_str = Long.toHexString(sqn_num);
+		return HexCodec.decode(StringUtils.leftPad(sqn_str, 12, "0"));
 	}
 	
 	

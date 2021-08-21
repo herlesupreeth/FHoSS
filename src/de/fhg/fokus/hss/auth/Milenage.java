@@ -70,12 +70,12 @@ public class Milenage {
         temp = kernel.encrypt(rijndaelInput);
 
         // expand sqn and amf into 128 bit value
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < sqn.length; i++)
         {
             in1[i] = sqn[i];
         }
         
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < amf.length; i++)
         {
             in1[i + 6] = amf[i];
         }
@@ -125,12 +125,12 @@ public class Milenage {
         temp = kernel.encrypt(rijndaelInput);
 
         // expand sqn and amf into 128 bit value
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < sqn.length; i++)
         {
             in1[i] = sqn[i];
         }
         
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < amfStar.length; i++)
         {
             in1[i + 6] = amfStar[i];
         }
