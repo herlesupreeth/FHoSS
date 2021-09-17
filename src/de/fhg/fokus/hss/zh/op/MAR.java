@@ -219,7 +219,7 @@ public class MAR{
 	            // get op and generate opC only if OPc is not present, if both are present take OP
         		byte [] op;
         		byte [] opC;
-	            if (HexCodec.encode(impi.getOpc()) != HSSProperties.OPC && HexCodec.encode(impi.getOp()) == HSSProperties.OPERATOR_ID) {
+	            if (!HexCodec.encode(impi.getOpc()).equals(HSSProperties.OPC) && HexCodec.encode(impi.getOp()).equals(HSSProperties.OPERATOR_ID)) {
 	            	opC = impi.getOpc();
 	            } else {
 	            	op = impi.getOp();
@@ -385,7 +385,7 @@ public class MAR{
                 
                 byte[] opC;
         		try {
-        			if (HexCodec.encode(impi.getOpc()) != HSSProperties.OPC && HexCodec.encode(impi.getOp()) == HSSProperties.OPERATOR_ID) {
+        			if (!HexCodec.encode(impi.getOpc()).equals(HSSProperties.OPC) && HexCodec.encode(impi.getOp()).equals(HSSProperties.OPERATOR_ID)) {
 	            		opC = impi.getOpc();
 		            } else {
 						opC = Milenage.generateOpC(secretKey, op);
